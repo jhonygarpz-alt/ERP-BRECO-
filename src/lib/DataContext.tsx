@@ -35,7 +35,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const viajes = useCollection<Viaje>('viajes', seedViajes);
   const facturas = useCollection<Factura>('facturas', seedFacturas);
   const empresa = useSingleton<Empresa>('empresa', seedEmpresa);
-  const usuarios = useCollection<Usuario>('usuarios', seedUsuarios);
+  const usuarios = useCollection<Usuario>('usuarios', seedUsuarios, (u) => ({
+    ...u,
+    password: u.password || 'breco2026',
+  }));
   const roles = useCollection<Rol>('roles', seedRoles);
 
   return (

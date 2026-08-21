@@ -19,9 +19,16 @@ function readFromStorage<T>(key: string, fallback: T): T {
  * This is the only data layer for the app: no backend exists yet, so each
  * catalog/tab owns its own key and everything lives in the browser.
  */
-export function useCollection<T extends { id: string }>(key: string, seed: T[]) {
+export function useCollection<T extends { id: string }>(
+  key: string,
+  seed: T[],
+  migrate?: (item: T) => T,
+) {
   const storageKey = `breco-erp:${key}`;
-  const [items, setItems] = useState<T[]>(() => readFromStorage(storageKey, seed));
+  const [items, setItems] = useState<T[]>(() => {
+    const loaded = readFromStorage(storageKey, seed);
+    return migrate ? loaded.map(migrate) : loaded;
+  });
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(items));
