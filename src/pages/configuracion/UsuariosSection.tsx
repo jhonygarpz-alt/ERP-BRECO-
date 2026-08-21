@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import type { Estatus, Usuario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -10,6 +11,10 @@ import { StatusBadge } from '../../components/ui/Badge';
 
 export function UsuariosSection() {
   const { usuarios, roles } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Configuracion', 'crear');
+  const puedeEditar = hasPermission('Configuracion', 'editar');
+  const puedeEliminar = hasPermission('Configuracion', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Usuario | null>(null);
@@ -18,6 +23,7 @@ export function UsuariosSection() {
     nombre: '',
     email: '',
     telefono: '',
+    password: '',
     rolId: roles.items[0]?.id ?? '',
     estatus: 'activo',
   };
@@ -74,10 +80,18 @@ export function UsuariosSection() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nombre o email..."
         addLabel="Nuevo usuario"
-        onAdd={openNew}
+        onAdd={puedeCrear ? openNew : undefined}
       />
 
-      <CrudTable columns={columns} rows={filtered} keyFn={(u) => u.id} onEdit={openEdit} onDelete={handleDelete} />
+      <CrudTable
+        columns={columns}
+        rows={filtered}
+        keyFn={(u) => u.id}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
+      />
 
       {modalOpen && (
         <Modal
@@ -101,6 +115,15 @@ export function UsuariosSection() {
             </Field>
             <Field label="Telefono">
               <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
+            </Field>
+            <Field label="Contrasena">
+              <Input
+                type="password"
+                required
+                minLength={4}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
             </Field>
             <Field label="Rol">
               <Select value={form.rolId} onChange={(e) => setForm({ ...form, rolId: e.target.value })}>

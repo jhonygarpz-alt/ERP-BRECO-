@@ -124,6 +124,16 @@ export const seedRoles: Rol[] = [
   },
 ];
 
+// Usuario y contrasena inicial: admin@brecotransportes.com / breco2026
+// Cambiar la contrasena desde Configuracion > Usuarios en cuanto se pueda entrar.
 export const seedUsuarios: Usuario[] = [
-  { id: 'usr-1', nombre: 'Administrador General', email: 'admin@brecotransportes.com', telefono: 'Pendiente', rolId: 'rol-admin', estatus: 'activo' },
+  {
+    id: 'usr-1',
+    nombre: 'Administrador General',
+    email: 'admin@brecotransportes.com',
+    telefono: 'Pendiente',
+    password: 'breco2026',
+    rolId: 'rol-admin',
+    estatus: 'activo',
+  },
 ];

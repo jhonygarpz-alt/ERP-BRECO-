@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import type { Cliente } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -20,6 +21,10 @@ const emptyForm: Omit<Cliente, 'id'> = {
 
 export function ClientesPage() {
   const { clientes } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Catalogos', 'crear');
+  const puedeEditar = hasPermission('Catalogos', 'editar');
+  const puedeEliminar = hasPermission('Catalogos', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Cliente | null>(null);
@@ -92,10 +97,18 @@ export function ClientesPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nombre, RFC o contacto..."
         addLabel="Nuevo cliente"
-        onAdd={openNew}
+        onAdd={puedeCrear ? openNew : undefined}
       />
 
-      <CrudTable columns={columns} rows={filtered} keyFn={(c) => c.id} onEdit={openEdit} onDelete={handleDelete} />
+      <CrudTable
+        columns={columns}
+        rows={filtered}
+        keyFn={(c) => c.id}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
+      />
 
       {modalOpen && (
         <Modal

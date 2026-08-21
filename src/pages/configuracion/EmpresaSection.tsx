@@ -1,10 +1,13 @@
 import { useState, type ChangeEvent } from 'react';
 import { Building2, Upload } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 import { Field, Input, PrimaryButton } from '../../components/ui/form';
 
 export function EmpresaSection() {
   const { empresa } = useData();
+  const { hasPermission } = useAuth();
+  const puedeEditar = hasPermission('Configuracion', 'editar');
   const [form, setForm] = useState(empresa.value);
   const [saved, setSaved] = useState(false);
 
@@ -27,6 +30,7 @@ export function EmpresaSection() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
+      <fieldset disabled={!puedeEditar} className="space-y-6">
       <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
         <h2 className="mb-4 text-sm font-semibold text-ink-100">Logotipo</h2>
         <div className="flex items-center gap-5">
@@ -76,11 +80,16 @@ export function EmpresaSection() {
           </div>
         </div>
       </div>
+      </fieldset>
 
-      <div className="flex items-center gap-3">
-        <PrimaryButton type="submit">Guardar cambios</PrimaryButton>
-        {saved && <span className="text-sm text-emerald-400">Cambios guardados.</span>}
-      </div>
+      {puedeEditar ? (
+        <div className="flex items-center gap-3">
+          <PrimaryButton type="submit">Guardar cambios</PrimaryButton>
+          {saved && <span className="text-sm text-emerald-400">Cambios guardados.</span>}
+        </div>
+      ) : (
+        <p className="text-sm text-ink-600">Tu rol no tiene permiso para editar esta informacion.</p>
+      )}
     </form>
   );
 }

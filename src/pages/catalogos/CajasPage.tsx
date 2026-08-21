@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import type { Caja, EstatusCaja, TipoCaja } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -21,6 +22,10 @@ const emptyForm: Omit<Caja, 'id'> = {
 
 export function CajasPage() {
   const { cajas } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Catalogos', 'crear');
+  const puedeEditar = hasPermission('Catalogos', 'editar');
+  const puedeEliminar = hasPermission('Catalogos', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Caja | null>(null);
@@ -75,10 +80,18 @@ export function CajasPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por economico, placas o tipo..."
         addLabel="Nueva caja"
-        onAdd={openNew}
+        onAdd={puedeCrear ? openNew : undefined}
       />
 
-      <CrudTable columns={columns} rows={filtered} keyFn={(c) => c.id} onEdit={openEdit} onDelete={handleDelete} />
+      <CrudTable
+        columns={columns}
+        rows={filtered}
+        keyFn={(c) => c.id}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
+      />
 
       {modalOpen && (
         <Modal

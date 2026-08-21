@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useData } from '../lib/DataContext';
+import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
 import type { EstatusFactura, Factura } from '../types';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
@@ -22,6 +23,10 @@ function nextFolio(facturas: Factura[]) {
 
 export function FacturacionPage() {
   const { facturas, viajes, clientes } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Facturacion', 'crear');
+  const puedeEditar = hasPermission('Facturacion', 'editar');
+  const puedeEliminar = hasPermission('Facturacion', 'eliminar');
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Factura | null>(null);
@@ -102,10 +107,12 @@ export function FacturacionPage() {
         </div>
         <div className="flex items-center gap-2">
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={`${inputClass} w-44`} />
-          <PrimaryButton onClick={openNew}>
-            <Plus size={16} />
-            Nueva factura
-          </PrimaryButton>
+          {puedeCrear && (
+            <PrimaryButton onClick={openNew}>
+              <Plus size={16} />
+              Nueva factura
+            </PrimaryButton>
+          )}
         </div>
       </div>
 
@@ -122,6 +129,8 @@ export function FacturacionPage() {
         onEdit={openEdit}
         onDelete={handleDelete}
         emptyMessage="No hay facturas para la fecha seleccionada."
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
       />
 
       {modalOpen && (

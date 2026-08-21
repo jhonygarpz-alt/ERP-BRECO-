@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import type { Modulo, PermisoModulo, Rol } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -24,6 +25,10 @@ function permisosVacios(): Record<Modulo, PermisoModulo> {
 
 export function RolesSection() {
   const { roles } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Configuracion', 'crear');
+  const puedeEditar = hasPermission('Configuracion', 'editar');
+  const puedeEliminar = hasPermission('Configuracion', 'eliminar');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Rol | null>(null);
 
@@ -93,10 +98,18 @@ export function RolesSection() {
         title="Roles y permisos"
         subtitle="Que puede ver, crear, editar o eliminar cada rol en cada modulo."
         addLabel="Nuevo rol"
-        onAdd={openNew}
+        onAdd={puedeCrear ? openNew : undefined}
       />
 
-      <CrudTable columns={columns} rows={roles.items} keyFn={(r) => r.id} onEdit={openEdit} onDelete={handleDelete} />
+      <CrudTable
+        columns={columns}
+        rows={roles.items}
+        keyFn={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
+      />
 
       {modalOpen && (
         <Modal

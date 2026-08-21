@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import type { EstatusOperador, Operador } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -21,6 +22,10 @@ const emptyForm: Omit<Operador, 'id'> = {
 
 export function OperadoresPage() {
   const { operadores } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Catalogos', 'crear');
+  const puedeEditar = hasPermission('Catalogos', 'editar');
+  const puedeEliminar = hasPermission('Catalogos', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Operador | null>(null);
@@ -75,10 +80,18 @@ export function OperadoresPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nombre o licencia..."
         addLabel="Nuevo operador"
-        onAdd={openNew}
+        onAdd={puedeCrear ? openNew : undefined}
       />
 
-      <CrudTable columns={columns} rows={filtered} keyFn={(o) => o.id} onEdit={openEdit} onDelete={handleDelete} />
+      <CrudTable
+        columns={columns}
+        rows={filtered}
+        keyFn={(o) => o.id}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
+      />
 
       {modalOpen && (
         <Modal

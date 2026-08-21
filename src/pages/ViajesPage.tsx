@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../lib/DataContext';
+import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
 import type { EstatusViaje, Viaje } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -20,6 +21,10 @@ function nextFolio(viajes: Viaje[]) {
 
 export function ViajesPage() {
   const { viajes, clientes, unidades, cajas, operadores } = useData();
+  const { hasPermission } = useAuth();
+  const puedeCrear = hasPermission('Viajes', 'crear');
+  const puedeEditar = hasPermission('Viajes', 'editar');
+  const puedeEliminar = hasPermission('Viajes', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Viaje | null>(null);
@@ -119,10 +124,18 @@ export function ViajesPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por folio, cliente o ruta..."
         addLabel="Asignar viaje"
-        onAdd={openNew}
+        onAdd={puedeCrear ? openNew : undefined}
       />
 
-      <CrudTable columns={columns} rows={filtered} keyFn={(v) => v.id} onEdit={openEdit} onDelete={handleDelete} />
+      <CrudTable
+        columns={columns}
+        rows={filtered}
+        keyFn={(v) => v.id}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        canEdit={puedeEditar}
+        canDelete={puedeEliminar}
+      />
 
       {modalOpen && (
         <Modal

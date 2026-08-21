@@ -15,6 +15,8 @@ interface CrudTableProps<T> {
   onEdit: (row: T) => void;
   onDelete: (row: T) => void;
   emptyMessage?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export function CrudTable<T>({
@@ -24,7 +26,11 @@ export function CrudTable<T>({
   onEdit,
   onDelete,
   emptyMessage = 'Sin registros todavia.',
+  canEdit = true,
+  canDelete = true,
 }: CrudTableProps<T>) {
+  const showActions = canEdit || canDelete;
+
   return (
     <div className="overflow-hidden rounded-2xl border border-line-800 bg-bg-800">
       <div className="overflow-x-auto">
@@ -36,13 +42,13 @@ export function CrudTable<T>({
                   {col.header}
                 </th>
               ))}
-              <th className="px-4 py-3 font-medium text-right">Acciones</th>
+              {showActions && <th className="px-4 py-3 font-medium text-right">Acciones</th>}
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={columns.length + 1} className="px-4 py-10 text-center text-ink-600">
+                <td colSpan={columns.length + (showActions ? 1 : 0)} className="px-4 py-10 text-center text-ink-600">
                   {emptyMessage}
                 </td>
               </tr>
@@ -57,16 +63,22 @@ export function CrudTable<T>({
                     {col.render(row)}
                   </td>
                 ))}
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-1">
-                    <IconButton onClick={() => onEdit(row)} title="Editar">
-                      <Pencil size={15} />
-                    </IconButton>
-                    <IconButton onClick={() => onDelete(row)} title="Eliminar" className="hover:text-breco-500">
-                      <Trash2 size={15} />
-                    </IconButton>
-                  </div>
-                </td>
+                {showActions && (
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-1">
+                      {canEdit && (
+                        <IconButton onClick={() => onEdit(row)} title="Editar">
+                          <Pencil size={15} />
+                        </IconButton>
+                      )}
+                      {canDelete && (
+                        <IconButton onClick={() => onDelete(row)} title="Eliminar" className="hover:text-breco-500">
+                          <Trash2 size={15} />
+                        </IconButton>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

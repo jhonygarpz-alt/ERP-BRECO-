@@ -14,6 +14,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
+import { useAuth } from '../../lib/AuthContext';
 
 const catalogLinks = [
   { to: '/catalogos/clientes', label: 'Clientes', icon: Users },
@@ -32,7 +33,14 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
 export function Sidebar() {
   const location = useLocation();
   const { empresa } = useData();
+  const { hasPermission } = useAuth();
   const [catalogsOpen, setCatalogsOpen] = useState(location.pathname.startsWith('/catalogos'));
+
+  const puedeCatalogos = hasPermission('Catalogos', 'ver');
+  const puedeViajes = hasPermission('Viajes', 'ver');
+  const puedeFacturacion = hasPermission('Facturacion', 'ver');
+  const puedePrograma = hasPermission('Programa', 'ver');
+  const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
   return (
     <aside className="flex h-full w-64 flex-shrink-0 flex-col border-r border-line-800 bg-bg-900">
@@ -60,53 +68,67 @@ export function Sidebar() {
           Resumen
         </NavLink>
 
-        <button
-          onClick={() => setCatalogsOpen((v) => !v)}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-            location.pathname.startsWith('/catalogos')
-              ? 'text-ink-100'
-              : 'text-ink-500 hover:bg-bg-700 hover:text-ink-100'
-          }`}
-        >
-          <Boxes size={18} />
-          <span className="flex-1 text-left">Catalogos</span>
-          <ChevronDown
-            size={15}
-            className={`transition-transform ${catalogsOpen ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {catalogsOpen && (
-          <div className="ml-4 space-y-1 border-l border-line-800 pl-3">
-            {catalogLinks.map((item) => (
-              <NavLink key={item.to} to={item.to} className={navItemClass}>
-                <item.icon size={16} />
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
+        {puedeCatalogos && (
+          <>
+            <button
+              onClick={() => setCatalogsOpen((v) => !v)}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                location.pathname.startsWith('/catalogos')
+                  ? 'text-ink-100'
+                  : 'text-ink-500 hover:bg-bg-700 hover:text-ink-100'
+              }`}
+            >
+              <Boxes size={18} />
+              <span className="flex-1 text-left">Catalogos</span>
+              <ChevronDown
+                size={15}
+                className={`transition-transform ${catalogsOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {catalogsOpen && (
+              <div className="ml-4 space-y-1 border-l border-line-800 pl-3">
+                {catalogLinks.map((item) => (
+                  <NavLink key={item.to} to={item.to} className={navItemClass}>
+                    <item.icon size={16} />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
-        <div className="pt-2">
-          <NavLink to="/viajes" className={navItemClass}>
-            <Route size={18} />
-            Asignacion de Viajes
-          </NavLink>
-          <NavLink to="/facturacion" className={navItemClass}>
-            <Receipt size={18} />
-            Facturacion Diaria
-          </NavLink>
-          <NavLink to="/programa" className={navItemClass}>
-            <CalendarClock size={18} />
-            Programa Diario
-          </NavLink>
-        </div>
+        {(puedeViajes || puedeFacturacion || puedePrograma) && (
+          <div className="pt-2">
+            {puedeViajes && (
+              <NavLink to="/viajes" className={navItemClass}>
+                <Route size={18} />
+                Asignacion de Viajes
+              </NavLink>
+            )}
+            {puedeFacturacion && (
+              <NavLink to="/facturacion" className={navItemClass}>
+                <Receipt size={18} />
+                Facturacion Diaria
+              </NavLink>
+            )}
+            {puedePrograma && (
+              <NavLink to="/programa" className={navItemClass}>
+                <CalendarClock size={18} />
+                Programa Diario
+              </NavLink>
+            )}
+          </div>
+        )}
       </nav>
 
       <div className="space-y-2 border-t border-line-800 px-3 py-3">
-        <NavLink to="/configuracion" className={navItemClass}>
-          <Settings size={18} />
-          Configuracion
-        </NavLink>
+        {puedeConfiguracion && (
+          <NavLink to="/configuracion" className={navItemClass}>
+            <Settings size={18} />
+            Configuracion
+          </NavLink>
+        )}
         <div className="flex items-center gap-2 rounded-lg bg-bg-800 px-3 py-2.5 text-xs text-ink-500">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
           Datos guardados localmente en este navegador
