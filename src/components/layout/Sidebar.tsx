@@ -10,6 +10,7 @@ import {
   Route,
   Receipt,
   CalendarClock,
+  FileSpreadsheet,
   ChevronDown,
   Settings,
   type LucideIcon,
@@ -82,6 +83,7 @@ export function Sidebar() {
   const puedeViajes = hasPermission('Viajes', 'ver');
   const puedeFacturacion = hasPermission('Facturacion', 'ver');
   const puedePrograma = hasPermission('Programa', 'ver');
+  const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
   return (
@@ -152,6 +154,12 @@ export function Sidebar() {
             {puedePrograma && (
               <NavRow to="/programa" label="Programa Diario" icon={CalendarClock} gradient={['#38bdf8', '#1d4ed8']} />
             )}
+          </NavGroup>
+        )}
+
+        {puedeReportes && (
+          <NavGroup>
+            <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} gradient={['#34d399', '#047857']} />
           </NavGroup>
         )}
       </nav>

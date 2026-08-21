@@ -8,7 +8,7 @@ import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/form';
 
-const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'Configuracion'];
+const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'Reportes', 'Configuracion'];
 const acciones: { key: keyof PermisoModulo; label: string }[] = [
   { key: 'ver', label: 'Ver' },
   { key: 'crear', label: 'Crear' },

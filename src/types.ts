@@ -106,7 +106,15 @@ export interface Empresa {
   logoDataUrl: string;
 }
 
-export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'Configuracion';
+export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'Reportes' | 'Configuracion';
+
+export interface ReporteExterno {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  url: string;
+  actualizado: string;
+}
 
 export interface PermisoModulo {
   ver: boolean;

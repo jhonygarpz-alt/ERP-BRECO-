@@ -13,6 +13,7 @@ import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
+import { ReportesPage } from './pages/ReportesPage';
 import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
 function App() {
@@ -43,6 +44,10 @@ function App() {
 
                 <Route element={<RequirePermission modulo="Programa" />}>
                   <Route path="/programa" element={<ProgramaPage />} />
+                </Route>
+
+                <Route element={<RequirePermission modulo="Reportes" />}>
+                  <Route path="/reportes" element={<ReportesPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Configuracion" />}>

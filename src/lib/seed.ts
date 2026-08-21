@@ -1,4 +1,4 @@
-import type { Caja, Cliente, Empresa, EstatusViaje, Factura, Operador, Rol, Unidad, Usuario, Viaje } from '../types';
+import type { Caja, Cliente, Empresa, EstatusViaje, Factura, Operador, ReporteExterno, Rol, Unidad, Usuario, Viaje } from '../types';
 import { uid } from './storage';
 
 function cliente(id: string, nombre: string): Cliente {
@@ -376,6 +376,30 @@ export const seedViajes: Viaje[] = [
 
 export const seedFacturas: Factura[] = [];
 
+const CARPETA_REPORTES_ONEDRIVE =
+  'https://onedrive.live.com/shared?id=%2Fpersonal%2Fe9c6f6613f9bd3e1%2FDocuments%2FREPORTES&listurl=%2Fpersonal%2Fe9c6f6613f9bd3e1%2FDocuments';
+
+function reporte(id: string, nombre: string, descripcion: string): ReporteExterno {
+  return {
+    id,
+    nombre,
+    descripcion,
+    url: CARPETA_REPORTES_ONEDRIVE,
+    actualizado: 'Se llena a mano en OneDrive; aun no esta conectado en vivo.',
+  };
+}
+
+// Reportes que hoy viven en la carpeta de OneDrive del equipo. Mientras no
+// haya una conexion en vivo, cada tarjeta enlaza a la carpeta compartida.
+export const seedReportes: ReporteExterno[] = [
+  reporte('rep-diesel', 'Control Diesel Tanque San Juan', 'Consumo y existencia de diesel del tanque San Juan.'),
+  reporte('rep-facturacion-sistema', 'Facturacion Diaria por Sistema', 'Facturacion diaria capturada en el sistema.'),
+  reporte('rep-facturacion-costeo', 'Facturacion vs Costeo Diario', 'Comparativo de facturacion contra costeo del dia.'),
+  reporte('rep-gastos-mtto', 'Gastos Mtto y por Unidad', 'Gastos de mantenimiento desglosados por unidad.'),
+  reporte('rep-nomina', 'Nomina Actual', 'Nomina vigente de operadores y personal.'),
+  reporte('rep-urea', 'Urea SJR', 'Consumo y existencia de urea en San Juan del Rio.'),
+];
+
 export const seedEmpresa: Empresa = {
   nombre: 'BRECO Transportes',
   razonSocial: 'Pendiente',
@@ -392,6 +416,7 @@ const permisosCompletos = {
   Viajes: { ver: true, crear: true, editar: true, eliminar: true },
   Facturacion: { ver: true, crear: true, editar: true, eliminar: true },
   Programa: { ver: true, crear: true, editar: true, eliminar: true },
+  Reportes: { ver: true, crear: true, editar: true, eliminar: true },
   Configuracion: { ver: true, crear: true, editar: true, eliminar: true },
 };
 
@@ -411,6 +436,7 @@ export const seedRoles: Rol[] = [
       Viajes: { ver: true, crear: true, editar: true, eliminar: true },
       Facturacion: { ver: true, crear: false, editar: false, eliminar: false },
       Programa: { ver: true, crear: true, editar: true, eliminar: false },
+      Reportes: { ver: true, crear: false, editar: false, eliminar: false },
       Configuracion: { ver: false, crear: false, editar: false, eliminar: false },
     },
   },
@@ -423,6 +449,7 @@ export const seedRoles: Rol[] = [
       Viajes: { ver: true, crear: false, editar: false, eliminar: false },
       Facturacion: { ver: true, crear: true, editar: true, eliminar: true },
       Programa: { ver: true, crear: false, editar: false, eliminar: false },
+      Reportes: { ver: true, crear: false, editar: false, eliminar: false },
       Configuracion: { ver: false, crear: false, editar: false, eliminar: false },
     },
   },
