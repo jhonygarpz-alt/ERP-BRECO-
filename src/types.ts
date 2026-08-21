@@ -37,6 +37,9 @@ export interface Caja {
   tipo: TipoCaja;
   capacidad: string;
   estatus: EstatusCaja;
+  marca?: string;
+  modelo?: string;
+  anio?: number;
 }
 
 export type EstatusOperador = 'Disponible' | 'En viaje' | 'Descanso' | 'Baja';
@@ -63,12 +66,17 @@ export interface Viaje {
   fecha: string;
   clienteId: string;
   unidadId: string;
-  cajaId: string;
   operadorId: string;
+  materiales: string;
+  cajaNombre: string;
+  cajaEconomico: string;
   origen: string;
   destino: string;
   horaSalida: string;
   horaLlegadaEstimada: string;
+  cita: string;
+  importacion: boolean;
+  exportacion: boolean;
   estatus: EstatusViaje;
   observaciones: string;
 }

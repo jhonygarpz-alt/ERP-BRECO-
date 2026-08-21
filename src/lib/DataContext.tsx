@@ -27,7 +27,24 @@ interface DataContextValue {
 
 const DataContext = createContext<DataContextValue | null>(null);
 
+// Se incrementa cada vez que se carga un nuevo snapshot de datos reales
+// (unidades, operadores, clientes, viajes). Los navegadores que se hayan
+// quedado en una version anterior se actualizan una sola vez con los datos
+// nuevos; lo configurado en Configuracion (empresa, usuarios, roles) nunca
+// se toca.
+const SEED_VERSION = '3';
+
+function ensureSeedVersion() {
+  const key = 'breco-erp:seed-version';
+  if (window.localStorage.getItem(key) === SEED_VERSION) return;
+  ['clientes', 'unidades', 'cajas', 'operadores', 'viajes', 'facturas'].forEach((k) =>
+    window.localStorage.removeItem(`breco-erp:${k}`),
+  );
+  window.localStorage.setItem(key, SEED_VERSION);
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
+  ensureSeedVersion();
   const clientes = useCollection<Cliente>('clientes', seedClientes);
   const unidades = useCollection<Unidad>('unidades', seedUnidades);
   const cajas = useCollection<Caja>('cajas', seedCajas);

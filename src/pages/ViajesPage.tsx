@@ -20,7 +20,7 @@ function nextFolio(viajes: Viaje[]) {
 }
 
 export function ViajesPage() {
-  const { viajes, clientes, unidades, cajas, operadores } = useData();
+  const { viajes, clientes, unidades, operadores } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -34,12 +34,17 @@ export function ViajesPage() {
     fecha: new Date().toISOString().slice(0, 10),
     clienteId: clientes.items[0]?.id ?? '',
     unidadId: unidades.items[0]?.id ?? '',
-    cajaId: cajas.items[0]?.id ?? '',
     operadorId: operadores.items[0]?.id ?? '',
+    materiales: '',
+    cajaNombre: '',
+    cajaEconomico: '',
     origen: '',
     destino: '',
-    horaSalida: '08:00',
+    horaSalida: '',
     horaLlegadaEstimada: '',
+    cita: '',
+    importacion: false,
+    exportacion: false,
     estatus: 'Programado',
     observaciones: '',
   };
@@ -48,18 +53,17 @@ export function ViajesPage() {
 
   const clienteNombre = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
-  const cajaNombre = (id: string) => cajas.items.find((c) => c.id === id)?.economico ?? 'N/D';
   const operadorNombre = (id: string) => operadores.items.find((o) => o.id === id)?.nombre ?? 'N/D';
 
   const filtered = useMemo(
     () =>
       viajes.items.filter((v) =>
-        `${v.folio} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino}`
+        `${v.folio} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
           .toLowerCase()
           .includes(search.toLowerCase()),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viajes.items, search, clientes.items],
+    [viajes.items, search, clientes.items, unidades.items],
   );
 
   function openNew() {
@@ -100,15 +104,26 @@ export function ViajesPage() {
         </div>
       ),
     },
+    { header: 'Unidad', render: (v) => unidadNombre(v.unidadId) },
     { header: 'Cliente', render: (v) => clienteNombre(v.clienteId) },
     { header: 'Ruta', render: (v) => `${v.origen} -> ${v.destino}` },
     {
-      header: 'Unidad / Caja / Operador',
+      header: 'Materiales / Caja',
       render: (v) => (
         <div className="text-xs">
-          {unidadNombre(v.unidadId)} &middot; {cajaNombre(v.cajaId)}
+          {v.materiales || '—'}
           <br />
-          {operadorNombre(v.operadorId)}
+          {v.cajaNombre} {v.cajaEconomico}
+        </div>
+      ),
+    },
+    { header: 'Operador', render: (v) => operadorNombre(v.operadorId) },
+    {
+      header: 'Imp / Exp',
+      render: (v) => (
+        <div className="flex gap-1">
+          {v.importacion && <span className="rounded border border-line-700 px-1.5 py-0.5 text-[11px] text-ink-400">IMP</span>}
+          {v.exportacion && <span className="rounded border border-line-700 px-1.5 py-0.5 text-[11px] text-ink-400">EXP</span>}
         </div>
       ),
     },
@@ -122,7 +137,7 @@ export function ViajesPage() {
         subtitle="Asigna cliente, unidad, caja y operador a cada viaje."
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por folio, cliente o ruta..."
+        searchPlaceholder="Buscar por folio, unidad, cliente o ruta..."
         addLabel="Asignar viaje"
         onAdd={puedeCrear ? openNew : undefined}
       />
@@ -188,24 +203,37 @@ export function ViajesPage() {
                 ))}
               </Select>
             </Field>
-            <Field label="Caja">
-              <Select value={form.cajaId} onChange={(e) => setForm({ ...form, cajaId: e.target.value })}>
-                {cajas.items.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.economico} - {c.tipo}
+            <Field label="Operador">
+              <Select value={form.operadorId} onChange={(e) => setForm({ ...form, operadorId: e.target.value })}>
+                {operadores.items.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.nombre} ({o.estatus})
                   </option>
                 ))}
               </Select>
             </Field>
-            <div className="sm:col-span-2">
-              <Field label="Operador">
-                <Select value={form.operadorId} onChange={(e) => setForm({ ...form, operadorId: e.target.value })}>
-                  {operadores.items.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.nombre} ({o.estatus})
-                    </option>
-                  ))}
-                </Select>
+
+            <Field label="Materiales">
+              <Input
+                placeholder="Ej. Autopartes, PVC, Vacio..."
+                value={form.materiales}
+                onChange={(e) => setForm({ ...form, materiales: e.target.value })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Caja">
+                <Input
+                  placeholder="Ej. WERNER"
+                  value={form.cajaNombre}
+                  onChange={(e) => setForm({ ...form, cajaNombre: e.target.value })}
+                />
+              </Field>
+              <Field label="Economico de caja">
+                <Input
+                  placeholder="Ej. 45530"
+                  value={form.cajaEconomico}
+                  onChange={(e) => setForm({ ...form, cajaEconomico: e.target.value })}
+                />
               </Field>
             </div>
 
@@ -218,18 +246,38 @@ export function ViajesPage() {
             <Field label="Hora de salida">
               <Input
                 type="time"
-                required
                 value={form.horaSalida}
                 onChange={(e) => setForm({ ...form, horaSalida: e.target.value })}
               />
             </Field>
-            <Field label="Hora estimada de llegada">
+            <Field label="Cita">
               <Input
                 type="time"
-                value={form.horaLlegadaEstimada}
-                onChange={(e) => setForm({ ...form, horaLlegadaEstimada: e.target.value })}
+                value={form.cita}
+                onChange={(e) => setForm({ ...form, cita: e.target.value })}
               />
             </Field>
+
+            <div className="flex items-center gap-6 sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm text-ink-300">
+                <input
+                  type="checkbox"
+                  checked={form.importacion}
+                  onChange={(e) => setForm({ ...form, importacion: e.target.checked })}
+                  className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+                />
+                Importacion
+              </label>
+              <label className="flex items-center gap-2 text-sm text-ink-300">
+                <input
+                  type="checkbox"
+                  checked={form.exportacion}
+                  onChange={(e) => setForm({ ...form, exportacion: e.target.checked })}
+                  className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+                />
+                Exportacion
+              </label>
+            </div>
 
             <div className="sm:col-span-2">
               <Field label="Observaciones">

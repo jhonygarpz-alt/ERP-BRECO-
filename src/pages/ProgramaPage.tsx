@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Truck, IdCard, PackageSearch } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Truck, IdCard, PackageSearch, Boxes } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { StatusBadge } from '../components/ui/Badge';
 import { inputClass } from '../components/ui/form';
@@ -11,12 +11,11 @@ function shiftDate(date: string, days: number) {
 }
 
 export function ProgramaPage() {
-  const { viajes, clientes, unidades, cajas, operadores } = useData();
+  const { viajes, clientes, unidades, operadores } = useData();
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
   const clienteNombre = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
-  const cajaNombre = (id: string) => cajas.items.find((c) => c.id === id)?.economico ?? 'N/D';
   const operadorNombre = (id: string) => operadores.items.find((o) => o.id === id)?.nombre ?? 'N/D';
 
   const viajesDelDia = useMemo(
@@ -88,8 +87,14 @@ export function ProgramaPage() {
             <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-lg font-semibold text-ink-100">{v.horaSalida}</span>
+                  <span className="text-lg font-semibold text-ink-100">{v.horaSalida || v.cita || '—'}</span>
                   <span className="text-sm font-medium text-ink-300">{v.folio}</span>
+                  {v.importacion && (
+                    <span className="rounded border border-line-700 px-1.5 py-0.5 text-[11px] text-ink-400">IMP</span>
+                  )}
+                  {v.exportacion && (
+                    <span className="rounded border border-line-700 px-1.5 py-0.5 text-[11px] text-ink-400">EXP</span>
+                  )}
                 </div>
                 <StatusBadge status={v.estatus} />
               </div>
@@ -100,6 +105,7 @@ export function ProgramaPage() {
                 {v.horaLlegadaEstimada && (
                   <span className="text-xs text-ink-600">(ETA {v.horaLlegadaEstimada})</span>
                 )}
+                {v.cita && <span className="text-xs text-ink-600">(Cita {v.cita})</span>}
               </div>
 
               <div className="mt-3 text-sm font-medium text-ink-100">{clienteNombre(v.clienteId)}</div>
@@ -109,11 +115,16 @@ export function ProgramaPage() {
                   <Truck size={13} /> {unidadNombre(v.unidadId)}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <PackageSearch size={13} /> {cajaNombre(v.cajaId)}
+                  <PackageSearch size={13} /> {v.cajaNombre} {v.cajaEconomico}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <IdCard size={13} /> {operadorNombre(v.operadorId)}
                 </span>
+                {v.materiales && (
+                  <span className="flex items-center gap-1.5">
+                    <Boxes size={13} /> {v.materiales}
+                  </span>
+                )}
               </div>
 
               {v.observaciones && (
