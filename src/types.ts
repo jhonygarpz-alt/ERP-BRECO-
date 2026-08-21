@@ -23,6 +23,8 @@ export interface Unidad {
   modelo: string;
   anio: number;
   estatus: EstatusUnidad;
+  operadorAsignadoId?: string;
+  clienteAsignadoId?: string;
 }
 
 export type TipoCaja = 'Seca' | 'Refrigerada' | 'Plataforma' | 'Contenedor';
@@ -83,4 +85,40 @@ export interface Factura {
   moneda: 'MXN' | 'USD';
   estatus: EstatusFactura;
   observaciones: string;
+}
+
+export interface Empresa {
+  nombre: string;
+  razonSocial: string;
+  rfc: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  sitioWeb: string;
+  logoDataUrl: string;
+}
+
+export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'Configuracion';
+
+export interface PermisoModulo {
+  ver: boolean;
+  crear: boolean;
+  editar: boolean;
+  eliminar: boolean;
+}
+
+export interface Rol {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  permisos: Record<Modulo, PermisoModulo>;
+}
+
+export interface Usuario {
+  id: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  rolId: string;
+  estatus: Estatus;
 }

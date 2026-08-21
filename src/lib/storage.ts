@@ -41,3 +41,21 @@ export function useCollection<T extends { id: string }>(key: string, seed: T[]) 
 
   return { items, add, update, remove, setItems };
 }
+
+/**
+ * Same idea as useCollection but for a single persisted object (e.g. company info).
+ */
+export function useSingleton<T>(key: string, seed: T) {
+  const storageKey = `breco-erp:${key}`;
+  const [value, setValue] = useState<T>(() => readFromStorage(storageKey, seed));
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(value));
+  }, [storageKey, value]);
+
+  const update = useCallback((patch: Partial<T>) => {
+    setValue((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  return { value, update, setValue };
+}

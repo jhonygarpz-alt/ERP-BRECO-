@@ -19,21 +19,29 @@ const emptyForm: Omit<Unidad, 'id'> = {
   modelo: '',
   anio: new Date().getFullYear(),
   estatus: 'Disponible',
+  operadorAsignadoId: '',
+  clienteAsignadoId: '',
 };
 
 export function UnidadesPage() {
-  const { unidades } = useData();
+  const { unidades, operadores, clientes } = useData();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Unidad | null>(null);
   const [form, setForm] = useState(emptyForm);
 
+  const operadorNombre = (id?: string) => operadores.items.find((o) => o.id === id)?.nombre ?? '—';
+  const clienteNombre = (id?: string) => clientes.items.find((c) => c.id === id)?.nombre ?? '—';
+
   const filtered = useMemo(
     () =>
       unidades.items.filter((u) =>
-        `${u.economico} ${u.placas} ${u.marca} ${u.modelo}`.toLowerCase().includes(search.toLowerCase()),
+        `${u.economico} ${u.placas} ${u.marca} ${u.modelo} ${operadorNombre(u.operadorAsignadoId)} ${clienteNombre(u.clienteAsignadoId)}`
+          .toLowerCase()
+          .includes(search.toLowerCase()),
       ),
-    [unidades.items, search],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [unidades.items, search, operadores.items, clientes.items],
   );
 
   function openNew() {
@@ -44,16 +52,21 @@ export function UnidadesPage() {
 
   function openEdit(u: Unidad) {
     setEditing(u);
-    setForm(u);
+    setForm({ operadorAsignadoId: '', clienteAsignadoId: '', ...u });
     setModalOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const payload = {
+      ...form,
+      operadorAsignadoId: form.operadorAsignadoId || undefined,
+      clienteAsignadoId: form.clienteAsignadoId || undefined,
+    };
     if (editing) {
-      unidades.update(editing.id, form);
+      unidades.update(editing.id, payload);
     } else {
-      unidades.add({ id: uid('uni'), ...form });
+      unidades.add({ id: uid('uni'), ...payload });
     }
     setModalOpen(false);
   }
@@ -64,9 +77,16 @@ export function UnidadesPage() {
 
   const columns: Column<Unidad>[] = [
     { header: 'Economico', render: (u) => <span className="font-medium text-ink-100">{u.economico}</span> },
-    { header: 'Placas', render: (u) => u.placas },
-    { header: 'Tipo', render: (u) => u.tipo },
-    { header: 'Marca / Modelo', render: (u) => `${u.marca} ${u.modelo} (${u.anio})` },
+    {
+      header: 'Placas / Marca',
+      render: (u) => (
+        <span className="text-xs">
+          {u.placas || '—'} &middot; {u.marca || '—'} {u.modelo} {u.anio ? `(${u.anio})` : ''}
+        </span>
+      ),
+    },
+    { header: 'Operador asignado', render: (u) => operadorNombre(u.operadorAsignadoId) },
+    { header: 'Cliente asignado', render: (u) => clienteNombre(u.clienteAsignadoId) },
     { header: 'Estatus', render: (u) => <StatusBadge status={u.estatus} /> },
   ];
 
@@ -74,10 +94,10 @@ export function UnidadesPage() {
     <div>
       <PageHeader
         title="Unidades"
-        subtitle="Tractocamiones y unidades de la flota."
+        subtitle="Tractocamiones y unidades de la flota, con su asignacion actual."
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por economico, placas o marca..."
+        searchPlaceholder="Buscar por economico, operador o cliente..."
         addLabel="Nueva unidad"
         onAdd={openNew}
       />
@@ -87,16 +107,13 @@ export function UnidadesPage() {
       {modalOpen && (
         <Modal
           title={editing ? 'Editar unidad' : 'Nueva unidad'}
-          subtitle="Datos de la unidad tractora"
+          subtitle="Datos de la unidad y su asignacion actual"
           onClose={() => setModalOpen(false)}
           wide
         >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Numero economico">
               <Input required value={form.economico} onChange={(e) => setForm({ ...form, economico: e.target.value })} />
-            </Field>
-            <Field label="Placas">
-              <Input required value={form.placas} onChange={(e) => setForm({ ...form, placas: e.target.value })} />
             </Field>
             <Field label="Tipo">
               <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as TipoUnidad })}>
@@ -106,6 +123,13 @@ export function UnidadesPage() {
                   </option>
                 ))}
               </Select>
+            </Field>
+            <Field label="Placas">
+              <Input
+                placeholder="Pendiente"
+                value={form.placas}
+                onChange={(e) => setForm({ ...form, placas: e.target.value })}
+              />
             </Field>
             <Field label="Estatus">
               <Select
@@ -120,18 +144,52 @@ export function UnidadesPage() {
               </Select>
             </Field>
             <Field label="Marca">
-              <Input required value={form.marca} onChange={(e) => setForm({ ...form, marca: e.target.value })} />
+              <Input
+                placeholder="Pendiente"
+                value={form.marca}
+                onChange={(e) => setForm({ ...form, marca: e.target.value })}
+              />
             </Field>
             <Field label="Modelo">
-              <Input required value={form.modelo} onChange={(e) => setForm({ ...form, modelo: e.target.value })} />
+              <Input
+                placeholder="Pendiente"
+                value={form.modelo}
+                onChange={(e) => setForm({ ...form, modelo: e.target.value })}
+              />
             </Field>
             <Field label="Anio">
               <Input
                 type="number"
-                required
-                value={form.anio}
+                value={form.anio || ''}
                 onChange={(e) => setForm({ ...form, anio: Number(e.target.value) })}
               />
+            </Field>
+
+            <Field label="Operador asignado">
+              <Select
+                value={form.operadorAsignadoId ?? ''}
+                onChange={(e) => setForm({ ...form, operadorAsignadoId: e.target.value })}
+              >
+                <option value="">Sin asignar</option>
+                {operadores.items.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.nombre}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Cliente asignado">
+              <Select
+                value={form.clienteAsignadoId ?? ''}
+                onChange={(e) => setForm({ ...form, clienteAsignadoId: e.target.value })}
+              >
+                <option value="">Sin asignar</option>
+                {clientes.items.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </Select>
             </Field>
 
             <div className="mt-2 flex justify-end gap-2 sm:col-span-2">

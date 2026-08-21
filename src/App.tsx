@@ -9,6 +9,7 @@ import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
+import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/viajes" element={<ViajesPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
             <Route path="/programa" element={<ProgramaPage />} />
+            <Route path="/configuracion" element={<ConfiguracionPage />} />
           </Route>
         </Routes>
       </HashRouter>

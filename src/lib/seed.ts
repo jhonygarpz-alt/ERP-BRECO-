@@ -1,102 +1,129 @@
-import type { Caja, Cliente, Factura, Operador, Unidad, Viaje } from '../types';
+import type { Caja, Cliente, Empresa, Factura, Operador, Rol, Unidad, Usuario, Viaje } from '../types';
 
 export const seedClientes: Cliente[] = [
-  {
-    id: 'cli-1',
-    nombre: 'Grupo Industrial Monterrey',
-    rfc: 'GIM950214AB1',
-    contacto: 'Ricardo Peña',
-    telefono: '81 2345 6789',
-    email: 'compras@gim.com.mx',
-    direccion: 'Av. Fundidora 501, Monterrey, N.L.',
-    estatus: 'activo',
-  },
-  {
-    id: 'cli-2',
-    nombre: 'Alimentos del Norte S.A.',
-    rfc: 'ADN870601C22',
-    contacto: 'Laura Salinas',
-    telefono: '81 8899 2211',
-    email: 'logistica@alimentosnorte.mx',
-    direccion: 'Blvd. Díaz Ordaz 1200, San Nicolás, N.L.',
-    estatus: 'activo',
-  },
-  {
-    id: 'cli-3',
-    nombre: 'Aceros y Perfiles SLP',
-    rfc: 'APS020317K90',
-    contacto: 'Miguel Torres',
-    telefono: '444 123 4567',
-    email: 'miguel.torres@aceroslp.com',
-    direccion: 'Carr. 57 Km 12, San Luis Potosí, S.L.P.',
-    estatus: 'activo',
-  },
-];
-
-export const seedUnidades: Unidad[] = [
-  { id: 'uni-1', economico: 'TR-045', placas: 'NL-45-AB', tipo: 'Tractocamion', marca: 'Kenworth', modelo: 'T680', anio: 2022, estatus: 'Disponible' },
-  { id: 'uni-2', economico: 'TR-112', placas: 'NL-12-CD', tipo: 'Tractocamion', marca: 'Freightliner', modelo: 'Cascadia', anio: 2021, estatus: 'En viaje' },
-  { id: 'uni-3', economico: 'TR-089', placas: 'NL-89-EF', tipo: 'Tractocamion', marca: 'International', modelo: 'LT625', anio: 2020, estatus: 'Taller' },
-  { id: 'uni-4', economico: 'TR-201', placas: 'NL-01-GH', tipo: 'Rabon', marca: 'Hino', modelo: '500', anio: 2023, estatus: 'Disponible' },
-];
-
-export const seedCajas: Caja[] = [
-  { id: 'caj-1', economico: 'CJ-301', placas: 'NL-301-A', tipo: 'Seca', capacidad: '53 pies', estatus: 'Disponible' },
-  { id: 'caj-2', economico: 'CJ-302', placas: 'NL-302-B', tipo: 'Refrigerada', capacidad: '48 pies', estatus: 'En uso' },
-  { id: 'caj-3', economico: 'CJ-303', placas: 'NL-303-C', tipo: 'Plataforma', capacidad: '40 pies', estatus: 'Disponible' },
+  { id: 'cli-werner', nombre: 'WERNER', rfc: 'Pendiente', contacto: 'Pendiente', telefono: 'Pendiente', email: 'Pendiente', direccion: 'Pendiente', estatus: 'activo' },
+  { id: 'cli-totalone', nombre: 'TOTAL ONE', rfc: 'Pendiente', contacto: 'Pendiente', telefono: 'Pendiente', email: 'Pendiente', direccion: 'Pendiente', estatus: 'activo' },
+  { id: 'cli-silverto', nombre: 'SILVERTO', rfc: 'Pendiente', contacto: 'Pendiente', telefono: 'Pendiente', email: 'Pendiente', direccion: 'Pendiente', estatus: 'activo' },
+  { id: 'cli-redwood', nombre: 'REDWOOD', rfc: 'Pendiente', contacto: 'Pendiente', telefono: 'Pendiente', email: 'Pendiente', direccion: 'Pendiente', estatus: 'activo' },
+  { id: 'cli-mj', nombre: 'MJ', rfc: 'Pendiente', contacto: 'Pendiente', telefono: 'Pendiente', email: 'Pendiente', direccion: 'Pendiente', estatus: 'activo' },
 ];
 
 export const seedOperadores: Operador[] = [
-  { id: 'op-1', nombre: 'Juan Rodríguez', licencia: 'LIC-88231', tipoLicencia: 'Federal Tipo E', telefono: '81 1122 3344', vigenciaLicencia: '2027-05-10', estatus: 'Disponible' },
-  { id: 'op-2', nombre: 'María López', licencia: 'LIC-55120', tipoLicencia: 'Federal Tipo E', telefono: '81 5566 7788', vigenciaLicencia: '2026-11-02', estatus: 'En viaje' },
-  { id: 'op-3', nombre: 'Carlos Herrera', licencia: 'LIC-77003', tipoLicencia: 'Federal Tipo E', telefono: '444 998 1122', vigenciaLicencia: '2025-09-20', estatus: 'Descanso' },
+  { id: 'op-orlando-dorbecker', nombre: 'Orlando Dorbecker', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-rodrigo-espana', nombre: 'Rodrigo España', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-gari-lineker', nombre: 'Gari Lineker Davila', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-edgar-gomez', nombre: 'Edgar Gomez', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-marcos-tinoco', nombre: 'Marcos O Tinoco', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-krytian-robles', nombre: 'Krytian Robles', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-edgar-cruz', nombre: 'Edgar Cruz', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-ruben-velazquez', nombre: 'Ruben Velazquez', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-geovany-romero', nombre: 'Geovany Romero', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-francisco-gonzalez', nombre: 'Francisco Gonzalez', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-francisco-maya', nombre: 'Francisco Maya', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-juan-carlos-garcia', nombre: 'Juan Carlos Garcia', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-humberto-colin', nombre: 'Humberto Colin', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
+  { id: 'op-fernando-garcia', nombre: 'Fernando Garcia', licencia: 'Pendiente', tipoLicencia: 'Pendiente', telefono: 'Pendiente', vigenciaLicencia: '', estatus: 'Disponible' },
 ];
 
-const today = new Date().toISOString().slice(0, 10);
+function unidad(
+  economico: string,
+  operadorAsignadoId: string | undefined,
+  clienteAsignadoId: string | undefined,
+): Unidad {
+  return {
+    id: `uni-${economico.toLowerCase()}`,
+    economico,
+    placas: '',
+    tipo: 'Tractocamion',
+    marca: '',
+    modelo: '',
+    anio: 0,
+    estatus: clienteAsignadoId ? 'En viaje' : 'Disponible',
+    operadorAsignadoId,
+    clienteAsignadoId,
+  };
+}
 
-export const seedViajes: Viaje[] = [
+export const seedUnidades: Unidad[] = [
+  unidad('T01', 'op-orlando-dorbecker', 'cli-werner'),
+  unidad('T02', 'op-rodrigo-espana', 'cli-totalone'),
+  unidad('T03', 'op-gari-lineker', 'cli-werner'),
+  unidad('T04', 'op-edgar-gomez', 'cli-werner'),
+  unidad('T05', 'op-marcos-tinoco', 'cli-silverto'),
+  unidad('T06', 'op-krytian-robles', 'cli-redwood'),
+  unidad('T07', 'op-edgar-cruz', 'cli-redwood'),
+  unidad('T08', 'op-ruben-velazquez', 'cli-totalone'),
+  unidad('T09', undefined, undefined),
+  unidad('T10', 'op-geovany-romero', 'cli-redwood'),
+  unidad('T11', 'op-francisco-gonzalez', 'cli-mj'),
+  unidad('T12', 'op-francisco-maya', 'cli-totalone'),
+  unidad('T13', 'op-juan-carlos-garcia', 'cli-werner'),
+  unidad('FLEED-1', 'op-humberto-colin', 'cli-totalone'),
+  unidad('FLEED-2', 'op-fernando-garcia', undefined),
+];
+
+export const seedCajas: Caja[] = [
+  { id: 'caj-1', economico: 'CJ-301', placas: '', tipo: 'Seca', capacidad: '53 pies', estatus: 'Disponible' },
+  { id: 'caj-2', economico: 'CJ-302', placas: '', tipo: 'Refrigerada', capacidad: '48 pies', estatus: 'Disponible' },
+  { id: 'caj-3', economico: 'CJ-303', placas: '', tipo: 'Plataforma', capacidad: '40 pies', estatus: 'Disponible' },
+];
+
+export const seedViajes: Viaje[] = [];
+
+export const seedFacturas: Factura[] = [];
+
+export const seedEmpresa: Empresa = {
+  nombre: 'BRECO Transportes',
+  razonSocial: 'Pendiente',
+  rfc: 'Pendiente',
+  direccion: 'Pendiente',
+  telefono: 'Pendiente',
+  email: 'Pendiente',
+  sitioWeb: '',
+  logoDataUrl: '',
+};
+
+const permisosCompletos = {
+  Catalogos: { ver: true, crear: true, editar: true, eliminar: true },
+  Viajes: { ver: true, crear: true, editar: true, eliminar: true },
+  Facturacion: { ver: true, crear: true, editar: true, eliminar: true },
+  Programa: { ver: true, crear: true, editar: true, eliminar: true },
+  Configuracion: { ver: true, crear: true, editar: true, eliminar: true },
+};
+
+export const seedRoles: Rol[] = [
   {
-    id: 'via-1',
-    folio: 'V-0001',
-    fecha: today,
-    clienteId: 'cli-1',
-    unidadId: 'uni-2',
-    cajaId: 'caj-2',
-    operadorId: 'op-2',
-    origen: 'Monterrey, N.L.',
-    destino: 'Saltillo, Coah.',
-    horaSalida: '07:30',
-    horaLlegadaEstimada: '10:00',
-    estatus: 'En transito',
-    observaciones: 'Carga refrigerada, mantener cadena de frío.',
+    id: 'rol-admin',
+    nombre: 'Administrador',
+    descripcion: 'Acceso total al sistema, incluyendo configuracion.',
+    permisos: permisosCompletos,
   },
   {
-    id: 'via-2',
-    folio: 'V-0002',
-    fecha: today,
-    clienteId: 'cli-2',
-    unidadId: 'uni-1',
-    cajaId: 'caj-1',
-    operadorId: 'op-1',
-    origen: 'San Nicolás, N.L.',
-    destino: 'Tampico, Tamps.',
-    horaSalida: '09:00',
-    horaLlegadaEstimada: '17:00',
-    estatus: 'Programado',
-    observaciones: '',
+    id: 'rol-trafico',
+    nombre: 'Jefe de Trafico',
+    descripcion: 'Gestiona catalogos, viajes y programa diario.',
+    permisos: {
+      Catalogos: { ver: true, crear: true, editar: true, eliminar: false },
+      Viajes: { ver: true, crear: true, editar: true, eliminar: true },
+      Facturacion: { ver: true, crear: false, editar: false, eliminar: false },
+      Programa: { ver: true, crear: true, editar: true, eliminar: false },
+      Configuracion: { ver: false, crear: false, editar: false, eliminar: false },
+    },
+  },
+  {
+    id: 'rol-facturacion',
+    nombre: 'Facturacion',
+    descripcion: 'Gestiona la facturacion diaria; consulta el resto.',
+    permisos: {
+      Catalogos: { ver: true, crear: false, editar: false, eliminar: false },
+      Viajes: { ver: true, crear: false, editar: false, eliminar: false },
+      Facturacion: { ver: true, crear: true, editar: true, eliminar: true },
+      Programa: { ver: true, crear: false, editar: false, eliminar: false },
+      Configuracion: { ver: false, crear: false, editar: false, eliminar: false },
+    },
   },
 ];
 
-export const seedFacturas: Factura[] = [
-  {
-    id: 'fac-1',
-    folio: 'F-1001',
-    fecha: today,
-    viajeId: 'via-1',
-    clienteId: 'cli-1',
-    importe: 18500,
-    moneda: 'MXN',
-    estatus: 'Pendiente',
-    observaciones: '',
-  },
+export const seedUsuarios: Usuario[] = [
+  { id: 'usr-1', nombre: 'Administrador General', email: 'admin@brecotransportes.com', telefono: 'Pendiente', rolId: 'rol-admin', estatus: 'activo' },
 ];

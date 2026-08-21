@@ -11,7 +11,9 @@ import {
   Receipt,
   CalendarClock,
   ChevronDown,
+  Settings,
 } from 'lucide-react';
+import { useData } from '../../lib/DataContext';
 
 const catalogLinks = [
   { to: '/catalogos/clientes', label: 'Clientes', icon: Users },
@@ -29,16 +31,23 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Sidebar() {
   const location = useLocation();
+  const { empresa } = useData();
   const [catalogsOpen, setCatalogsOpen] = useState(location.pathname.startsWith('/catalogos'));
 
   return (
     <aside className="flex h-full w-64 flex-shrink-0 flex-col border-r border-line-800 bg-bg-900">
       <div className="flex items-center gap-3 border-b border-line-800 px-5 py-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-breco-500 text-lg font-black italic text-white shadow-lg shadow-breco-glow">
-          B
-        </div>
-        <div className="leading-tight">
-          <div className="text-sm font-bold tracking-wide text-ink-100">BRECO</div>
+        {empresa.value.logoDataUrl ? (
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-800">
+            <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
+          </div>
+        ) : (
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-breco-500 text-lg font-black italic text-white shadow-lg shadow-breco-glow">
+            B
+          </div>
+        )}
+        <div className="min-w-0 leading-tight">
+          <div className="truncate text-sm font-bold tracking-wide text-ink-100">{empresa.value.nombre}</div>
           <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">
             Trafico ERP
           </div>
@@ -93,7 +102,11 @@ export function Sidebar() {
         </div>
       </nav>
 
-      <div className="border-t border-line-800 px-4 py-4">
+      <div className="space-y-2 border-t border-line-800 px-3 py-3">
+        <NavLink to="/configuracion" className={navItemClass}>
+          <Settings size={18} />
+          Configuracion
+        </NavLink>
         <div className="flex items-center gap-2 rounded-lg bg-bg-800 px-3 py-2.5 text-xs text-ink-500">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
           Datos guardados localmente en este navegador
