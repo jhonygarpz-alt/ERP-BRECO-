@@ -4,6 +4,7 @@ import { LogIn } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useData } from '../lib/DataContext';
 import { Field, Input, PrimaryButton } from '../components/ui/form';
+import { BrandName } from '../components/ui/BrandName';
 
 export function LoginPage() {
   const { usuarioActual, login } = useAuth();
@@ -39,7 +40,9 @@ export function LoginPage() {
             </div>
           )}
           <div className="text-center">
-            <div className="text-lg font-bold tracking-wide text-ink-100">{empresa.value.nombre}</div>
+            <div className="text-lg tracking-wide text-ink-100">
+              <BrandName nombre={empresa.value.nombre} />
+            </div>
             <div className="text-xs font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
           </div>
         </div>

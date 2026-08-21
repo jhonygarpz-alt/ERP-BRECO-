@@ -1,8 +1,16 @@
 @import 'tailwindcss';
 
 @theme {
+  /*
+   * -apple-system/BlinkMacSystemFont resolve to the real San Francisco on
+   * macOS, iOS and Chromium, automatically switching between the Display
+   * and Text optical sizes by weight/size (exactly the SF Pro Display vs
+   * SF Pro Text split). Named fallbacks below only kick in on browsers
+   * that expose those PostScript names directly; Segoe UI/Roboto cover
+   * Windows/Android/Linux, which cannot legally ship San Francisco itself.
+   */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', Roboto,
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto,
     Helvetica, Arial, sans-serif;
 
   --color-bg-950: #08090d;
@@ -36,12 +44,14 @@ body {
   background: var(--color-bg-950);
   color: var(--color-ink-100);
   font-family: var(--font-sans);
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'cv11', 'ss01';
 }
 
+/* Titulos y nombres importantes van en font-bold/font-semibold (600-700) en cada componente. */
 h1, h2, h3 {
   letter-spacing: -0.015em;
 }

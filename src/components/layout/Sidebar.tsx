@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
+import { BrandName } from '../ui/BrandName';
 
 const catalogLinks = [
   { to: '/catalogos/clientes', label: 'Clientes', icon: Users, gradient: ['#2dd4bf', '#0d9488'] },
@@ -96,7 +97,9 @@ export function Sidebar() {
           </div>
         )}
         <div className="min-w-0 leading-tight">
-          <div className="truncate text-[15px] font-semibold tracking-tight text-ink-100">{empresa.value.nombre}</div>
+          <div className="truncate text-[15px] tracking-tight text-ink-100">
+            <BrandName nombre={empresa.value.nombre} />
+          </div>
           <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">
             Trafico ERP
           </div>

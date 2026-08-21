@@ -42,7 +42,7 @@ export function ProgramaPage() {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-ink-100">Programa Diario de Viajes</h1>
+          <h1 className="text-xl font-bold text-ink-100">Programa Diario de Viajes</h1>
           <p className="mt-1 text-sm capitalize text-ink-500">{formattedDate}</p>
         </div>
         <div className="flex items-center gap-2">
