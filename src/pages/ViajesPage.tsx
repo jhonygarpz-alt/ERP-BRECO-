@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ScanLine } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
@@ -8,6 +9,7 @@ import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea } from '../components/ui/form';
 import { StatusBadge } from '../components/ui/Badge';
+import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 
 const estatuses: EstatusViaje[] = ['Programado', 'En transito', 'Entregado', 'Cancelado'];
 
@@ -27,6 +29,7 @@ export function ViajesPage() {
   const puedeEliminar = hasPermission('Viajes', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [importarOpen, setImportarOpen] = useState(false);
   const [editing, setEditing] = useState<Viaje | null>(null);
 
   const emptyForm: Omit<Viaje, 'id'> = {
@@ -140,6 +143,14 @@ export function ViajesPage() {
         searchPlaceholder="Buscar por folio, unidad, cliente o ruta..."
         addLabel="Asignar viaje"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <ScanLine size={16} />
+              Importar captura
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -298,6 +309,8 @@ export function ViajesPage() {
           </form>
         </Modal>
       )}
+
+      {importarOpen && <ImportarProgramaModal onClose={() => setImportarOpen(false)} />}
     </div>
   );
 }
