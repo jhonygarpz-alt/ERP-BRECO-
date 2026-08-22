@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, Loader2, Trash2, Upload } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
@@ -40,6 +40,31 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
   const [progreso, setProgreso] = useState(0);
   const [filas, setFilas] = useState<FilaEditable[] | null>(null);
   const [error, setError] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
+
+  useEffect(() => {
+    if (!archivo) {
+      setPreviewUrl('');
+      return;
+    }
+    const url = URL.createObjectURL(archivo);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [archivo]);
+
+  useEffect(() => {
+    if (filas) return;
+    function onPaste(e: ClipboardEvent) {
+      const item = Array.from(e.clipboardData?.items ?? []).find((it) => it.type.startsWith('image/'));
+      const blob = item?.getAsFile();
+      if (!blob) return;
+      e.preventDefault();
+      setArchivo(new File([blob], `captura-pegada.${blob.type.split('/')[1] || 'png'}`, { type: blob.type }));
+      setError('');
+    }
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [filas]);
 
   async function procesarImagen() {
     if (!archivo) return;
@@ -151,7 +176,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
           <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line-700 bg-bg-900 px-6 py-10 text-center hover:border-line-600">
             <Upload size={22} className="text-ink-500" />
             <span className="text-sm text-ink-300">
-              {archivo ? archivo.name : 'Selecciona la foto o captura del programa diario'}
+              {archivo ? archivo.name : 'Selecciona una imagen, o copia una captura y presiona Ctrl+V aqui'}
             </span>
             <input
               type="file"
@@ -160,6 +185,16 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
             />
           </label>
+
+          {previewUrl && (
+            <div className="flex justify-center">
+              <img
+                src={previewUrl}
+                alt="Vista previa"
+                className="max-h-48 rounded-lg border border-line-800 object-contain"
+              />
+            </div>
+          )}
 
           {error && <p className="text-sm text-breco-500">{error}</p>}
 
