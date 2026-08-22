@@ -152,6 +152,62 @@ create table if not exists public.reportes (
   datos jsonb
 );
 
+-- Tablas de la Tanda 2: reflejan las hojas maestras de los reportes de
+-- OneDrive. Las llena la Edge Function "sync-onedrive-reportes" (Graph API);
+-- el modulo de permisos es el mismo "Reportes" que ya protege la tabla de
+-- arriba.
+
+create table if not exists public.facturas_sistema (
+  id bigint primary key,
+  cliente text not null default '',
+  economico_tracto text not null default '',
+  economico_remolque text not null default '',
+  origen_pedido text not null default '',
+  locacion_origen text not null default '',
+  transportista text not null default '',
+  fecha_origen date,
+  destino_pedido text not null default '',
+  locacion_destino text not null default '',
+  fecha_destino date,
+  orden_trabajo text,
+  tipo_pedido text not null default '',
+  fecha_factura text not null default '',
+  total_factura numeric(12, 2) not null default 0,
+  sincronizado_en timestamptz not null default now()
+);
+
+create table if not exists public.gastos_mantenimiento (
+  id uuid primary key default gen_random_uuid(),
+  economico text not null default '',
+  tipo_gasto text not null default '',
+  fecha date,
+  factura text not null default '',
+  reparacion text not null default '',
+  tipo_mtto text not null default '',
+  proveedor text not null default '',
+  costo_reparacion numeric(12, 2) not null default 0,
+  iva numeric(12, 2),
+  iva_retenido numeric(12, 2),
+  isr_retenido numeric(12, 2),
+  total numeric(12, 2) not null default 0,
+  forma_pago text not null default '',
+  comentarios text not null default '',
+  semana integer,
+  sincronizado_en timestamptz not null default now()
+);
+
+create table if not exists public.tanque_movimientos (
+  id uuid primary key default gen_random_uuid(),
+  tanque text not null check (tanque in ('urea_sjr', 'diesel_sjr')),
+  fecha date not null,
+  unidad text not null default '',
+  litros_cargados numeric(10, 2) not null default 0,
+  sobrante numeric(10, 2),
+  tipo text not null default 'consumo' check (tipo in ('carga_inicial', 'consumo', 'factura')),
+  referencia text not null default '',
+  sincronizado_en timestamptz not null default now()
+);
+
 -- ----------------------------------------------------------------------------
 -- 2. PERMISOS (RLS) -- mismo modelo Modulo/PermisoModulo que ya usa el frontend
 -- ----------------------------------------------------------------------------
@@ -184,6 +240,9 @@ alter table public.operadores enable row level security;
 alter table public.viajes enable row level security;
 alter table public.facturas enable row level security;
 alter table public.reportes enable row level security;
+alter table public.facturas_sistema enable row level security;
+alter table public.gastos_mantenimiento enable row level security;
+alter table public.tanque_movimientos enable row level security;
 
 -- usuarios: cada quien siempre puede leer/editar su propia fila (nombre,
 -- telefono); administrar todos los usuarios requiere permiso Configuracion.
@@ -290,6 +349,18 @@ drop policy if exists reportes_update on public.reportes;
 create policy reportes_update on public.reportes for update using (has_permission('Reportes', 'editar'));
 drop policy if exists reportes_delete on public.reportes;
 create policy reportes_delete on public.reportes for delete using (has_permission('Reportes', 'eliminar'));
+
+-- facturas_sistema / gastos_mantenimiento / tanque_movimientos (modulo
+-- Reportes). Solo lectura desde el frontend: los llena la Edge Function con
+-- la service role, que ignora RLS por completo.
+drop policy if exists facturas_sistema_select on public.facturas_sistema;
+create policy facturas_sistema_select on public.facturas_sistema for select using (has_permission('Reportes', 'ver'));
+
+drop policy if exists gastos_mantenimiento_select on public.gastos_mantenimiento;
+create policy gastos_mantenimiento_select on public.gastos_mantenimiento for select using (has_permission('Reportes', 'ver'));
+
+drop policy if exists tanque_movimientos_select on public.tanque_movimientos;
+create policy tanque_movimientos_select on public.tanque_movimientos for select using (has_permission('Reportes', 'ver'));
 
 -- ----------------------------------------------------------------------------
 -- 3. DATOS REALES (roles, empresa, clientes, unidades, cajas, operadores,
