@@ -147,7 +147,7 @@ export function ViajesPage() {
           puedeCrear && (
             <GhostButton type="button" onClick={() => setImportarOpen(true)}>
               <ScanLine size={16} />
-              Importar captura
+              Importar Excel o captura
             </GhostButton>
           )
         }

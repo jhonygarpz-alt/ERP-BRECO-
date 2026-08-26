@@ -1,12 +1,23 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, Loader2, Trash2, Upload } from 'lucide-react';
+import { AlertTriangle, FileSpreadsheet, Image as ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
 import { reconocerImagen } from '../../lib/ocr';
 import { parseProgramaTexto } from '../../lib/parsePrograma';
+import { leerReporteDiarioExcel, guardarViajesImportados, type ResultadoImportViajes } from '../../lib/excelImportViajes';
 import type { EstatusViaje } from '../../types';
 import { Modal } from '../ui/Modal';
 import { GhostButton, Input, PrimaryButton, Select } from '../ui/form';
+
+type Modo = 'excel' | 'imagen';
+
+function pill(activo: boolean) {
+  return `flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${
+    activo
+      ? 'border-breco-500/50 bg-breco-500/10 font-semibold text-white'
+      : 'border-line-800 bg-bg-800 text-ink-400 hover:text-ink-100'
+  }`;
+}
 
 interface FilaEditable {
   id: string;
@@ -35,12 +46,24 @@ function normalizar(texto: string): string {
 
 export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
   const { unidades, clientes, operadores, viajes } = useData();
+  const [modo, setModo] = useState<Modo>('excel');
+
+  // ---- Modo Imagen ----
   const [archivo, setArchivo] = useState<File | null>(null);
   const [procesando, setProcesando] = useState(false);
   const [progreso, setProgreso] = useState(0);
   const [filas, setFilas] = useState<FilaEditable[] | null>(null);
   const [error, setError] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
+
+  // ---- Modo Excel ----
+  const [archivoExcel, setArchivoExcel] = useState<File | null>(null);
+  const [resultadoExcel, setResultadoExcel] = useState<ResultadoImportViajes | null>(null);
+  const [procesandoExcel, setProcesandoExcel] = useState(false);
+  const [guardandoExcel, setGuardandoExcel] = useState(false);
+  const [progresoExcel, setProgresoExcel] = useState(0);
+  const [errorExcel, setErrorExcel] = useState('');
+  const [soloHojaMasReciente, setSoloHojaMasReciente] = useState(true);
 
   useEffect(() => {
     if (!archivo) {
@@ -53,7 +76,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
   }, [archivo]);
 
   useEffect(() => {
-    if (filas) return;
+    if (modo !== 'imagen' || filas) return;
     function onPaste(e: ClipboardEvent) {
       const item = Array.from(e.clipboardData?.items ?? []).find((it) => it.type.startsWith('image/'));
       const blob = item?.getAsFile();
@@ -64,7 +87,47 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
     }
     window.addEventListener('paste', onPaste);
     return () => window.removeEventListener('paste', onPaste);
-  }, [filas]);
+  }, [modo, filas]);
+
+  async function procesarExcel() {
+    if (!archivoExcel) return;
+    setProcesandoExcel(true);
+    setErrorExcel('');
+    try {
+      const resultado = await leerReporteDiarioExcel(
+        archivoExcel,
+        unidades.items.map((u) => ({ id: u.id, economico: u.economico })),
+        clientes.items.map((c) => ({ id: c.id, nombre: c.nombre })),
+        operadores.items.map((o) => ({ id: o.id, nombre: o.nombre })),
+        { soloHojaMasReciente: soloHojaMasReciente },
+      );
+      if (resultado.filasValidas === 0) {
+        setErrorExcel('No se encontro ninguna fila valida en el archivo. Verifica que sea el "Reporte Diario" real.');
+        return;
+      }
+      setResultadoExcel(resultado);
+    } catch (err) {
+      setErrorExcel(err instanceof Error ? err.message : 'No se pudo leer el archivo.');
+    } finally {
+      setProcesandoExcel(false);
+    }
+  }
+
+  async function guardarExcel() {
+    if (!resultadoExcel) return;
+    setGuardandoExcel(true);
+    setErrorExcel('');
+    try {
+      await guardarViajesImportados(resultadoExcel.filas, viajes.items, () => uid('via'), (hecho, total) =>
+        setProgresoExcel(hecho / total),
+      );
+      await viajes.reload();
+      onClose();
+    } catch (err) {
+      setErrorExcel(err instanceof Error ? err.message : 'No se pudo guardar en la base de datos.');
+      setGuardandoExcel(false);
+    }
+  }
 
   async function procesarImagen() {
     if (!archivo) return;
@@ -157,12 +220,119 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal
-      title="Importar programa desde una captura"
-      subtitle="Lectura automatica aproximada: revisa y corrige antes de guardar"
+      title="Importar programa"
+      subtitle="Desde el Excel real (Reporte Diario) o desde una captura"
       onClose={onClose}
       wide
     >
-      {!filas && (
+      <div className="mb-4 flex gap-2">
+        <button type="button" onClick={() => setModo('excel')} className={pill(modo === 'excel')}>
+          <FileSpreadsheet size={15} /> Excel
+        </button>
+        <button type="button" onClick={() => setModo('imagen')} className={pill(modo === 'imagen')}>
+          <ImageIcon size={15} /> Imagen
+        </button>
+      </div>
+
+      {modo === 'excel' && !resultadoExcel && (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3">
+            <FileSpreadsheet size={16} className="mt-0.5 flex-shrink-0 text-blue-400" />
+            <p className="text-xs text-ink-300">
+              Sube el archivo real "Reporte Diario.xlsx" (una hoja por dia). El formato de columnas ha cambiado
+              varias veces a lo largo del tiempo y esto lo detecta solo; las unidades se identifican por su numero
+              de posicion (1=T01, 2=T02, ...). Cliente/operador quedan sin asignar cuando el nombre no coincide con
+              tu catalogo actual -- puedes corregirlos despues desde Asignacion de Viajes.
+            </p>
+          </div>
+
+          <label className="flex items-center gap-2 rounded-xl border border-line-800 bg-bg-800 p-3 text-sm text-ink-300">
+            <input
+              type="checkbox"
+              checked={soloHojaMasReciente}
+              onChange={(e) => setSoloHojaMasReciente(e.target.checked)}
+              className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+            />
+            Importar solo el dia mas reciente del archivo (recomendado para el uso diario)
+          </label>
+          {!soloHojaMasReciente && (
+            <p className="text-xs text-amber-400">
+              Vas a importar TODO el historial del archivo (puede ser cientos de dias). Solo hazlo una vez, al
+              principio.
+            </p>
+          )}
+
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line-700 bg-bg-900 px-6 py-10 text-center hover:border-line-600">
+            <Upload size={22} className="text-ink-500" />
+            <span className="text-sm text-ink-300">
+              {archivoExcel ? archivoExcel.name : 'Selecciona el archivo .xlsx'}
+            </span>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => setArchivoExcel(e.target.files?.[0] ?? null)}
+            />
+          </label>
+
+          {errorExcel && <p className="text-sm text-breco-500">{errorExcel}</p>}
+
+          <div className="flex justify-end gap-2">
+            <GhostButton type="button" onClick={onClose}>
+              Cancelar
+            </GhostButton>
+            <PrimaryButton type="button" disabled={!archivoExcel || procesandoExcel} onClick={procesarExcel}>
+              {procesandoExcel ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Leyendo archivo...
+                </>
+              ) : (
+                'Leer archivo'
+              )}
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      {modo === 'excel' && resultadoExcel && (
+        <div className="space-y-4">
+          <div className="rounded-xl border border-line-800 bg-bg-800 p-4 text-sm text-ink-300">
+            Se leyeron <span className="font-semibold text-ink-100">{resultadoExcel.hojasProcesadas}</span> dia(s)
+            de {resultadoExcel.hojasTotales} hojas totales:{' '}
+            <span className="font-semibold text-ink-100">{resultadoExcel.filasValidas}</span> viajes validos
+            {resultadoExcel.filasSinUnidad > 0 &&
+              `, ${resultadoExcel.filasSinUnidad} filas omitidas por no reconocer la unidad`}
+            .
+          </div>
+
+          {errorExcel && <p className="text-sm text-breco-500">{errorExcel}</p>}
+          {guardandoExcel && (
+            <div className="h-2 w-full overflow-hidden rounded-full bg-bg-700">
+              <div
+                className="h-full bg-breco-500 transition-all"
+                style={{ width: `${Math.round(progresoExcel * 100)}%` }}
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <GhostButton type="button" onClick={() => setResultadoExcel(null)} disabled={guardandoExcel}>
+              Elegir otro archivo
+            </GhostButton>
+            <PrimaryButton type="button" onClick={guardarExcel} disabled={guardandoExcel}>
+              {guardandoExcel ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Guardando...
+                </>
+              ) : (
+                `Guardar ${resultadoExcel.filasValidas} viajes`
+              )}
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      {modo === 'imagen' && !filas && (
         <div className="space-y-4">
           <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
             <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-amber-400" />
@@ -216,7 +386,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
         </div>
       )}
 
-      {filas && (
+      {modo === 'imagen' && filas && (
         <div className="space-y-4">
           <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
             <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-amber-400" />
