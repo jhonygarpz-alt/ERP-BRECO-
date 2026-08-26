@@ -1,9 +1,20 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Plus, Pencil, Trash2, Copy, Check } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Plus,
+  Pencil,
+  Trash2,
+  Copy,
+  Check,
+  Sparkles,
+} from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
-import type { EntregaTurnoUnidad, SemaforoEntrega, TipoNotaEntregaTurno } from '../types';
+import type { EntregaTurnoUnidad, FacturaSistema, SemaforoEntrega, TipoNotaEntregaTurno, Viaje } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Modal } from '../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, Textarea, inputClass } from '../components/ui/form';
@@ -78,6 +89,48 @@ function generarReporte(
   }
 
   return partes.join('\n').trim();
+}
+
+// "Generar desde la operacion" arma lo que el sistema si sabe (ultimo
+// servicio facturado, ruta y cita del viaje asignado) para no repetir a
+// mano lo que ya esta capturado en Facturacion y Viajes. No hay
+// rastreo/GPS en el sistema, asi que la ubicacion en tiempo real y la
+// instruccion siguen siendo criterio del despachador -- esos campos
+// quedan en blanco para que el se los agregue.
+
+function textoFechaRelativa(fechaISO: string, fechaRef: string): string {
+  const d = new Date(`${fechaISO}T00:00:00`);
+  const dia = d.toLocaleDateString('es-MX', { weekday: 'long' });
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  if (fechaISO === fechaRef) return 'Hoy';
+  const diffDias = Math.round(
+    (new Date(`${fechaRef}T00:00:00`).getTime() - d.getTime()) / 86400000,
+  );
+  if (diffDias === 1) return `Ayer, ${dia} ${dd}/${mm}`;
+  return `El ${dia} ${dd}/${mm}`;
+}
+
+function componerServicioAnterior(f: FacturaSistema, fechaRef: string): string {
+  const rel = textoFechaRelativa(f.fechaOrigen, fechaRef);
+  const caja = f.economicoRemolque || f.economicoTracto;
+  const origen = f.locacionOrigen || f.origenPedido;
+  const destino = f.locacionDestino || f.destinoPedido;
+  const tipo = f.tipoPedido || 'servicio';
+  const ruta = origen && destino ? `, de ${origen} hacia ${destino}` : '';
+  return `${rel} facturo una ${tipo} de ${f.cliente} con la caja ${caja}${ruta}.`;
+}
+
+function componerEstatusActual(v: Viaje): string {
+  if (v.observaciones) return v.observaciones;
+  const ruta = v.origen && v.destino ? ` ${v.origen} -> ${v.destino}` : '';
+  return `${v.estatus}${ruta ? ':' + ruta : ''}`.trim();
+}
+
+function semaforoDesdeTono(tono: string | null): SemaforoEntrega {
+  if (tono === 'red') return 'rojo';
+  if (tono === 'amber') return 'amarillo';
+  return 'verde';
 }
 
 function ListaNotas({
@@ -188,7 +241,8 @@ function ListaNotas({
 }
 
 export function EntregaTurnoPage() {
-  const { entregaTurnoUnidades, entregaTurnoNotas, unidades, operadores } = useData();
+  const { entregaTurnoUnidades, entregaTurnoNotas, unidades, operadores, viajes, facturasSistema, estatusViajes } =
+    useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('EntregaTurno', 'crear');
   const puedeEditar = hasPermission('EntregaTurno', 'editar');
@@ -197,6 +251,7 @@ export function EntregaTurnoPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<EntregaTurnoUnidad | null>(null);
   const [copiado, setCopiado] = useState(false);
+  const [generando, setGenerando] = useState(false);
 
   const unidadesDelDia = useMemo(
     () =>
@@ -264,6 +319,62 @@ export function EntregaTurnoPage() {
     entregaTurnoUnidades.update(vecino.id, { orden: u.orden });
   }
 
+  async function generarDesdeOperacion() {
+    setGenerando(true);
+    try {
+      const yaCapturadas = new Set(unidadesDelDia.map((u) => u.unidadTexto.trim().toLowerCase()));
+      let siguienteOrden = unidadesDelDia.reduce((max, u) => Math.max(max, u.orden), 0);
+      for (const unidad of unidades.items) {
+        if (yaCapturadas.has(unidad.economico.trim().toLowerCase())) continue;
+
+        const viajeReciente = viajes.items
+          .filter((v) => v.unidadId === unidad.id && v.fecha <= fecha)
+          .sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+
+        const facturaReciente = facturasSistema.items
+          .filter(
+            (f) =>
+              f.fechaOrigen &&
+              f.fechaOrigen <= fecha &&
+              f.economicoTracto.trim().toLowerCase() === unidad.economico.trim().toLowerCase(),
+          )
+          .sort((a, b) => b.fechaOrigen.localeCompare(a.fechaOrigen))[0];
+
+        if (!viajeReciente && !facturaReciente) continue;
+
+        const operadorNombre = viajeReciente
+          ? (operadores.items.find((o) => o.id === viajeReciente.operadorId)?.nombre ?? '')
+          : (operadores.items.find((o) => o.id === unidad.operadorAsignadoId)?.nombre ?? '');
+        const tono = viajeReciente
+          ? (estatusViajes.items.find((e) => e.nombre === viajeReciente.estatus)?.color ?? null)
+          : null;
+        const ruta = viajeReciente && viajeReciente.origen && viajeReciente.destino
+          ? `${viajeReciente.origen} -> ${viajeReciente.destino}`
+          : '';
+
+        siguienteOrden += 1;
+        await entregaTurnoUnidades.add({
+          id: uid('ent'),
+          fecha,
+          unidadTexto: unidad.economico,
+          operadorTexto: operadorNombre,
+          servicioAnterior: facturaReciente ? componerServicioAnterior(facturaReciente, fecha) : '',
+          semaforo: semaforoDesdeTono(tono),
+          estatusActual: viajeReciente ? componerEstatusActual(viajeReciente) : '',
+          notaAdicional: '',
+          cita: viajeReciente?.cita ?? '',
+          instruccion: '',
+          proximoServicio: '',
+          resumenEstatus: ruta,
+          resumenSiguiente: viajeReciente?.cita ? `Cita: ${viajeReciente.cita}` : '',
+          orden: siguienteOrden,
+        });
+      }
+    } finally {
+      setGenerando(false);
+    }
+  }
+
   const reporte = useMemo(
     () => generarReporte(fecha, unidadesDelDia, notasDelDia),
     [fecha, unidadesDelDia, notasDelDia],
@@ -282,6 +393,14 @@ export function EntregaTurnoPage() {
         subtitle="Reporte narrativo por unidad para el cambio de turno de trafico."
         addLabel="Agregar unidad"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={generarDesdeOperacion} disabled={generando}>
+              <Sparkles size={16} />
+              {generando ? 'Generando...' : 'Generar desde operacion'}
+            </GhostButton>
+          )
+        }
       />
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
