@@ -62,6 +62,7 @@ export function ViajesPage() {
     exportacion: false,
     estatus: 'Programado',
     observaciones: '',
+    ubicacionActual: '',
   };
 
   const [form, setForm] = useState(emptyForm);
@@ -444,6 +445,16 @@ export function ViajesPage() {
                 />
                 Exportacion
               </label>
+            </div>
+
+            <div className="sm:col-span-2">
+              <Field label="Ubicacion actual">
+                <Input
+                  placeholder="Ej. Circulando a la altura de Matehuala"
+                  value={form.ubicacionActual}
+                  onChange={(e) => setForm({ ...form, ubicacionActual: e.target.value })}
+                />
+              </Field>
             </div>
 
             <div className="sm:col-span-2">

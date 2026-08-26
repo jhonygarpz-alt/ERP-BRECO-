@@ -308,7 +308,7 @@ export async function guardarViajesImportados(
     } else {
       contadorFolio += 1;
       const folio = `V-${String(contadorFolio).padStart(4, '0')}`;
-      nuevos.push({ id: crearId(), folio, horaSalida: '', horaLlegadaEstimada: '', ...f });
+      nuevos.push({ id: crearId(), folio, horaSalida: '', horaLlegadaEstimada: '', ubicacionActual: '', ...f });
     }
   }
 

@@ -113,6 +113,7 @@ export interface Viaje {
   exportacion: boolean;
   estatus: EstatusViaje;
   observaciones: string;
+  ubicacionActual: string;
 }
 
 export type EstatusFactura = 'Pendiente' | 'Facturado' | 'Pagado' | 'Cancelado';

@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Settings,
   ClipboardList,
+  ListChecks,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -75,11 +76,14 @@ function NavGroup({ children }: { children: ReactNode }) {
   return <div className="space-y-1.5">{children}</div>;
 }
 
+const traficoRoutes = ['/viajes', '/viajes-del-dia', '/programa', '/entrega-turno'];
+
 export function Sidebar() {
   const location = useLocation();
   const { empresa } = useData();
   const { hasPermission } = useAuth();
   const [catalogsOpen, setCatalogsOpen] = useState(location.pathname.startsWith('/catalogos'));
+  const [traficoOpen, setTraficoOpen] = useState(traficoRoutes.some((r) => location.pathname.startsWith(r)));
 
   const puedeCatalogos = hasPermission('Catalogos', 'ver');
   const puedeViajes = hasPermission('Viajes', 'ver');
@@ -88,6 +92,18 @@ export function Sidebar() {
   const puedeEntregaTurno = hasPermission('EntregaTurno', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
+
+  const traficoLinks = [
+    puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route, gradient: ['#2dd4bf', '#0891b2'] },
+    puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks, gradient: ['#22d3ee', '#0e7490'] },
+    puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock, gradient: ['#38bdf8', '#1d4ed8'] },
+    puedeEntregaTurno && {
+      to: '/entrega-turno',
+      label: 'Entrega de Turno',
+      icon: ClipboardList,
+      gradient: ['#f472b6', '#be185d'],
+    },
+  ].filter(Boolean) as { to: string; label: string; icon: LucideIcon; gradient: [string, string] }[];
 
   return (
     <aside className="flex h-full w-72 flex-shrink-0 flex-col border-r border-line-800 bg-bg-900">
@@ -146,25 +162,39 @@ export function Sidebar() {
           </NavGroup>
         )}
 
-        {(puedeViajes || puedeFacturacion || puedePrograma || puedeEntregaTurno) && (
+        {traficoLinks.length > 0 && (
           <NavGroup>
-            {puedeViajes && (
-              <NavRow to="/viajes" label="Asignacion de Viajes" icon={Route} gradient={['#2dd4bf', '#0891b2']} />
-            )}
-            {puedeFacturacion && (
-              <NavRow to="/facturacion" label="Facturacion Diaria" icon={Receipt} gradient={['#fbbf24', '#b45309']} />
-            )}
-            {puedePrograma && (
-              <NavRow to="/programa" label="Programa Diario" icon={CalendarClock} gradient={['#38bdf8', '#1d4ed8']} />
-            )}
-            {puedeEntregaTurno && (
-              <NavRow
-                to="/entrega-turno"
-                label="Entrega de Turno"
-                icon={ClipboardList}
-                gradient={['#f472b6', '#be185d']}
+            <button
+              onClick={() => setTraficoOpen((v) => !v)}
+              className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-2.5 text-[15px] transition ${
+                traficoRoutes.some((r) => location.pathname.startsWith(r))
+                  ? 'font-semibold text-ink-100'
+                  : 'font-medium text-ink-300 hover:bg-bg-700/70 hover:text-ink-100'
+              }`}
+            >
+              <IconBadge icon={Route} gradient={['#2dd4bf', '#0891b2']} />
+              <span className="flex-1 text-left">Trafico</span>
+              <ChevronDown
+                size={16}
+                className={`text-ink-500 transition-transform ${traficoOpen ? 'rotate-180' : ''}`}
               />
+            </button>
+            {traficoOpen && (
+              <div className="relative ml-5 space-y-1.5 border-l border-line-700 py-1 pl-4">
+                {traficoLinks.map((item) => (
+                  <div key={item.to} className="relative">
+                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-line-600" />
+                    <NavRow to={item.to} label={item.label} icon={item.icon} gradient={item.gradient} />
+                  </div>
+                ))}
+              </div>
             )}
+          </NavGroup>
+        )}
+
+        {puedeFacturacion && (
+          <NavGroup>
+            <NavRow to="/facturacion" label="Facturacion Diaria" icon={Receipt} gradient={['#fbbf24', '#b45309']} />
           </NavGroup>
         )}
 

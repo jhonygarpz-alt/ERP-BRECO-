@@ -207,6 +207,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
         exportacion: f.exportacion,
         estatus: f.estatus,
         observaciones: f.observaciones,
+        ubicacionActual: viajeExistente?.ubicacionActual ?? '',
       };
       if (viajeExistente) {
         viajes.update(viajeExistente.id, payload);

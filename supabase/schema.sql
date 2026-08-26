@@ -125,6 +125,7 @@ create table if not exists public.viajes (
   exportacion boolean not null default false,
   estatus text not null default 'Programado',
   observaciones text not null default '',
+  ubicacion_actual text not null default '',
   creado_en timestamptz not null default now()
 );
 

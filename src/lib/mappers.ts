@@ -137,6 +137,7 @@ export function viajeFromRow(row: Record<string, unknown>): Viaje {
     exportacion: row.exportacion as boolean,
     estatus: row.estatus as Viaje['estatus'],
     observaciones: row.observaciones as string,
+    ubicacionActual: (row.ubicacion_actual as string | null) ?? '',
   };
 }
 export function viajeToRow(v: Viaje) {
@@ -159,6 +160,7 @@ export function viajeToRow(v: Viaje) {
     exportacion: v.exportacion,
     estatus: v.estatus,
     observaciones: v.observaciones,
+    ubicacion_actual: v.ubicacionActual,
   };
 }
 

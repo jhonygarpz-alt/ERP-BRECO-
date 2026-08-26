@@ -14,6 +14,7 @@ import { ViajesPage } from './pages/ViajesPage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { EntregaTurnoPage } from './pages/EntregaTurnoPage';
+import { ViajesDelDiaPage } from './pages/ViajesDelDiaPage';
 import { ReportesPage } from './pages/ReportesPage';
 import { ReportesOperativosPage } from './pages/ReportesOperativosPage';
 import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
@@ -38,6 +39,7 @@ function App() {
 
                 <Route element={<RequirePermission modulo="Viajes" />}>
                   <Route path="/viajes" element={<ViajesPage />} />
+                  <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Facturacion" />}>
