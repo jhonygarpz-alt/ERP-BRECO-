@@ -65,6 +65,35 @@ export interface EstatusViajeCustom {
   color: string;
 }
 
+export type SemaforoEntrega = 'verde' | 'amarillo' | 'rojo';
+
+export interface EntregaTurnoUnidad {
+  id: string;
+  fecha: string;
+  unidadTexto: string;
+  operadorTexto: string;
+  servicioAnterior: string;
+  semaforo: SemaforoEntrega;
+  estatusActual: string;
+  notaAdicional: string;
+  cita: string;
+  instruccion: string;
+  proximoServicio: string;
+  resumenEstatus: string;
+  resumenSiguiente: string;
+  orden: number;
+}
+
+export type TipoNotaEntregaTurno = 'cita' | 'prioridad';
+
+export interface EntregaTurnoNota {
+  id: string;
+  fecha: string;
+  tipo: TipoNotaEntregaTurno;
+  texto: string;
+  orden: number;
+}
+
 export interface Viaje {
   id: string;
   folio: string;
@@ -139,7 +168,7 @@ export interface Empresa {
   logoDataUrl: string;
 }
 
-export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'Reportes' | 'Configuracion';
+export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'EntregaTurno' | 'Reportes' | 'Configuracion';
 
 export interface ReporteExterno {
   id: string;

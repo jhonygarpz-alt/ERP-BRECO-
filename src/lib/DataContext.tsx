@@ -8,6 +8,10 @@ import {
   clienteToRow,
   empresaFromRow,
   empresaToRow,
+  entregaTurnoNotaFromRow,
+  entregaTurnoNotaToRow,
+  entregaTurnoUnidadFromRow,
+  entregaTurnoUnidadToRow,
   estatusViajeFromRow,
   estatusViajeToRow,
   facturaFromRow,
@@ -32,6 +36,8 @@ import type {
   Caja,
   Cliente,
   Empresa,
+  EntregaTurnoNota,
+  EntregaTurnoUnidad,
   EstatusViajeCustom,
   Factura,
   FacturaSistema,
@@ -50,6 +56,8 @@ interface DataContextValue {
   operadores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Operador>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
+  entregaTurnoUnidades: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EntregaTurnoUnidad>>;
+  entregaTurnoNotas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EntregaTurnoNota>>;
   facturas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Factura>>;
   facturasSistema: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FacturaSistema>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
@@ -74,6 +82,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'estatus_viaje',
     estatusViajeFromRow,
     estatusViajeToRow,
+  );
+  const entregaTurnoUnidades = useSupabaseCollection<Record<string, unknown>, EntregaTurnoUnidad>(
+    'entrega_turno_unidad',
+    entregaTurnoUnidadFromRow,
+    entregaTurnoUnidadToRow,
+  );
+  const entregaTurnoNotas = useSupabaseCollection<Record<string, unknown>, EntregaTurnoNota>(
+    'entrega_turno_nota',
+    entregaTurnoNotaFromRow,
+    entregaTurnoNotaToRow,
   );
   const facturas = useSupabaseCollection<Record<string, unknown>, Factura>('facturas', facturaFromRow, facturaToRow);
   const facturasSistema = useSupabaseCollection<Record<string, unknown>, FacturaSistema>(
@@ -105,6 +123,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         operadores,
         viajes,
         estatusViajes,
+        entregaTurnoUnidades,
+        entregaTurnoNotas,
         facturas,
         facturasSistema,
         reportes,

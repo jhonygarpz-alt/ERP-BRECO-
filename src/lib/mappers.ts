@@ -2,12 +2,16 @@ import type {
   Caja,
   Cliente,
   Empresa,
+  EntregaTurnoNota,
+  EntregaTurnoUnidad,
   EstatusViajeCustom,
   Factura,
   FacturaSistema,
   Operador,
   ReporteExterno,
   Rol,
+  SemaforoEntrega,
+  TipoNotaEntregaTurno,
   Unidad,
   Usuario,
   Viaje,
@@ -163,6 +167,56 @@ export function estatusViajeFromRow(row: Record<string, unknown>): EstatusViajeC
 }
 export function estatusViajeToRow(e: EstatusViajeCustom) {
   return { id: e.id, nombre: e.nombre, color: e.color };
+}
+
+export function entregaTurnoUnidadFromRow(row: Record<string, unknown>): EntregaTurnoUnidad {
+  return {
+    id: row.id as string,
+    fecha: row.fecha as string,
+    unidadTexto: (row.unidad_texto as string) ?? '',
+    operadorTexto: (row.operador_texto as string) ?? '',
+    servicioAnterior: (row.servicio_anterior as string) ?? '',
+    semaforo: (row.semaforo as SemaforoEntrega) ?? 'verde',
+    estatusActual: (row.estatus_actual as string) ?? '',
+    notaAdicional: (row.nota_adicional as string) ?? '',
+    cita: (row.cita as string) ?? '',
+    instruccion: (row.instruccion as string) ?? '',
+    proximoServicio: (row.proximo_servicio as string) ?? '',
+    resumenEstatus: (row.resumen_estatus as string) ?? '',
+    resumenSiguiente: (row.resumen_siguiente as string) ?? '',
+    orden: Number(row.orden) || 0,
+  };
+}
+export function entregaTurnoUnidadToRow(e: EntregaTurnoUnidad) {
+  return {
+    id: e.id,
+    fecha: e.fecha,
+    unidad_texto: e.unidadTexto,
+    operador_texto: e.operadorTexto,
+    servicio_anterior: e.servicioAnterior,
+    semaforo: e.semaforo,
+    estatus_actual: e.estatusActual,
+    nota_adicional: e.notaAdicional,
+    cita: e.cita,
+    instruccion: e.instruccion,
+    proximo_servicio: e.proximoServicio,
+    resumen_estatus: e.resumenEstatus,
+    resumen_siguiente: e.resumenSiguiente,
+    orden: e.orden,
+  };
+}
+
+export function entregaTurnoNotaFromRow(row: Record<string, unknown>): EntregaTurnoNota {
+  return {
+    id: row.id as string,
+    fecha: row.fecha as string,
+    tipo: row.tipo as TipoNotaEntregaTurno,
+    texto: (row.texto as string) ?? '',
+    orden: Number(row.orden) || 0,
+  };
+}
+export function entregaTurnoNotaToRow(n: EntregaTurnoNota) {
+  return { id: n.id, fecha: n.fecha, tipo: n.tipo, texto: n.texto, orden: n.orden };
 }
 
 export function facturaFromRow(row: Record<string, unknown>): Factura {

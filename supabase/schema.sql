@@ -149,6 +149,35 @@ insert into public.estatus_viaje (id, nombre, color) values
   ('viaje-est-cancelado', 'Cancelado', 'red')
 on conflict (id) do nothing;
 
+-- entrega de turno: una fila por unidad por fecha con el reporte narrativo
+-- que el jefe de trafico saliente le deja al que entra.
+create table if not exists public.entrega_turno_unidad (
+  id text primary key,
+  fecha date not null,
+  unidad_texto text not null default '',
+  operador_texto text not null default '',
+  servicio_anterior text not null default '',
+  semaforo text not null default 'verde' check (semaforo in ('verde', 'amarillo', 'rojo')),
+  estatus_actual text not null default '',
+  nota_adicional text not null default '',
+  cita text not null default '',
+  instruccion text not null default '',
+  proximo_servicio text not null default '',
+  resumen_estatus text not null default '',
+  resumen_siguiente text not null default '',
+  orden integer not null default 0,
+  creado_en timestamptz not null default now()
+);
+
+create table if not exists public.entrega_turno_nota (
+  id text primary key,
+  fecha date not null,
+  tipo text not null check (tipo in ('cita', 'prioridad')),
+  texto text not null default '',
+  orden integer not null default 0,
+  creado_en timestamptz not null default now()
+);
+
 create table if not exists public.facturas (
   id text primary key,
   folio text not null,
@@ -369,6 +398,27 @@ drop policy if exists estatus_viaje_update on public.estatus_viaje;
 create policy estatus_viaje_update on public.estatus_viaje for update
   using (has_permission('Viajes', 'crear') or has_permission('Viajes', 'editar'));
 
+-- entrega_turno_unidad / entrega_turno_nota (modulo EntregaTurno)
+alter table public.entrega_turno_unidad enable row level security;
+drop policy if exists entrega_turno_unidad_select on public.entrega_turno_unidad;
+create policy entrega_turno_unidad_select on public.entrega_turno_unidad for select using (has_permission('EntregaTurno', 'ver'));
+drop policy if exists entrega_turno_unidad_insert on public.entrega_turno_unidad;
+create policy entrega_turno_unidad_insert on public.entrega_turno_unidad for insert with check (has_permission('EntregaTurno', 'crear'));
+drop policy if exists entrega_turno_unidad_update on public.entrega_turno_unidad;
+create policy entrega_turno_unidad_update on public.entrega_turno_unidad for update using (has_permission('EntregaTurno', 'editar'));
+drop policy if exists entrega_turno_unidad_delete on public.entrega_turno_unidad;
+create policy entrega_turno_unidad_delete on public.entrega_turno_unidad for delete using (has_permission('EntregaTurno', 'eliminar'));
+
+alter table public.entrega_turno_nota enable row level security;
+drop policy if exists entrega_turno_nota_select on public.entrega_turno_nota;
+create policy entrega_turno_nota_select on public.entrega_turno_nota for select using (has_permission('EntregaTurno', 'ver'));
+drop policy if exists entrega_turno_nota_insert on public.entrega_turno_nota;
+create policy entrega_turno_nota_insert on public.entrega_turno_nota for insert with check (has_permission('EntregaTurno', 'crear'));
+drop policy if exists entrega_turno_nota_update on public.entrega_turno_nota;
+create policy entrega_turno_nota_update on public.entrega_turno_nota for update using (has_permission('EntregaTurno', 'editar'));
+drop policy if exists entrega_turno_nota_delete on public.entrega_turno_nota;
+create policy entrega_turno_nota_delete on public.entrega_turno_nota for delete using (has_permission('EntregaTurno', 'eliminar'));
+
 -- facturas (modulo Facturacion)
 drop policy if exists facturas_select on public.facturas;
 create policy facturas_select on public.facturas for select using (has_permission('Facturacion', 'ver'));
@@ -420,9 +470,9 @@ create policy tanque_movimientos_update on public.tanque_movimientos for update 
 -- ----------------------------------------------------------------------------
 
 -- Roles
-insert into public.roles (id, nombre, descripcion, permisos) values ('rol-admin', 'Administrador', 'Acceso total al sistema, incluyendo configuracion.', '{"Catalogos":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Viajes":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Facturacion":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Programa":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Reportes":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Configuracion":{"ver":true,"crear":true,"editar":true,"eliminar":true}}'::jsonb) on conflict (id) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, permisos = excluded.permisos;
-insert into public.roles (id, nombre, descripcion, permisos) values ('rol-trafico', 'Jefe de Trafico', 'Gestiona catalogos, viajes y programa diario.', '{"Catalogos":{"ver":true,"crear":true,"editar":true,"eliminar":false},"Viajes":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Facturacion":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Programa":{"ver":true,"crear":true,"editar":true,"eliminar":false},"Reportes":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Configuracion":{"ver":false,"crear":false,"editar":false,"eliminar":false}}'::jsonb) on conflict (id) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, permisos = excluded.permisos;
-insert into public.roles (id, nombre, descripcion, permisos) values ('rol-facturacion', 'Facturacion', 'Gestiona la facturacion diaria; consulta el resto.', '{"Catalogos":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Viajes":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Facturacion":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Programa":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Reportes":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Configuracion":{"ver":false,"crear":false,"editar":false,"eliminar":false}}'::jsonb) on conflict (id) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, permisos = excluded.permisos;
+insert into public.roles (id, nombre, descripcion, permisos) values ('rol-admin', 'Administrador', 'Acceso total al sistema, incluyendo configuracion.', '{"Catalogos":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Viajes":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Facturacion":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Programa":{"ver":true,"crear":true,"editar":true,"eliminar":true},"EntregaTurno":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Reportes":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Configuracion":{"ver":true,"crear":true,"editar":true,"eliminar":true}}'::jsonb) on conflict (id) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, permisos = excluded.permisos;
+insert into public.roles (id, nombre, descripcion, permisos) values ('rol-trafico', 'Jefe de Trafico', 'Gestiona catalogos, viajes y programa diario.', '{"Catalogos":{"ver":true,"crear":true,"editar":true,"eliminar":false},"Viajes":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Facturacion":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Programa":{"ver":true,"crear":true,"editar":true,"eliminar":false},"EntregaTurno":{"ver":true,"crear":true,"editar":true,"eliminar":false},"Reportes":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Configuracion":{"ver":false,"crear":false,"editar":false,"eliminar":false}}'::jsonb) on conflict (id) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, permisos = excluded.permisos;
+insert into public.roles (id, nombre, descripcion, permisos) values ('rol-facturacion', 'Facturacion', 'Gestiona la facturacion diaria; consulta el resto.', '{"Catalogos":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Viajes":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Facturacion":{"ver":true,"crear":true,"editar":true,"eliminar":true},"Programa":{"ver":true,"crear":false,"editar":false,"eliminar":false},"EntregaTurno":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Reportes":{"ver":true,"crear":false,"editar":false,"eliminar":false},"Configuracion":{"ver":false,"crear":false,"editar":false,"eliminar":false}}'::jsonb) on conflict (id) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, permisos = excluded.permisos;
 
 -- Empresa (fila unica)
 insert into public.empresa (id, nombre, razon_social, rfc, direccion, telefono, email, sitio_web, logo_data_url) values ('main', 'BRECO Transportes', 'Pendiente', 'Pendiente', 'Pendiente', 'Pendiente', 'Pendiente', '', '') on conflict (id) do nothing;

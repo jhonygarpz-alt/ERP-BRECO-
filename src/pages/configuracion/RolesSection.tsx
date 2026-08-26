@@ -8,7 +8,9 @@ import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/form';
 
-const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'Reportes', 'Configuracion'];
+const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'EntregaTurno', 'Reportes', 'Configuracion'];
+const MODULO_LABELS: Partial<Record<Modulo, string>> = { EntregaTurno: 'Entrega de Turno' };
+const etiquetaModulo = (m: Modulo) => MODULO_LABELS[m] ?? m;
 const acciones: { key: keyof PermisoModulo; label: string }[] = [
   { key: 'ver', label: 'Ver' },
   { key: 'crear', label: 'Crear' },
@@ -84,7 +86,7 @@ export function RolesSection() {
             .filter((m) => r.permisos[m]?.ver)
             .map((m) => (
               <span key={m} className="rounded-full border border-line-700 bg-bg-900 px-2 py-0.5 text-[11px] text-ink-400">
-                {m}
+                {etiquetaModulo(m)}
               </span>
             ))}
         </div>
@@ -143,7 +145,7 @@ export function RolesSection() {
                 <tbody>
                   {modulos.map((m) => (
                     <tr key={m} className="border-b border-line-800/70 last:border-0">
-                      <td className="px-3 py-2 text-ink-300">{m}</td>
+                      <td className="px-3 py-2 text-ink-300">{etiquetaModulo(m)}</td>
                       {acciones.map((a) => (
                         <td key={a.key} className="px-3 py-2 text-center">
                           <input

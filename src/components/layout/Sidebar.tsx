@@ -14,6 +14,7 @@ import {
   BarChart3,
   ChevronDown,
   Settings,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -84,6 +85,7 @@ export function Sidebar() {
   const puedeViajes = hasPermission('Viajes', 'ver');
   const puedeFacturacion = hasPermission('Facturacion', 'ver');
   const puedePrograma = hasPermission('Programa', 'ver');
+  const puedeEntregaTurno = hasPermission('EntregaTurno', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
@@ -144,7 +146,7 @@ export function Sidebar() {
           </NavGroup>
         )}
 
-        {(puedeViajes || puedeFacturacion || puedePrograma) && (
+        {(puedeViajes || puedeFacturacion || puedePrograma || puedeEntregaTurno) && (
           <NavGroup>
             {puedeViajes && (
               <NavRow to="/viajes" label="Asignacion de Viajes" icon={Route} gradient={['#2dd4bf', '#0891b2']} />
@@ -154,6 +156,14 @@ export function Sidebar() {
             )}
             {puedePrograma && (
               <NavRow to="/programa" label="Programa Diario" icon={CalendarClock} gradient={['#38bdf8', '#1d4ed8']} />
+            )}
+            {puedeEntregaTurno && (
+              <NavRow
+                to="/entrega-turno"
+                label="Entrega de Turno"
+                icon={ClipboardList}
+                gradient={['#f472b6', '#be185d']}
+              />
             )}
           </NavGroup>
         )}
