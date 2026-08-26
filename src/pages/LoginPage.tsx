@@ -7,18 +7,21 @@ import { Field, Input, PrimaryButton } from '../components/ui/form';
 import { BrandName } from '../components/ui/BrandName';
 
 export function LoginPage() {
-  const { usuarioActual, login } = useAuth();
+  const { estado, login } = useAuth();
   const { empresa } = useData();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
-  if (usuarioActual) return <Navigate to="/" replace />;
+  if (estado === 'autenticado' || estado === 'sin-perfil') return <Navigate to="/" replace />;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const result = login(email, password);
+    setEnviando(true);
+    const result = await login(email, password);
+    setEnviando(false);
     if (!result.ok) {
       setError(result.error ?? 'No se pudo iniciar sesion.');
       return;
@@ -78,9 +81,9 @@ export function LoginPage() {
 
           {error && <p className="text-sm text-breco-500">{error}</p>}
 
-          <PrimaryButton type="submit" className="w-full">
+          <PrimaryButton type="submit" className="w-full" disabled={enviando}>
             <LogIn size={16} />
-            Entrar
+            {enviando ? 'Entrando...' : 'Entrar'}
           </PrimaryButton>
         </form>
 

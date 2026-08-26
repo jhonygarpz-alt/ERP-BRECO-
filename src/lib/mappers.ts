@@ -1,0 +1,255 @@
+import type {
+  Caja,
+  Cliente,
+  Empresa,
+  Factura,
+  Operador,
+  ReporteExterno,
+  Rol,
+  Unidad,
+  Usuario,
+  Viaje,
+} from '../types';
+
+// Cada par fromXRow/xToRow convierte entre una fila de Supabase (columnas en
+// snake_case, tal como quedaron en supabase/schema.sql) y el tipo de la app
+// (camelCase). Son planos a proposito: nada de logica, solo el cambio de
+// nombre de columnas.
+
+export function clienteFromRow(row: Record<string, unknown>): Cliente {
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    rfc: row.rfc as string,
+    contacto: row.contacto as string,
+    telefono: row.telefono as string,
+    email: row.email as string,
+    direccion: row.direccion as string,
+    estatus: row.estatus as Cliente['estatus'],
+  };
+}
+export function clienteToRow(c: Cliente) {
+  return { ...c };
+}
+
+export function unidadFromRow(row: Record<string, unknown>): Unidad {
+  return {
+    id: row.id as string,
+    economico: row.economico as string,
+    placas: row.placas as string,
+    tipo: row.tipo as Unidad['tipo'],
+    marca: row.marca as string,
+    modelo: row.modelo as string,
+    anio: row.anio as number,
+    estatus: row.estatus as Unidad['estatus'],
+    operadorAsignadoId: (row.operador_asignado_id as string | null) ?? undefined,
+    clienteAsignadoId: (row.cliente_asignado_id as string | null) ?? undefined,
+  };
+}
+export function unidadToRow(u: Unidad) {
+  return {
+    id: u.id,
+    economico: u.economico,
+    placas: u.placas,
+    tipo: u.tipo,
+    marca: u.marca,
+    modelo: u.modelo,
+    anio: u.anio,
+    estatus: u.estatus,
+    operador_asignado_id: u.operadorAsignadoId ?? null,
+    cliente_asignado_id: u.clienteAsignadoId ?? null,
+  };
+}
+
+export function cajaFromRow(row: Record<string, unknown>): Caja {
+  return {
+    id: row.id as string,
+    economico: row.economico as string,
+    placas: row.placas as string,
+    tipo: row.tipo as Caja['tipo'],
+    capacidad: row.capacidad as string,
+    estatus: row.estatus as Caja['estatus'],
+    marca: (row.marca as string | null) ?? undefined,
+    modelo: (row.modelo as string | null) ?? undefined,
+    anio: (row.anio as number | null) ?? undefined,
+  };
+}
+export function cajaToRow(c: Caja) {
+  return {
+    id: c.id,
+    economico: c.economico,
+    placas: c.placas,
+    tipo: c.tipo,
+    capacidad: c.capacidad,
+    estatus: c.estatus,
+    marca: c.marca ?? null,
+    modelo: c.modelo ?? null,
+    anio: c.anio ?? null,
+  };
+}
+
+export function operadorFromRow(row: Record<string, unknown>): Operador {
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    licencia: row.licencia as string,
+    tipoLicencia: row.tipo_licencia as string,
+    telefono: row.telefono as string,
+    vigenciaLicencia: (row.vigencia_licencia as string | null) ?? '',
+    estatus: row.estatus as Operador['estatus'],
+  };
+}
+export function operadorToRow(o: Operador) {
+  return {
+    id: o.id,
+    nombre: o.nombre,
+    licencia: o.licencia,
+    tipo_licencia: o.tipoLicencia,
+    telefono: o.telefono,
+    vigencia_licencia: o.vigenciaLicencia || null,
+    estatus: o.estatus,
+  };
+}
+
+export function viajeFromRow(row: Record<string, unknown>): Viaje {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    fecha: row.fecha as string,
+    clienteId: (row.cliente_id as string | null) ?? '',
+    unidadId: (row.unidad_id as string | null) ?? '',
+    operadorId: (row.operador_id as string | null) ?? '',
+    materiales: row.materiales as string,
+    cajaNombre: row.caja_nombre as string,
+    cajaEconomico: row.caja_economico as string,
+    origen: row.origen as string,
+    destino: row.destino as string,
+    horaSalida: row.hora_salida as string,
+    horaLlegadaEstimada: row.hora_llegada_estimada as string,
+    cita: row.cita as string,
+    importacion: row.importacion as boolean,
+    exportacion: row.exportacion as boolean,
+    estatus: row.estatus as Viaje['estatus'],
+    observaciones: row.observaciones as string,
+  };
+}
+export function viajeToRow(v: Viaje) {
+  return {
+    id: v.id,
+    folio: v.folio,
+    fecha: v.fecha,
+    cliente_id: v.clienteId || null,
+    unidad_id: v.unidadId || null,
+    operador_id: v.operadorId || null,
+    materiales: v.materiales,
+    caja_nombre: v.cajaNombre,
+    caja_economico: v.cajaEconomico,
+    origen: v.origen,
+    destino: v.destino,
+    hora_salida: v.horaSalida,
+    hora_llegada_estimada: v.horaLlegadaEstimada,
+    cita: v.cita,
+    importacion: v.importacion,
+    exportacion: v.exportacion,
+    estatus: v.estatus,
+    observaciones: v.observaciones,
+  };
+}
+
+export function facturaFromRow(row: Record<string, unknown>): Factura {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    fecha: row.fecha as string,
+    viajeId: (row.viaje_id as string | null) ?? '',
+    clienteId: (row.cliente_id as string | null) ?? '',
+    importe: Number(row.importe),
+    moneda: row.moneda as Factura['moneda'],
+    estatus: row.estatus as Factura['estatus'],
+    observaciones: row.observaciones as string,
+  };
+}
+export function facturaToRow(f: Factura) {
+  return {
+    id: f.id,
+    folio: f.folio,
+    fecha: f.fecha,
+    viaje_id: f.viajeId || null,
+    cliente_id: f.clienteId || null,
+    importe: f.importe,
+    moneda: f.moneda,
+    estatus: f.estatus,
+    observaciones: f.observaciones,
+  };
+}
+
+export function reporteFromRow(row: Record<string, unknown>): ReporteExterno {
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    descripcion: row.descripcion as string,
+    url: row.url as string,
+    actualizado: row.actualizado as string,
+  };
+}
+export function reporteToRow(r: ReporteExterno) {
+  return { ...r };
+}
+
+export function rolFromRow(row: Record<string, unknown>): Rol {
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    descripcion: row.descripcion as string,
+    permisos: row.permisos as Rol['permisos'],
+  };
+}
+export function rolToRow(r: Rol) {
+  return { ...r };
+}
+
+export function usuarioFromRow(row: Record<string, unknown>): Usuario {
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    email: row.email as string,
+    telefono: row.telefono as string,
+    rolId: (row.rol_id as string | null) ?? '',
+    estatus: row.estatus as Usuario['estatus'],
+  };
+}
+export function usuarioToRow(u: Usuario) {
+  return {
+    id: u.id,
+    nombre: u.nombre,
+    email: u.email,
+    telefono: u.telefono,
+    rol_id: u.rolId || null,
+    estatus: u.estatus,
+  };
+}
+
+export function empresaFromRow(row: Record<string, unknown>): Empresa {
+  return {
+    nombre: row.nombre as string,
+    razonSocial: row.razon_social as string,
+    rfc: row.rfc as string,
+    direccion: row.direccion as string,
+    telefono: row.telefono as string,
+    email: row.email as string,
+    sitioWeb: row.sitio_web as string,
+    logoDataUrl: row.logo_data_url as string,
+  };
+}
+export function empresaToRow(e: Empresa) {
+  return {
+    nombre: e.nombre,
+    razon_social: e.razonSocial,
+    rfc: e.rfc,
+    direccion: e.direccion,
+    telefono: e.telefono,
+    email: e.email,
+    sitio_web: e.sitioWeb,
+    logo_data_url: e.logoDataUrl,
+  };
+}

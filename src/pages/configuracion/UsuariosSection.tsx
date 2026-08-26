@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
-import { uid } from '../../lib/storage';
 import type { Estatus, Usuario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -18,12 +17,12 @@ export function UsuariosSection() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Usuario | null>(null);
+  const [nuevoId, setNuevoId] = useState('');
 
   const emptyForm: Omit<Usuario, 'id'> = {
     nombre: '',
     email: '',
     telefono: '',
-    password: '',
     rolId: roles.items[0]?.id ?? '',
     estatus: 'activo',
   };
@@ -40,6 +39,7 @@ export function UsuariosSection() {
   function openNew() {
     setEditing(null);
     setForm(emptyForm);
+    setNuevoId('');
     setModalOpen(true);
   }
 
@@ -54,7 +54,7 @@ export function UsuariosSection() {
     if (editing) {
       usuarios.update(editing.id, form);
     } else {
-      usuarios.add({ id: uid('usr'), ...form });
+      usuarios.add({ id: nuevoId.trim(), ...form });
     }
     setModalOpen(false);
   }
@@ -100,6 +100,13 @@ export function UsuariosSection() {
           onClose={() => setModalOpen(false)}
         >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {!editing && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-ink-300 sm:col-span-2">
+                Antes de llenar esto, crea a la persona en Supabase (Authentication &gt; Users &gt; Add user) con su
+                correo y contrasena. Luego pega aqui abajo el UUID que le asigno Supabase — ese UUID es lo que
+                conecta su acceso con su rol en este sistema.
+              </div>
+            )}
             <div className="sm:col-span-2">
               <Field label="Nombre completo">
                 <Input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
@@ -116,15 +123,18 @@ export function UsuariosSection() {
             <Field label="Telefono">
               <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
             </Field>
-            <Field label="Contrasena">
-              <Input
-                type="password"
-                required
-                minLength={4}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
-            </Field>
+            {!editing && (
+              <div className="sm:col-span-2">
+                <Field label="UUID de Supabase Auth">
+                  <Input
+                    required
+                    placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    value={nuevoId}
+                    onChange={(e) => setNuevoId(e.target.value)}
+                  />
+                </Field>
+              </div>
+            )}
             <Field label="Rol">
               <Select value={form.rolId} onChange={(e) => setForm({ ...form, rolId: e.target.value })}>
                 {roles.items.map((r) => (

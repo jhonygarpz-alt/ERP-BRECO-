@@ -1,74 +1,71 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { useCollection, useSingleton } from './storage';
+import { useSupabaseCollection } from './supabaseCollection';
+import { useSupabaseSingleton } from './supabaseSingleton';
 import {
-  seedCajas,
-  seedClientes,
-  seedEmpresa,
-  seedFacturas,
-  seedOperadores,
-  seedReportes,
-  seedRoles,
-  seedUnidades,
-  seedUsuarios,
-  seedViajes,
-} from './seed';
+  cajaFromRow,
+  cajaToRow,
+  clienteFromRow,
+  clienteToRow,
+  empresaFromRow,
+  empresaToRow,
+  facturaFromRow,
+  facturaToRow,
+  operadorFromRow,
+  operadorToRow,
+  reporteFromRow,
+  reporteToRow,
+  rolFromRow,
+  rolToRow,
+  unidadFromRow,
+  unidadToRow,
+  usuarioFromRow,
+  usuarioToRow,
+  viajeFromRow,
+  viajeToRow,
+} from './mappers';
+import { seedEmpresa } from './seed';
 import type { Caja, Cliente, Empresa, Factura, Operador, ReporteExterno, Rol, Unidad, Usuario, Viaje } from '../types';
 
 interface DataContextValue {
-  clientes: ReturnType<typeof useCollection<Cliente>>;
-  unidades: ReturnType<typeof useCollection<Unidad>>;
-  cajas: ReturnType<typeof useCollection<Caja>>;
-  operadores: ReturnType<typeof useCollection<Operador>>;
-  viajes: ReturnType<typeof useCollection<Viaje>>;
-  facturas: ReturnType<typeof useCollection<Factura>>;
-  reportes: ReturnType<typeof useCollection<ReporteExterno>>;
-  empresa: ReturnType<typeof useSingleton<Empresa>>;
-  usuarios: ReturnType<typeof useCollection<Usuario>>;
-  roles: ReturnType<typeof useCollection<Rol>>;
+  clientes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Cliente>>;
+  unidades: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Unidad>>;
+  cajas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Caja>>;
+  operadores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Operador>>;
+  viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
+  facturas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Factura>>;
+  reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
+  empresa: ReturnType<typeof useSupabaseSingleton<Record<string, unknown>, Empresa>>;
+  usuarios: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Usuario>>;
+  roles: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Rol>>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
 
-// Se incrementa cada vez que se carga un nuevo snapshot de datos reales
-// (unidades, operadores, clientes, viajes). Los navegadores que se hayan
-// quedado en una version anterior se actualizan una sola vez con los datos
-// nuevos; lo configurado en Configuracion (empresa, usuarios, roles) nunca
-// se toca.
-const SEED_VERSION = '4';
-
-function ensureSeedVersion() {
-  const key = 'breco-erp:seed-version';
-  if (window.localStorage.getItem(key) === SEED_VERSION) return;
-  ['clientes', 'unidades', 'cajas', 'operadores', 'viajes', 'facturas'].forEach((k) =>
-    window.localStorage.removeItem(`breco-erp:${k}`),
-  );
-  window.localStorage.setItem(key, SEED_VERSION);
-}
-
-const sinAcceso = { ver: false, crear: false, editar: false, eliminar: false };
-const accesoTotal = { ver: true, crear: true, editar: true, eliminar: true };
-
 export function DataProvider({ children }: { children: ReactNode }) {
-  ensureSeedVersion();
-  const clientes = useCollection<Cliente>('clientes', seedClientes);
-  const unidades = useCollection<Unidad>('unidades', seedUnidades);
-  const cajas = useCollection<Caja>('cajas', seedCajas);
-  const operadores = useCollection<Operador>('operadores', seedOperadores);
-  const viajes = useCollection<Viaje>('viajes', seedViajes);
-  const facturas = useCollection<Factura>('facturas', seedFacturas);
-  const reportes = useCollection<ReporteExterno>('reportes', seedReportes);
-  const empresa = useSingleton<Empresa>('empresa', seedEmpresa);
-  const usuarios = useCollection<Usuario>('usuarios', seedUsuarios, (u) => ({
-    ...u,
-    password: u.password || 'breco2026',
-  }));
-  const roles = useCollection<Rol>('roles', seedRoles, (r) => ({
-    ...r,
-    permisos: {
-      ...r.permisos,
-      Reportes: r.permisos.Reportes ?? (r.id === 'rol-admin' ? accesoTotal : sinAcceso),
-    },
-  }));
+  const clientes = useSupabaseCollection<Record<string, unknown>, Cliente>('clientes', clienteFromRow, clienteToRow);
+  const unidades = useSupabaseCollection<Record<string, unknown>, Unidad>('unidades', unidadFromRow, unidadToRow);
+  const cajas = useSupabaseCollection<Record<string, unknown>, Caja>('cajas', cajaFromRow, cajaToRow);
+  const operadores = useSupabaseCollection<Record<string, unknown>, Operador>(
+    'operadores',
+    operadorFromRow,
+    operadorToRow,
+  );
+  const viajes = useSupabaseCollection<Record<string, unknown>, Viaje>('viajes', viajeFromRow, viajeToRow);
+  const facturas = useSupabaseCollection<Record<string, unknown>, Factura>('facturas', facturaFromRow, facturaToRow);
+  const reportes = useSupabaseCollection<Record<string, unknown>, ReporteExterno>(
+    'reportes',
+    reporteFromRow,
+    reporteToRow,
+  );
+  const empresa = useSupabaseSingleton<Record<string, unknown>, Empresa>(
+    'empresa',
+    'main',
+    seedEmpresa,
+    empresaFromRow,
+    empresaToRow,
+  );
+  const usuarios = useSupabaseCollection<Record<string, unknown>, Usuario>('usuarios', usuarioFromRow, usuarioToRow);
+  const roles = useSupabaseCollection<Record<string, unknown>, Rol>('roles', rolFromRow, rolToRow);
 
   return (
     <DataContext.Provider

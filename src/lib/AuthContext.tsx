@@ -1,17 +1,16 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { useSingleton } from './storage';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { supabase } from './supabaseClient';
 import { useData } from './DataContext';
 import type { Modulo, PermisoModulo } from '../types';
 
-interface Sesion {
-  usuarioId: string | null;
-}
+type EstadoSesion = 'cargando' | 'sin-sesion' | 'sin-perfil' | 'autenticado';
 
 interface AuthContextValue {
+  estado: EstadoSesion;
   usuarioActual: ReturnType<typeof useData>['usuarios']['items'][number] | null;
   rolActual: ReturnType<typeof useData>['roles']['items'][number] | null;
-  login: (email: string, password: string) => { ok: boolean; error?: string };
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  logout: () => Promise<void>;
   hasPermission: (modulo: Modulo, accion: keyof PermisoModulo) => boolean;
 }
 
@@ -19,32 +18,45 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { usuarios, roles } = useData();
-  const sesion = useSingleton<Sesion>('sesion', { usuarioId: null });
+  const [userId, setUserId] = useState<string | null>(null);
+  const [cargandoSesion, setCargandoSesion] = useState(true);
 
-  const usuarioActual = useMemo(
-    () => usuarios.items.find((u) => u.id === sesion.value.usuarioId) ?? null,
-    [usuarios.items, sesion.value.usuarioId],
-  );
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user.id ?? null);
+      setCargandoSesion(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+      setCargandoSesion(false);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-  const rolActual = useMemo(
-    () => roles.items.find((r) => r.id === usuarioActual?.rolId) ?? null,
-    [roles.items, usuarioActual],
-  );
+  const usuarioActual = usuarios.items.find((u) => u.id === userId) ?? null;
+  const rolActual = roles.items.find((r) => r.id === usuarioActual?.rolId) ?? null;
 
-  function login(email: string, password: string) {
-    const usuario = usuarios.items.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!usuario || usuario.password !== password) {
+  let estado: EstadoSesion;
+  if (cargandoSesion || (userId && usuarios.loading)) {
+    estado = 'cargando';
+  } else if (!userId) {
+    estado = 'sin-sesion';
+  } else if (!usuarioActual) {
+    estado = 'sin-perfil';
+  } else {
+    estado = 'autenticado';
+  }
+
+  async function login(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) {
       return { ok: false, error: 'Email o contrasena incorrectos.' };
     }
-    if (usuario.estatus !== 'activo') {
-      return { ok: false, error: 'Este usuario esta inactivo. Contacta a un administrador.' };
-    }
-    sesion.update({ usuarioId: usuario.id });
     return { ok: true };
   }
 
-  function logout() {
-    sesion.update({ usuarioId: null });
+  async function logout() {
+    await supabase.auth.signOut();
   }
 
   function hasPermission(modulo: Modulo, accion: keyof PermisoModulo) {
@@ -52,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ usuarioActual, rolActual, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ estado, usuarioActual, rolActual, login, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );
