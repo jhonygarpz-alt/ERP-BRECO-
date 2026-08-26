@@ -107,7 +107,7 @@ begin
 end $$;
 
 create table if not exists public.viajes (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   folio text not null,
   fecha date not null default current_date,
   cliente_id text references public.clientes (id) on delete set null,
@@ -130,10 +130,10 @@ create table if not exists public.viajes (
 );
 
 create table if not exists public.facturas (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   folio text not null,
   fecha date not null default current_date,
-  viaje_id uuid references public.viajes (id) on delete set null,
+  viaje_id text references public.viajes (id) on delete set null,
   cliente_id text references public.clientes (id) on delete set null,
   importe numeric(12, 2) not null default 0,
   moneda text not null default 'MXN' check (moneda in ('MXN', 'USD')),
