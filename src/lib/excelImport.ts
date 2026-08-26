@@ -152,9 +152,12 @@ export async function leerFacturacionSistemaExcel(
   let filasFinales = filas;
   let filasFueraDeHoy = 0;
   if (opciones.soloHoy) {
-    const hoy = new Date();
-    const hoyISO = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-    filasFinales = filas.filter((f) => f.fechaOrigen === hoyISO);
+    // En vez de exigir que coincida con la fecha del calendario de hoy, se
+    // toma el dia mas reciente que realmente exista en el archivo -- el
+    // Excel casi siempre va un poco atras (se llena durante el dia, se
+    // exporta antes de terminar de capturar todo).
+    const mejorFecha = filas.reduce((max, f) => (f.fechaOrigen > max ? f.fechaOrigen : max), '');
+    filasFinales = mejorFecha ? filas.filter((f) => f.fechaOrigen === mejorFecha) : [];
     filasFueraDeHoy = filas.length - filasFinales.length;
   }
 

@@ -76,11 +76,7 @@ export function ImportarFacturacionModal({
     try {
       const resultado = await leerFacturacionSistemaExcel(archivoExcel, { soloHoy });
       if (resultado.filasValidas === 0) {
-        setErrorExcel(
-          soloHoy
-            ? 'No se encontro ninguna fila con fecha de hoy en la hoja BASE_DATOS. Prueba desmarcando "Solo hoy" si quieres importar el historico.'
-            : 'No se encontraron filas con numero de referencia valido en la hoja BASE_DATOS.',
-        );
+        setErrorExcel('No se encontraron filas con numero de referencia valido en la hoja BASE_DATOS.');
         return;
       }
       setResultadoExcel(resultado);
@@ -218,7 +214,7 @@ export function ImportarFacturacionModal({
                   onChange={(e) => setSoloHoy(e.target.checked)}
                   className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
                 />
-                Importar solo la facturacion de hoy (recomendado para el uso diario)
+                Importar solo el dia mas reciente del archivo (recomendado para el uso diario)
               </label>
               {!soloHoy && (
                 <p className="text-xs text-amber-400">
