@@ -16,6 +16,7 @@ import {
   Settings,
   ClipboardList,
   ListChecks,
+  PlaneTakeoff,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -76,7 +77,7 @@ function NavGroup({ children }: { children: ReactNode }) {
   return <div className="space-y-1.5">{children}</div>;
 }
 
-const traficoRoutes = ['/viajes', '/viajes-del-dia', '/programa', '/entrega-turno'];
+const traficoRoutes = ['/viajes', '/viajes-del-dia', '/aeropuerto', '/programa', '/entrega-turno'];
 
 export function Sidebar() {
   const location = useLocation();
@@ -96,6 +97,7 @@ export function Sidebar() {
   const traficoLinks = [
     puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route, gradient: ['#2dd4bf', '#0891b2'] },
     puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks, gradient: ['#22d3ee', '#0e7490'] },
+    puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff, gradient: ['#fbbf24', '#b45309'] },
     puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock, gradient: ['#38bdf8', '#1d4ed8'] },
     puedeEntregaTurno && {
       to: '/entrega-turno',

@@ -6,10 +6,13 @@ import { supabase } from './supabaseClient';
  * vez de localStorage. Misma forma que el viejo useCollection ({items, add,
  * update, remove}) para que las paginas no tengan que cambiar.
  *
- * No usa Realtime todavia: cada mutacion vuelve a pedir los datos, y ademas
- * se vuelve a pedir cuando cambia la sesion (login/logout), asi que los
- * datos son los mismos para todos, pero para verlos actualizarse en otra
- * pestaña sin recargar hace falta agregar Realtime mas adelante.
+ * Se suscribe a Realtime (postgres_changes) de la tabla, asi que un cambio
+ * hecho por cualquier usuario (o por otra pestaña/pagina de este mismo
+ * usuario) se refleja solo, sin recargar -- necesario porque varios modulos
+ * leen la misma tabla (ej. Viajes, Programa Diario, Entrega de Turno y la
+ * pantalla Aeropuerto leen todos "viajes") y un dato desactualizado en uno
+ * de ellos causaria inconsistencias. Requiere que la tabla este agregada a
+ * la publicacion "supabase_realtime" (ver migracion 008).
  */
 export function useSupabaseCollection<Row extends Record<string, unknown>, Item extends { id: string }>(
   table: string,
@@ -35,8 +38,23 @@ export function useSupabaseCollection<Row extends Record<string, unknown>, Item 
     const { data: listener } = supabase.auth.onAuthStateChange(() => {
       load();
     });
-    return () => listener.subscription.unsubscribe();
-  }, [load]);
+
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const recargarConDebounce = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(load, 300);
+    };
+    const channel = supabase
+      .channel(`public:${table}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table }, recargarConDebounce)
+      .subscribe();
+
+    return () => {
+      listener.subscription.unsubscribe();
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(channel);
+    };
+  }, [load, table]);
 
   const add = useCallback(
     async (item: Item) => {
