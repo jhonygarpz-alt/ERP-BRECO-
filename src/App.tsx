@@ -1,6 +1,7 @@
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { DataProvider } from './lib/DataContext';
 import { AuthProvider } from './lib/AuthContext';
+import { ThemeProvider } from './lib/ThemeContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { RequirePermission } from './components/auth/RequirePermission';
@@ -22,6 +23,7 @@ import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
 function App() {
   return (
+    <ThemeProvider>
     <DataProvider>
       <AuthProvider>
         <HashRouter>
@@ -70,6 +72,7 @@ function App() {
         </HashRouter>
       </AuthProvider>
     </DataProvider>
+    </ThemeProvider>
   );
 }
 

@@ -114,6 +114,8 @@ export interface Viaje {
   estatus: EstatusViaje;
   observaciones: string;
   ubicacionActual: string;
+  /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
+  creadoEn?: string;
 }
 
 export type EstatusFactura = 'Pendiente' | 'Facturado' | 'Pagado' | 'Cancelado';
@@ -128,6 +130,8 @@ export interface Factura {
   moneda: 'MXN' | 'USD';
   estatus: EstatusFactura;
   observaciones: string;
+  /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
+  creadoEn?: string;
 }
 
 // Refleja la hoja "BASE_DATOS" del Excel real "Facturacion Diaria por

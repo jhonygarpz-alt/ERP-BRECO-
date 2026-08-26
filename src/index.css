@@ -35,8 +35,49 @@
   --color-breco-glow: rgba(225, 29, 46, 0.35);
 }
 
-html {
+/*
+ * Tema claro/oscuro: Tailwind v4 genera cada utilidad (bg-bg-900,
+ * text-ink-500, etc.) como una referencia real a la custom property
+ * --color-*, no como un valor fijo -- por eso alcanza con redefinir esas
+ * variables aqui para que TODA la app (paginas, tablas, formularios) hechas
+ * con esas mismas clases cambien de tema solas, sin tocar cada componente.
+ * ThemeContext.tsx pone data-theme="light"/"dark" en <html>.
+ */
+:root {
   color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --color-bg-950: #eef1f5;
+  --color-bg-900: #ffffff;
+  --color-bg-800: #ffffff;
+  --color-bg-700: #f2f4f7;
+  --color-bg-600: #e6e9ef;
+  --color-bg-500: #d5d9e1;
+
+  --color-line-800: #e3e6ec;
+  --color-line-700: #d5d9e1;
+  --color-line-600: #c1c6d0;
+
+  --color-ink-100: #12141c;
+  --color-ink-300: #454b58;
+  --color-ink-500: #6b7280;
+  --color-ink-600: #8991a1;
+
+  --color-breco-glow: rgba(225, 29, 46, 0.16);
+
+  /* Variantes "-400" de los colores de acento de Tailwind: se usan como
+     color de TEXTO sobre fondos claros/tintados (badges, iconos de
+     StatCard) y el tono original queda muy claro para leerse sobre blanco;
+     el "-500" (usado casi siempre como fondo translucido al 15%) se deja
+     igual porque un tinte palido se ve bien en ambos temas. */
+  --color-emerald-400: #059669;
+  --color-red-400: #dc2626;
+  --color-amber-400: #b45309;
+  --color-blue-400: #2563eb;
+  --color-violet-400: #7c3aed;
 }
 
 body {

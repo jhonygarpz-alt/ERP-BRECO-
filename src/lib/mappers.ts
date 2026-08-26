@@ -138,6 +138,7 @@ export function viajeFromRow(row: Record<string, unknown>): Viaje {
     estatus: row.estatus as Viaje['estatus'],
     observaciones: row.observaciones as string,
     ubicacionActual: (row.ubicacion_actual as string | null) ?? '',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
   };
 }
 export function viajeToRow(v: Viaje) {
@@ -232,6 +233,7 @@ export function facturaFromRow(row: Record<string, unknown>): Factura {
     moneda: row.moneda as Factura['moneda'],
     estatus: row.estatus as Factura['estatus'],
     observaciones: row.observaciones as string,
+    creadoEn: (row.creado_en as string | null) ?? undefined,
   };
 }
 export function facturaToRow(f: Factura) {

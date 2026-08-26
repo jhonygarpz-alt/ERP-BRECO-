@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell, LogOut, Search, Settings } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
+import { useAlertas } from '../../lib/alertas';
 
 function iniciales(nombre: string) {
   const partes = nombre.trim().split(/\s+/);
@@ -12,6 +14,8 @@ export function Topbar() {
   const { empresa } = useData();
   const { usuarioActual, rolActual, hasPermission, logout } = useAuth();
   const navigate = useNavigate();
+  const alertas = useAlertas();
+  const [alertasOpen, setAlertasOpen] = useState(false);
   const today = new Date().toLocaleDateString('es-MX', {
     day: 'numeric',
     month: 'long',
@@ -44,12 +48,46 @@ export function Topbar() {
             <Settings size={18} />
           </Link>
         )}
-        <button className="relative rounded-lg p-2 text-ink-500 transition hover:bg-bg-800 hover:text-ink-100">
-          <Bell size={18} />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-breco-500 text-[10px] font-semibold text-white">
-            3
-          </span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setAlertasOpen((v) => !v)}
+            className="relative rounded-lg p-2 text-ink-500 transition hover:bg-bg-800 hover:text-ink-100"
+          >
+            <Bell size={18} />
+            {alertas.length > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-breco-500 text-[10px] font-semibold text-white">
+                {alertas.length}
+              </span>
+            )}
+          </button>
+          {alertasOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setAlertasOpen(false)} />
+              <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border border-line-700 bg-bg-800 p-2 shadow-2xl shadow-black/40">
+                <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-500">Alertas</div>
+                {alertas.length === 0 ? (
+                  <p className="px-2 py-4 text-center text-sm text-ink-600">Sin alertas por el momento.</p>
+                ) : (
+                  <div className="max-h-80 space-y-1 overflow-y-auto">
+                    {alertas.map((a) => (
+                      <div key={a.id} className="rounded-lg px-2 py-2 hover:bg-bg-700/70">
+                        <div className="flex items-start gap-2">
+                          <span
+                            className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${a.nivel === 'alto' ? 'bg-red-500' : 'bg-amber-500'}`}
+                          />
+                          <div>
+                            <div className="text-sm text-ink-100">{a.mensaje}</div>
+                            <div className="text-xs text-ink-500">{a.detalle}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
         <div className="flex items-center gap-2.5 border-l border-line-800 pl-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-700 text-sm font-semibold text-ink-100">
             {usuarioActual ? iniciales(usuarioActual.nombre) : '—'}
