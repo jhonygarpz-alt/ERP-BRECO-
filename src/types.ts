@@ -118,6 +118,14 @@ export interface Viaje {
   creadoEn?: string;
 }
 
+/** Un punto de la bitacora de avance de un viaje (ej. "Monterrey", "San Luis Potosi"). */
+export interface ViajeUbicacion {
+  id: string;
+  viajeId: string;
+  texto: string;
+  creadoEn?: string;
+}
+
 export type EstatusFactura = 'Pendiente' | 'Facturado' | 'Pagado' | 'Cancelado';
 
 export interface Factura {

@@ -15,6 +15,7 @@ import type {
   Unidad,
   Usuario,
   Viaje,
+  ViajeUbicacion,
 } from '../types';
 
 // Cada par fromXRow/xToRow convierte entre una fila de Supabase (columnas en
@@ -374,4 +375,16 @@ export function empresaToRow(e: Empresa) {
     sitio_web: e.sitioWeb,
     logo_data_url: e.logoDataUrl,
   };
+}
+
+export function viajeUbicacionFromRow(row: Record<string, unknown>): ViajeUbicacion {
+  return {
+    id: row.id as string,
+    viajeId: row.viaje_id as string,
+    texto: row.texto as string,
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function viajeUbicacionToRow(u: ViajeUbicacion) {
+  return { id: u.id, viaje_id: u.viajeId, texto: u.texto };
 }
