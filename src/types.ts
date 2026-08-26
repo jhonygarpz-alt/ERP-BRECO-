@@ -54,11 +54,15 @@ export interface Operador {
   estatus: EstatusOperador;
 }
 
-export type EstatusViaje =
-  | 'Programado'
-  | 'En transito'
-  | 'Entregado'
-  | 'Cancelado';
+// Los 4 valores originales siguen siendo el default, pero el catalogo
+// "estatus_viaje" permite agregar mas desde la app -- por eso es string
+// libre y no una union cerrada.
+export type EstatusViaje = string;
+
+export interface EstatusViajeCustom {
+  id: string;
+  nombre: string;
+}
 
 export interface Viaje {
   id: string;

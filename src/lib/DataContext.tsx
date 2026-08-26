@@ -8,6 +8,8 @@ import {
   clienteToRow,
   empresaFromRow,
   empresaToRow,
+  estatusViajeFromRow,
+  estatusViajeToRow,
   facturaFromRow,
   facturaToRow,
   facturaSistemaFromRow,
@@ -30,6 +32,7 @@ import type {
   Caja,
   Cliente,
   Empresa,
+  EstatusViajeCustom,
   Factura,
   FacturaSistema,
   Operador,
@@ -46,6 +49,7 @@ interface DataContextValue {
   cajas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Caja>>;
   operadores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Operador>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
+  estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
   facturas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Factura>>;
   facturasSistema: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FacturaSistema>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
@@ -66,6 +70,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     operadorToRow,
   );
   const viajes = useSupabaseCollection<Record<string, unknown>, Viaje>('viajes', viajeFromRow, viajeToRow);
+  const estatusViajes = useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>(
+    'estatus_viaje',
+    estatusViajeFromRow,
+    estatusViajeToRow,
+  );
   const facturas = useSupabaseCollection<Record<string, unknown>, Factura>('facturas', facturaFromRow, facturaToRow);
   const facturasSistema = useSupabaseCollection<Record<string, unknown>, FacturaSistema>(
     'facturas_sistema',
@@ -95,6 +104,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         cajas,
         operadores,
         viajes,
+        estatusViajes,
         facturas,
         facturasSistema,
         reportes,

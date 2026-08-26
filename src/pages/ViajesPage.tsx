@@ -1,17 +1,15 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ScanLine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, ScanLine } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
-import type { EstatusViaje, Viaje } from '../types';
+import type { Viaje } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
 import { StatusBadge } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
-
-const estatuses: EstatusViaje[] = ['Programado', 'En transito', 'Entregado', 'Cancelado'];
 
 function nextFolio(viajes: Viaje[]) {
   const max = viajes.reduce((acc, v) => {
@@ -28,7 +26,7 @@ function shiftDate(date: string, dias: number) {
 }
 
 export function ViajesPage() {
-  const { viajes, clientes, unidades, operadores } = useData();
+  const { viajes, clientes, unidades, operadores, estatusViajes } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -39,6 +37,8 @@ export function ViajesPage() {
   const [editing, setEditing] = useState<Viaje | null>(null);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [todasLasFechas, setTodasLasFechas] = useState(false);
+  const [nuevoEstatusOpen, setNuevoEstatusOpen] = useState(false);
+  const [nuevoEstatusNombre, setNuevoEstatusNombre] = useState('');
 
   const emptyForm: Omit<Viaje, 'id'> = {
     folio: nextFolio(viajes.items),
@@ -103,6 +103,18 @@ export function ViajesPage() {
 
   function handleDelete(v: Viaje) {
     if (confirm(`Eliminar el viaje "${v.folio}"?`)) viajes.remove(v.id);
+  }
+
+  async function handleAgregarEstatus() {
+    const nombre = nuevoEstatusNombre.trim();
+    if (!nombre) return;
+    const yaExiste = estatusViajes.items.some((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
+    if (!yaExiste) {
+      await estatusViajes.add({ id: uid('est'), nombre });
+    }
+    setForm({ ...form, estatus: nombre });
+    setNuevoEstatusOpen(false);
+    setNuevoEstatusNombre('');
   }
 
   const columns: Column<Viaje>[] = [
@@ -243,16 +255,51 @@ export function ViajesPage() {
               </Select>
             </Field>
             <Field label="Estatus">
-              <Select
-                value={form.estatus}
-                onChange={(e) => setForm({ ...form, estatus: e.target.value as EstatusViaje })}
-              >
-                {estatuses.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </Select>
+              <div className="flex items-center gap-2">
+                <Select value={form.estatus} onChange={(e) => setForm({ ...form, estatus: e.target.value })}>
+                  {!estatusViajes.items.some((es) => es.nombre === form.estatus) && (
+                    <option value={form.estatus}>{form.estatus}</option>
+                  )}
+                  {estatusViajes.items.map((es) => (
+                    <option key={es.id} value={es.nombre}>
+                      {es.nombre}
+                    </option>
+                  ))}
+                </Select>
+                <button
+                  type="button"
+                  title="Agregar nuevo estatus"
+                  onClick={() => {
+                    setNuevoEstatusOpen(true);
+                    setNuevoEstatusNombre('');
+                  }}
+                  className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              {nuevoEstatusOpen && (
+                <div className="mt-2 flex items-center gap-2">
+                  <Input
+                    autoFocus
+                    placeholder="Nombre del nuevo estatus"
+                    value={nuevoEstatusNombre}
+                    onChange={(e) => setNuevoEstatusNombre(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAgregarEstatus();
+                      }
+                    }}
+                  />
+                  <GhostButton type="button" onClick={handleAgregarEstatus}>
+                    Guardar
+                  </GhostButton>
+                  <GhostButton type="button" onClick={() => setNuevoEstatusOpen(false)}>
+                    Cancelar
+                  </GhostButton>
+                </div>
+              )}
             </Field>
 
             <Field label="Unidad">

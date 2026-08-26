@@ -2,6 +2,7 @@ import type {
   Caja,
   Cliente,
   Empresa,
+  EstatusViajeCustom,
   Factura,
   FacturaSistema,
   Operador,
@@ -155,6 +156,13 @@ export function viajeToRow(v: Viaje) {
     estatus: v.estatus,
     observaciones: v.observaciones,
   };
+}
+
+export function estatusViajeFromRow(row: Record<string, unknown>): EstatusViajeCustom {
+  return { id: row.id as string, nombre: row.nombre as string };
+}
+export function estatusViajeToRow(e: EstatusViajeCustom) {
+  return { id: e.id, nombre: e.nombre };
 }
 
 export function facturaFromRow(row: Record<string, unknown>): Factura {
