@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ScanLine } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
@@ -10,6 +10,11 @@ import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, inputClass 
 import { StatusBadge } from '../components/ui/Badge';
 import { StatCard } from '../components/ui/StatCard';
 import { Receipt, CheckCircle2, Clock } from 'lucide-react';
+import { ImportarFacturacionModal } from '../components/reportes/ImportarFacturacionModal';
+
+function formatearMXN(n: number): string {
+  return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
 
 const estatuses: EstatusFactura[] = ['Pendiente', 'Facturado', 'Pagado', 'Cancelado'];
 
@@ -22,18 +27,25 @@ function nextFolio(facturas: Factura[]) {
 }
 
 export function FacturacionPage() {
-  const { facturas, viajes, clientes } = useData();
+  const { facturas, viajes, clientes, facturasSistema } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Facturacion', 'crear');
   const puedeEditar = hasPermission('Facturacion', 'editar');
   const puedeEliminar = hasPermission('Facturacion', 'eliminar');
+  const puedeImportar = hasPermission('Reportes', 'crear');
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Factura | null>(null);
+  const [importarOpen, setImportarOpen] = useState(false);
 
   const facturasDelDia = useMemo(
     () => facturas.items.filter((f) => f.fecha === fecha),
     [facturas.items, fecha],
+  );
+
+  const facturasSistemaDelDia = useMemo(
+    () => facturasSistema.items.filter((f) => f.fechaOrigen === fecha),
+    [facturasSistema.items, fecha],
   );
 
   const emptyForm: Omit<Factura, 'id'> = {
@@ -107,6 +119,12 @@ export function FacturacionPage() {
         </div>
         <div className="flex items-center gap-2">
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={`${inputClass} w-44`} />
+          {puedeImportar && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <ScanLine size={16} />
+              Importar Excel o Imagen
+            </GhostButton>
+          )}
           {puedeCrear && (
             <PrimaryButton onClick={openNew}>
               <Plus size={16} />
@@ -132,6 +150,53 @@ export function FacturacionPage() {
         canEdit={puedeEditar}
         canDelete={puedeEliminar}
       />
+
+      <div className="mt-8 rounded-2xl border border-line-800 bg-bg-800 p-5">
+        <h3 className="mb-3 text-sm font-semibold text-ink-100">
+          Facturacion por Sistema (importada de Excel/imagen) - {facturasSistemaDelDia.length} registro
+          {facturasSistemaDelDia.length === 1 ? '' : 's'}
+        </h3>
+        {facturasSistemaDelDia.length === 0 ? (
+          <p className="py-6 text-center text-sm text-ink-600">
+            No hay datos importados del sistema para esta fecha. Usa "Importar Excel o Imagen" arriba.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-line-800">
+            <table className="w-full min-w-[720px] text-left text-xs">
+              <thead className="bg-bg-700 text-[11px] uppercase tracking-wide text-ink-500">
+                <tr>
+                  <th className="px-3 py-2.5">Ref</th>
+                  <th className="px-3 py-2.5">Cliente</th>
+                  <th className="px-3 py-2.5">Unidad</th>
+                  <th className="px-3 py-2.5">Origen</th>
+                  <th className="px-3 py-2.5">Destino</th>
+                  <th className="px-3 py-2.5">Estado</th>
+                  <th className="px-3 py-2.5">Tarifa</th>
+                  <th className="px-3 py-2.5">Total Factura</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facturasSistemaDelDia.map((f) => (
+                  <tr key={f.id} className="border-t border-line-800">
+                    <td className="px-3 py-2 text-ink-300">{f.id}</td>
+                    <td className="px-3 py-2 text-ink-300">{f.cliente || 'N/D'}</td>
+                    <td className="px-3 py-2 text-ink-300">{f.economicoTracto || 'N/D'}</td>
+                    <td className="px-3 py-2 text-ink-300">{f.origenPedido || 'N/D'}</td>
+                    <td className="px-3 py-2 text-ink-300">{f.destinoPedido || 'N/D'}</td>
+                    <td className="px-3 py-2 text-ink-300">{f.estadoPedido || 'N/D'}</td>
+                    <td className="px-3 py-2 text-ink-300">{formatearMXN(f.totalTarifa)}</td>
+                    <td className="px-3 py-2 text-ink-300">{formatearMXN(f.totalFactura)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {importarOpen && (
+        <ImportarFacturacionModal onClose={() => setImportarOpen(false)} onImportado={() => facturasSistema.reload()} />
+      )}
 
       {modalOpen && (
         <Modal
