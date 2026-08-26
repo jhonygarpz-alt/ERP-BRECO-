@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Truck, IdCard, PackageSearch, Boxes } from 'lucide-react';
 import { useData } from '../lib/DataContext';
-import { StatusBadge } from '../components/ui/Badge';
+import { StatusBadge, type Tone } from '../components/ui/Badge';
 import { inputClass } from '../components/ui/form';
 
 function shiftDate(date: string, days: number) {
@@ -11,12 +11,14 @@ function shiftDate(date: string, days: number) {
 }
 
 export function ProgramaPage() {
-  const { viajes, clientes, unidades, operadores } = useData();
+  const { viajes, clientes, unidades, operadores, estatusViajes } = useData();
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
   const clienteNombre = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
   const operadorNombre = (id: string) => operadores.items.find((o) => o.id === id)?.nombre ?? 'N/D';
+  const estatusTono = (nombre: string): Tone | null =>
+    (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
   const viajesDelDia = useMemo(
     () =>
@@ -96,7 +98,7 @@ export function ProgramaPage() {
                     <span className="rounded border border-line-700 px-1.5 py-0.5 text-[11px] text-ink-400">EXP</span>
                   )}
                 </div>
-                <StatusBadge status={v.estatus} />
+                <StatusBadge status={v.estatus} tone={estatusTono(v.estatus)} />
               </div>
 
               <div className="mt-2 flex items-center gap-1.5 text-sm text-ink-300">

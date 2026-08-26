@@ -138,14 +138,15 @@ end $$;
 create table if not exists public.estatus_viaje (
   id text primary key,
   nombre text not null unique,
+  color text not null default 'gray',
   creado_en timestamptz not null default now()
 );
 
-insert into public.estatus_viaje (id, nombre) values
-  ('viaje-est-programado', 'Programado'),
-  ('viaje-est-transito', 'En transito'),
-  ('viaje-est-entregado', 'Entregado'),
-  ('viaje-est-cancelado', 'Cancelado')
+insert into public.estatus_viaje (id, nombre, color) values
+  ('viaje-est-programado', 'Programado', 'amber'),
+  ('viaje-est-transito', 'En transito', 'green'),
+  ('viaje-est-entregado', 'Entregado', 'green'),
+  ('viaje-est-cancelado', 'Cancelado', 'red')
 on conflict (id) do nothing;
 
 create table if not exists public.facturas (
@@ -364,6 +365,9 @@ create policy estatus_viaje_select on public.estatus_viaje for select using (has
 drop policy if exists estatus_viaje_insert on public.estatus_viaje;
 create policy estatus_viaje_insert on public.estatus_viaje for insert
   with check (has_permission('Viajes', 'crear') or has_permission('Viajes', 'editar'));
+drop policy if exists estatus_viaje_update on public.estatus_viaje;
+create policy estatus_viaje_update on public.estatus_viaje for update
+  using (has_permission('Viajes', 'crear') or has_permission('Viajes', 'editar'));
 
 -- facturas (modulo Facturacion)
 drop policy if exists facturas_select on public.facturas;

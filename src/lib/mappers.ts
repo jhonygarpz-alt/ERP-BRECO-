@@ -159,10 +159,10 @@ export function viajeToRow(v: Viaje) {
 }
 
 export function estatusViajeFromRow(row: Record<string, unknown>): EstatusViajeCustom {
-  return { id: row.id as string, nombre: row.nombre as string };
+  return { id: row.id as string, nombre: row.nombre as string, color: (row.color as string) || 'gray' };
 }
 export function estatusViajeToRow(e: EstatusViajeCustom) {
-  return { id: e.id, nombre: e.nombre };
+  return { id: e.id, nombre: e.nombre, color: e.color };
 }
 
 export function facturaFromRow(row: Record<string, unknown>): Factura {

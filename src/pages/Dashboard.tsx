@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import { Truck, Route, Receipt, IdCard, ArrowUpRight, AlertTriangle } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { StatCard } from '../components/ui/StatCard';
-import { StatusBadge } from '../components/ui/Badge';
+import { StatusBadge, type Tone } from '../components/ui/Badge';
 
 const todayStr = new Date().toISOString().slice(0, 10);
 
 export function Dashboard() {
-  const { viajes, unidades, operadores, facturas, clientes } = useData();
+  const { viajes, unidades, operadores, facturas, clientes, estatusViajes } = useData();
+  const estatusTono = (nombre: string): Tone | null =>
+    (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
   const viajesHoy = viajes.items.filter((v) => v.fecha === todayStr);
   const enTransito = viajes.items.filter((v) => v.estatus === 'En transito').length;
@@ -89,7 +91,7 @@ export function Dashboard() {
                     {v.origen} &rarr; {v.destino} &middot; {v.fecha} {v.horaSalida}
                   </div>
                 </div>
-                <StatusBadge status={v.estatus} />
+                <StatusBadge status={v.estatus} tone={estatusTono(v.estatus)} />
               </div>
             ))}
           </div>

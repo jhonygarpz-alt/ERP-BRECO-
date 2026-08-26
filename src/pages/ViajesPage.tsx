@@ -8,8 +8,10 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
-import { StatusBadge } from '../components/ui/Badge';
+import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
+
+const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 
 function nextFolio(viajes: Viaje[]) {
   const max = viajes.reduce((acc, v) => {
@@ -39,6 +41,8 @@ export function ViajesPage() {
   const [todasLasFechas, setTodasLasFechas] = useState(false);
   const [nuevoEstatusOpen, setNuevoEstatusOpen] = useState(false);
   const [nuevoEstatusNombre, setNuevoEstatusNombre] = useState('');
+  const [nuevoEstatusColor, setNuevoEstatusColor] = useState<Tone>('blue');
+  const [editarColorOpen, setEditarColorOpen] = useState(false);
 
   const emptyForm: Omit<Viaje, 'id'> = {
     folio: nextFolio(viajes.items),
@@ -105,16 +109,30 @@ export function ViajesPage() {
     if (confirm(`Eliminar el viaje "${v.folio}"?`)) viajes.remove(v.id);
   }
 
+  function estatusTono(nombre: string): Tone | null {
+    return (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
+  }
+
   async function handleAgregarEstatus() {
     const nombre = nuevoEstatusNombre.trim();
     if (!nombre) return;
-    const yaExiste = estatusViajes.items.some((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
-    if (!yaExiste) {
-      await estatusViajes.add({ id: uid('est'), nombre });
+    const existente = estatusViajes.items.find((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
+    if (existente) {
+      if (existente.color !== nuevoEstatusColor) {
+        await estatusViajes.update(existente.id, { color: nuevoEstatusColor });
+      }
+    } else {
+      await estatusViajes.add({ id: uid('est'), nombre, color: nuevoEstatusColor });
     }
     setForm({ ...form, estatus: nombre });
     setNuevoEstatusOpen(false);
     setNuevoEstatusNombre('');
+  }
+
+  async function handleCambiarColorActual(color: Tone) {
+    const actual = estatusViajes.items.find((e) => e.nombre === form.estatus);
+    if (actual) await estatusViajes.update(actual.id, { color });
+    setEditarColorOpen(false);
   }
 
   const columns: Column<Viaje>[] = [
@@ -152,7 +170,7 @@ export function ViajesPage() {
         </div>
       ),
     },
-    { header: 'Estatus', render: (v) => <StatusBadge status={v.estatus} /> },
+    { header: 'Estatus', render: (v) => <StatusBadge status={v.estatus} tone={estatusTono(v.estatus)} /> },
   ];
 
   return (
@@ -268,36 +286,77 @@ export function ViajesPage() {
                 </Select>
                 <button
                   type="button"
+                  title="Cambiar color de este estatus"
+                  onClick={() => setEditarColorOpen((o) => !o)}
+                  disabled={!estatusViajes.items.some((es) => es.nombre === form.estatus)}
+                  className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 disabled:opacity-30"
+                >
+                  <span className={`block h-4 w-4 rounded-full ${TONE_DOT[estatusTono(form.estatus) ?? 'gray']}`} />
+                </button>
+                <button
+                  type="button"
                   title="Agregar nuevo estatus"
                   onClick={() => {
                     setNuevoEstatusOpen(true);
                     setNuevoEstatusNombre('');
+                    setNuevoEstatusColor('blue');
                   }}
                   className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100"
                 >
                   <Plus size={16} />
                 </button>
               </div>
-              {nuevoEstatusOpen && (
+              {editarColorOpen && (
                 <div className="mt-2 flex items-center gap-2">
-                  <Input
-                    autoFocus
-                    placeholder="Nombre del nuevo estatus"
-                    value={nuevoEstatusNombre}
-                    onChange={(e) => setNuevoEstatusNombre(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAgregarEstatus();
-                      }
-                    }}
-                  />
-                  <GhostButton type="button" onClick={handleAgregarEstatus}>
-                    Guardar
-                  </GhostButton>
-                  <GhostButton type="button" onClick={() => setNuevoEstatusOpen(false)}>
-                    Cancelar
-                  </GhostButton>
+                  {COLORES_DISPONIBLES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      title={c}
+                      onClick={() => handleCambiarColorActual(c)}
+                      className={`h-6 w-6 rounded-full ${TONE_DOT[c]} ${
+                        estatusTono(form.estatus) === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+              {nuevoEstatusOpen && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      autoFocus
+                      placeholder="Nombre del nuevo estatus"
+                      value={nuevoEstatusNombre}
+                      onChange={(e) => setNuevoEstatusNombre(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAgregarEstatus();
+                        }
+                      }}
+                    />
+                    <GhostButton type="button" onClick={handleAgregarEstatus}>
+                      Guardar
+                    </GhostButton>
+                    <GhostButton type="button" onClick={() => setNuevoEstatusOpen(false)}>
+                      Cancelar
+                    </GhostButton>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-ink-500">Color:</span>
+                    {COLORES_DISPONIBLES.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        title={c}
+                        onClick={() => setNuevoEstatusColor(c)}
+                        className={`h-6 w-6 rounded-full ${TONE_DOT[c]} ${
+                          nuevoEstatusColor === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </Field>

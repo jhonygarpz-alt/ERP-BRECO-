@@ -62,6 +62,7 @@ export type EstatusViaje = string;
 export interface EstatusViajeCustom {
   id: string;
   nombre: string;
+  color: string;
 }
 
 export interface Viaje {
