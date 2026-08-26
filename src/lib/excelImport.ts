@@ -40,6 +40,7 @@ export interface ResultadoImportFacturasSistema {
   totalFilasHoja: number;
   filasValidas: number;
   filasOmitidas: number;
+  filasFueraDeHoy: number;
   filas: FacturaSistema[];
 }
 
@@ -76,7 +77,10 @@ const COLUMNAS_ESPERADAS: { clave: string; campo: string }[] = [
  * del Excel -- no hay adivinanzas, solo se omiten filas sin numero de
  * referencia (encabezados, totales, filas en blanco).
  */
-export async function leerFacturacionSistemaExcel(file: File): Promise<ResultadoImportFacturasSistema> {
+export async function leerFacturacionSistemaExcel(
+  file: File,
+  opciones: { soloHoy?: boolean } = {},
+): Promise<ResultadoImportFacturasSistema> {
   const buffer = await file.arrayBuffer();
   const libro = XLSX.read(buffer, { type: 'array', cellDates: true });
 
@@ -145,7 +149,23 @@ export async function leerFacturacionSistemaExcel(file: File): Promise<Resultado
     });
   }
 
-  return { hoja: nombreHoja, totalFilasHoja: filas2d.length - 1, filasValidas: filas.length, filasOmitidas: omitidas, filas };
+  let filasFinales = filas;
+  let filasFueraDeHoy = 0;
+  if (opciones.soloHoy) {
+    const hoy = new Date();
+    const hoyISO = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    filasFinales = filas.filter((f) => f.fechaOrigen === hoyISO);
+    filasFueraDeHoy = filas.length - filasFinales.length;
+  }
+
+  return {
+    hoja: nombreHoja,
+    totalFilasHoja: filas2d.length - 1,
+    filasValidas: filasFinales.length,
+    filasOmitidas: omitidas,
+    filasFueraDeHoy,
+    filas: filasFinales,
+  };
 }
 
 const TAMANO_LOTE = 500;

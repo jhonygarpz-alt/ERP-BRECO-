@@ -34,6 +34,7 @@ export function ImportarFacturacionModal({
   const [guardandoExcel, setGuardandoExcel] = useState(false);
   const [progresoExcel, setProgresoExcel] = useState(0);
   const [errorExcel, setErrorExcel] = useState('');
+  const [soloHoy, setSoloHoy] = useState(true);
 
   // ---- Modo Imagen ----
   const [archivoImagen, setArchivoImagen] = useState<File | null>(null);
@@ -73,9 +74,13 @@ export function ImportarFacturacionModal({
     setProcesandoExcel(true);
     setErrorExcel('');
     try {
-      const resultado = await leerFacturacionSistemaExcel(archivoExcel);
+      const resultado = await leerFacturacionSistemaExcel(archivoExcel, { soloHoy });
       if (resultado.filasValidas === 0) {
-        setErrorExcel('No se encontraron filas con numero de referencia valido en la hoja BASE_DATOS.');
+        setErrorExcel(
+          soloHoy
+            ? 'No se encontro ninguna fila con fecha de hoy en la hoja BASE_DATOS. Prueba desmarcando "Solo hoy" si quieres importar el historico.'
+            : 'No se encontraron filas con numero de referencia valido en la hoja BASE_DATOS.',
+        );
         return;
       }
       setResultadoExcel(resultado);
@@ -206,6 +211,21 @@ export function ImportarFacturacionModal({
 
           {!resultadoExcel && (
             <>
+              <label className="flex items-center gap-2 rounded-xl border border-line-800 bg-bg-800 p-3 text-sm text-ink-300">
+                <input
+                  type="checkbox"
+                  checked={soloHoy}
+                  onChange={(e) => setSoloHoy(e.target.checked)}
+                  className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+                />
+                Importar solo la facturacion de hoy (recomendado para el uso diario)
+              </label>
+              {!soloHoy && (
+                <p className="text-xs text-amber-400">
+                  Vas a importar TODO el historico de la hoja BASE_DATOS. Solo hazlo una vez, al principio.
+                </p>
+              )}
+
               <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line-700 bg-bg-900 px-6 py-10 text-center hover:border-line-600">
                 <Upload size={22} className="text-ink-500" />
                 <span className="text-sm text-ink-300">
@@ -242,9 +262,10 @@ export function ImportarFacturacionModal({
             <>
               <div className="rounded-xl border border-line-800 bg-bg-800 p-4 text-sm text-ink-300">
                 Hoja <span className="font-medium text-ink-100">{resultadoExcel.hoja}</span>: se encontraron{' '}
-                <span className="font-semibold text-ink-100">{resultadoExcel.filasValidas}</span> filas con numero
-                de referencia validas (de {resultadoExcel.totalFilasHoja} filas totales
+                <span className="font-semibold text-ink-100">{resultadoExcel.filasValidas}</span> filas validas para
+                guardar (de {resultadoExcel.totalFilasHoja} filas totales
                 {resultadoExcel.filasOmitidas > 0 && `, ${resultadoExcel.filasOmitidas} omitidas por no tener REF`}
+                {resultadoExcel.filasFueraDeHoy > 0 && `, ${resultadoExcel.filasFueraDeHoy} de otros dias`}
                 ).
               </div>
 
