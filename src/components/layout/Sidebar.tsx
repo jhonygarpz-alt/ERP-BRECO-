@@ -11,6 +11,7 @@ import {
   Receipt,
   CalendarClock,
   FileSpreadsheet,
+  BarChart3,
   ChevronDown,
   Settings,
   type LucideIcon,
@@ -160,6 +161,12 @@ export function Sidebar() {
         {puedeReportes && (
           <NavGroup>
             <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} gradient={['#34d399', '#047857']} />
+            <NavRow
+              to="/reportes-operativos"
+              label="Reportes Operativos"
+              icon={BarChart3}
+              gradient={['#818cf8', '#4338ca']}
+            />
           </NavGroup>
         )}
       </nav>
@@ -170,7 +177,7 @@ export function Sidebar() {
         )}
         <div className="flex items-center gap-2 rounded-lg bg-bg-800 px-3 py-2.5 text-xs text-ink-500">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          Datos guardados localmente en este navegador
+          Datos compartidos en tiempo real
         </div>
       </div>
     </aside>
