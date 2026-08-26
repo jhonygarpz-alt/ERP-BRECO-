@@ -172,7 +172,15 @@ create table if not exists public.facturas_sistema (
   orden_trabajo text,
   tipo_pedido text not null default '',
   fecha_factura text not null default '',
-  total_factura numeric(12, 2) not null default 0,
+  total_factura numeric(14, 2) not null default 0,
+  saldo_pendiente numeric(14, 2) not null default 0,
+  estado_pedido text not null default '',
+  moneda text not null default '',
+  tipo_cambio numeric(10, 4) not null default 0,
+  tarifa numeric(14, 2) not null default 0,
+  adicional numeric(14, 2) not null default 0,
+  total_tarifa numeric(14, 2) not null default 0,
+  utilidad numeric(14, 2) not null default 0,
   sincronizado_en timestamptz not null default now()
 );
 
@@ -351,16 +359,28 @@ drop policy if exists reportes_delete on public.reportes;
 create policy reportes_delete on public.reportes for delete using (has_permission('Reportes', 'eliminar'));
 
 -- facturas_sistema / gastos_mantenimiento / tanque_movimientos (modulo
--- Reportes). Solo lectura desde el frontend: los llena la Edge Function con
--- la service role, que ignora RLS por completo.
+-- Reportes). Se llenan importando el Excel real desde el frontend
+-- (quien tenga permiso Reportes.crear), no por una Edge Function.
 drop policy if exists facturas_sistema_select on public.facturas_sistema;
 create policy facturas_sistema_select on public.facturas_sistema for select using (has_permission('Reportes', 'ver'));
+drop policy if exists facturas_sistema_insert on public.facturas_sistema;
+create policy facturas_sistema_insert on public.facturas_sistema for insert with check (has_permission('Reportes', 'crear'));
+drop policy if exists facturas_sistema_update on public.facturas_sistema;
+create policy facturas_sistema_update on public.facturas_sistema for update using (has_permission('Reportes', 'crear'));
 
 drop policy if exists gastos_mantenimiento_select on public.gastos_mantenimiento;
 create policy gastos_mantenimiento_select on public.gastos_mantenimiento for select using (has_permission('Reportes', 'ver'));
+drop policy if exists gastos_mantenimiento_insert on public.gastos_mantenimiento;
+create policy gastos_mantenimiento_insert on public.gastos_mantenimiento for insert with check (has_permission('Reportes', 'crear'));
+drop policy if exists gastos_mantenimiento_update on public.gastos_mantenimiento;
+create policy gastos_mantenimiento_update on public.gastos_mantenimiento for update using (has_permission('Reportes', 'crear'));
 
 drop policy if exists tanque_movimientos_select on public.tanque_movimientos;
 create policy tanque_movimientos_select on public.tanque_movimientos for select using (has_permission('Reportes', 'ver'));
+drop policy if exists tanque_movimientos_insert on public.tanque_movimientos;
+create policy tanque_movimientos_insert on public.tanque_movimientos for insert with check (has_permission('Reportes', 'crear'));
+drop policy if exists tanque_movimientos_update on public.tanque_movimientos;
+create policy tanque_movimientos_update on public.tanque_movimientos for update using (has_permission('Reportes', 'crear'));
 
 -- ----------------------------------------------------------------------------
 -- 3. DATOS REALES (roles, empresa, clientes, unidades, cajas, operadores,

@@ -3,6 +3,7 @@ import type {
   Cliente,
   Empresa,
   Factura,
+  FacturaSistema,
   Operador,
   ReporteExterno,
   Rol,
@@ -180,6 +181,61 @@ export function facturaToRow(f: Factura) {
     moneda: f.moneda,
     estatus: f.estatus,
     observaciones: f.observaciones,
+  };
+}
+
+export function facturaSistemaFromRow(row: Record<string, unknown>): FacturaSistema {
+  return {
+    id: String(row.id),
+    cliente: (row.cliente as string) ?? '',
+    economicoTracto: (row.economico_tracto as string) ?? '',
+    economicoRemolque: (row.economico_remolque as string) ?? '',
+    origenPedido: (row.origen_pedido as string) ?? '',
+    locacionOrigen: (row.locacion_origen as string) ?? '',
+    transportista: (row.transportista as string) ?? '',
+    fechaOrigen: (row.fecha_origen as string | null) ?? '',
+    destinoPedido: (row.destino_pedido as string) ?? '',
+    locacionDestino: (row.locacion_destino as string) ?? '',
+    fechaDestino: (row.fecha_destino as string | null) ?? '',
+    ordenTrabajo: (row.orden_trabajo as string | null) ?? '',
+    tipoPedido: (row.tipo_pedido as string) ?? '',
+    fechaFactura: (row.fecha_factura as string) ?? '',
+    totalFactura: Number(row.total_factura) || 0,
+    saldoPendiente: Number(row.saldo_pendiente) || 0,
+    estadoPedido: (row.estado_pedido as string) ?? '',
+    moneda: (row.moneda as string) ?? '',
+    tipoCambio: Number(row.tipo_cambio) || 0,
+    tarifa: Number(row.tarifa) || 0,
+    adicional: Number(row.adicional) || 0,
+    totalTarifa: Number(row.total_tarifa) || 0,
+    utilidad: Number(row.utilidad) || 0,
+  };
+}
+export function facturaSistemaToRow(f: FacturaSistema) {
+  return {
+    id: Number(f.id),
+    cliente: f.cliente,
+    economico_tracto: f.economicoTracto,
+    economico_remolque: f.economicoRemolque,
+    origen_pedido: f.origenPedido,
+    locacion_origen: f.locacionOrigen,
+    transportista: f.transportista,
+    fecha_origen: f.fechaOrigen || null,
+    destino_pedido: f.destinoPedido,
+    locacion_destino: f.locacionDestino,
+    fecha_destino: f.fechaDestino || null,
+    orden_trabajo: f.ordenTrabajo || null,
+    tipo_pedido: f.tipoPedido,
+    fecha_factura: f.fechaFactura,
+    total_factura: f.totalFactura,
+    saldo_pendiente: f.saldoPendiente,
+    estado_pedido: f.estadoPedido,
+    moneda: f.moneda,
+    tipo_cambio: f.tipoCambio,
+    tarifa: f.tarifa,
+    adicional: f.adicional,
+    total_tarifa: f.totalTarifa,
+    utilidad: f.utilidad,
   };
 }
 

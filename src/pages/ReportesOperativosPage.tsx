@@ -12,11 +12,14 @@ import {
   DollarSign,
   Truck,
   CheckCircle2,
+  ScanLine,
 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
+import { useAuth } from '../lib/AuthContext';
 import { StatCard } from '../components/ui/StatCard';
 import { inputClass, GhostButton } from '../components/ui/form';
-import type { Cliente, Factura, Operador, Unidad, Viaje } from '../types';
+import { ImportarFacturacionModal } from '../components/reportes/ImportarFacturacionModal';
+import type { Cliente, Factura, FacturaSistema, Operador, Unidad, Viaje } from '../types';
 
 type Area = 'viajes' | 'facturacion' | 'programa' | 'catalogos';
 
@@ -196,6 +199,54 @@ function ReporteFacturacion({ facturas, clientes }: { facturas: Factura[]; clien
   );
 }
 
+function ReporteFacturacionSistema({ registros }: { registros: FacturaSistema[] }) {
+  if (registros.length === 0) {
+    return (
+      <SeccionReporte title="Facturacion por Sistema (importado de Excel/imagen)">
+        <p className="py-6 text-center text-sm text-ink-600">
+          Todavia no se ha importado nada para este periodo. Usa el boton "Importar" de arriba.
+        </p>
+      </SeccionReporte>
+    );
+  }
+
+  const totalTarifa = registros.reduce((acc, r) => acc + r.totalTarifa, 0);
+  const totalFactura = registros.reduce((acc, r) => acc + r.totalFactura, 0);
+
+  const porCliente = agrupar(registros, (r) => r.cliente || 'N/D');
+  const filasCliente = [...porCliente.entries()]
+    .map(([cliente, items]) => ({
+      cliente,
+      total: items.length,
+      totalTarifa: items.reduce((acc, r) => acc + r.totalTarifa, 0),
+    }))
+    .sort((a, b) => b.totalTarifa - a.totalTarifa);
+
+  const porUnidad = agrupar(registros, (r) => r.economicoTracto || 'N/D');
+  const filasUnidad = [...porUnidad.entries()]
+    .map(([unidad, items]) => ({ unidad, total: items.length }))
+    .sort((a, b) => b.total - a.total);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard label="Registros importados" value={String(registros.length)} icon={Receipt} accent="blue" />
+        <StatCard label="Total Tarifa" value={formatearMoneda(totalTarifa)} icon={DollarSign} accent="green" />
+        <StatCard label="Total Factura" value={formatearMoneda(totalFactura)} icon={DollarSign} accent="amber" />
+      </div>
+      <SeccionReporte title={`Facturacion por Sistema por cliente (${filasCliente.length})`}>
+        <ReportTable
+          headers={['Cliente', 'Registros', 'Total Tarifa']}
+          rows={filasCliente.map((f) => [f.cliente, f.total, formatearMoneda(f.totalTarifa)])}
+        />
+      </SeccionReporte>
+      <SeccionReporte title={`Facturacion por Sistema por unidad (${filasUnidad.length})`}>
+        <ReportTable headers={['Unidad', 'Registros']} rows={filasUnidad.map((f) => [f.unidad, f.total])} />
+      </SeccionReporte>
+    </div>
+  );
+}
+
 function ReportePrograma({ viajes, totalUnidades }: { viajes: Viaje[]; totalUnidades: number }) {
   const porDia = agrupar(viajes, (v) => v.fecha);
   const dias = [...porDia.keys()].sort();
@@ -271,10 +322,13 @@ function ReporteCatalogos({
 }
 
 export function ReportesOperativosPage() {
-  const { viajes, facturas, clientes, unidades, operadores } = useData();
+  const { viajes, facturas, facturasSistema, clientes, unidades, operadores } = useData();
+  const { hasPermission } = useAuth();
+  const puedeImportar = hasPermission('Reportes', 'crear');
   const [area, setArea] = useState<Area>('viajes');
   const [desde, setDesde] = useState(sumarDias(isoHoy(), -6));
   const [hasta, setHasta] = useState(isoHoy());
+  const [importarOpen, setImportarOpen] = useState(false);
 
   const viajesRango = useMemo(
     () => viajes.items.filter((v) => v.fecha >= desde && v.fecha <= hasta),
@@ -283,6 +337,10 @@ export function ReportesOperativosPage() {
   const facturasRango = useMemo(
     () => facturas.items.filter((f) => f.fecha >= desde && f.fecha <= hasta),
     [facturas.items, desde, hasta],
+  );
+  const facturasSistemaRango = useMemo(
+    () => facturasSistema.items.filter((f) => f.fechaOrigen >= desde && f.fechaOrigen <= hasta),
+    [facturasSistema.items, desde, hasta],
   );
 
   return (
@@ -343,28 +401,45 @@ export function ReportesOperativosPage() {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {areas.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setArea(key)}
-            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${
-              area === key
-                ? 'border-breco-500/50 bg-breco-500/10 font-semibold text-white'
-                : 'border-line-800 bg-bg-800 text-ink-400 hover:text-ink-100'
-            }`}
-          >
-            <Icon size={15} />
-            {label}
-          </button>
-        ))}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {areas.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setArea(key)}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${
+                area === key
+                  ? 'border-breco-500/50 bg-breco-500/10 font-semibold text-white'
+                  : 'border-line-800 bg-bg-800 text-ink-400 hover:text-ink-100'
+              }`}
+            >
+              <Icon size={15} />
+              {label}
+            </button>
+          ))}
+        </div>
+        {area === 'facturacion' && puedeImportar && (
+          <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+            <ScanLine size={16} />
+            Importar Excel o Imagen
+          </GhostButton>
+        )}
       </div>
 
       {area === 'viajes' && <ReporteViajes viajes={viajesRango} clientes={clientes.items} unidades={unidades.items} />}
-      {area === 'facturacion' && <ReporteFacturacion facturas={facturasRango} clientes={clientes.items} />}
+      {area === 'facturacion' && (
+        <div className="space-y-8">
+          <ReporteFacturacion facturas={facturasRango} clientes={clientes.items} />
+          <ReporteFacturacionSistema registros={facturasSistemaRango} />
+        </div>
+      )}
       {area === 'programa' && <ReportePrograma viajes={viajesRango} totalUnidades={unidades.items.length} />}
       {area === 'catalogos' && (
         <ReporteCatalogos viajes={viajesRango} unidades={unidades.items} operadores={operadores.items} />
+      )}
+
+      {importarOpen && (
+        <ImportarFacturacionModal onClose={() => setImportarOpen(false)} onImportado={() => facturasSistema.reload()} />
       )}
     </div>
   );

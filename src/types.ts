@@ -95,6 +95,34 @@ export interface Factura {
   observaciones: string;
 }
 
+// Refleja la hoja "BASE_DATOS" del Excel real "Facturacion Diaria por
+// Sistema" (OneDrive), importada manualmente desde Reportes Operativos.
+export interface FacturaSistema {
+  id: string;
+  cliente: string;
+  economicoTracto: string;
+  economicoRemolque: string;
+  origenPedido: string;
+  locacionOrigen: string;
+  transportista: string;
+  fechaOrigen: string;
+  destinoPedido: string;
+  locacionDestino: string;
+  fechaDestino: string;
+  ordenTrabajo: string;
+  tipoPedido: string;
+  fechaFactura: string;
+  totalFactura: number;
+  saldoPendiente: number;
+  estadoPedido: string;
+  moneda: string;
+  tipoCambio: number;
+  tarifa: number;
+  adicional: number;
+  totalTarifa: number;
+  utilidad: number;
+}
+
 export interface Empresa {
   nombre: string;
   razonSocial: string;

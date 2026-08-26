@@ -79,5 +79,5 @@ export function useSupabaseCollection<Row extends Record<string, unknown>, Item 
     [table, load],
   );
 
-  return { items, add, update, remove, loading };
+  return { items, add, update, remove, loading, reload: load };
 }
