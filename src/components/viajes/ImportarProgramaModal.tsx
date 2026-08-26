@@ -5,6 +5,7 @@ import { uid } from '../../lib/storage';
 import { reconocerImagen } from '../../lib/ocr';
 import { parseProgramaTexto } from '../../lib/parsePrograma';
 import { leerReporteDiarioExcel, guardarViajesImportados, type ResultadoImportViajes } from '../../lib/excelImportViajes';
+import { mensajeDeError } from '../../lib/errors';
 import type { EstatusViaje } from '../../types';
 import { Modal } from '../ui/Modal';
 import { GhostButton, Input, PrimaryButton, Select } from '../ui/form';
@@ -107,7 +108,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
       }
       setResultadoExcel(resultado);
     } catch (err) {
-      setErrorExcel(err instanceof Error ? err.message : 'No se pudo leer el archivo.');
+      setErrorExcel(mensajeDeError(err));
     } finally {
       setProcesandoExcel(false);
     }
@@ -124,7 +125,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
       await viajes.reload();
       onClose();
     } catch (err) {
-      setErrorExcel(err instanceof Error ? err.message : 'No se pudo guardar en la base de datos.');
+      setErrorExcel(mensajeDeError(err));
       setGuardandoExcel(false);
     }
   }

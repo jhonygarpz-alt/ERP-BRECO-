@@ -3,6 +3,7 @@ import { AlertTriangle, FileSpreadsheet, Image as ImageIcon, Loader2, Trash2, Up
 import { reconocerImagen } from '../../lib/ocr';
 import { parseFacturacionTexto } from '../../lib/parseFacturacionImagen';
 import { leerFacturacionSistemaExcel, guardarFacturasSistema, type ResultadoImportFacturasSistema } from '../../lib/excelImport';
+import { mensajeDeError } from '../../lib/errors';
 import type { FacturaSistema } from '../../types';
 import { Modal } from '../ui/Modal';
 import { GhostButton, Input, PrimaryButton } from '../ui/form';
@@ -79,7 +80,7 @@ export function ImportarFacturacionModal({
       }
       setResultadoExcel(resultado);
     } catch (err) {
-      setErrorExcel(err instanceof Error ? err.message : 'No se pudo leer el archivo.');
+      setErrorExcel(mensajeDeError(err));
     } finally {
       setProcesandoExcel(false);
     }
@@ -94,7 +95,7 @@ export function ImportarFacturacionModal({
       onImportado();
       onClose();
     } catch (err) {
-      setErrorExcel(err instanceof Error ? err.message : 'No se pudo guardar en la base de datos.');
+      setErrorExcel(mensajeDeError(err));
       setGuardandoExcel(false);
     }
   }
@@ -171,7 +172,7 @@ export function ImportarFacturacionModal({
       onImportado();
       onClose();
     } catch (err) {
-      setErrorImagen(err instanceof Error ? err.message : 'No se pudo guardar en la base de datos.');
+      setErrorImagen(mensajeDeError(err));
       setGuardandoImagen(false);
     }
   }
