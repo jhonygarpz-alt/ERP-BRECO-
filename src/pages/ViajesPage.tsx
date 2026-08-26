@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ScanLine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ScanLine } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
@@ -7,7 +7,7 @@ import type { EstatusViaje, Viaje } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
-import { Field, GhostButton, Input, PrimaryButton, Select, Textarea } from '../components/ui/form';
+import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
 import { StatusBadge } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 
@@ -21,6 +21,12 @@ function nextFolio(viajes: Viaje[]) {
   return `V-${String(max + 1).padStart(4, '0')}`;
 }
 
+function shiftDate(date: string, dias: number) {
+  const d = new Date(`${date}T00:00:00`);
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
 export function ViajesPage() {
   const { viajes, clientes, unidades, operadores } = useData();
   const { hasPermission } = useAuth();
@@ -31,6 +37,8 @@ export function ViajesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [importarOpen, setImportarOpen] = useState(false);
   const [editing, setEditing] = useState<Viaje | null>(null);
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [todasLasFechas, setTodasLasFechas] = useState(false);
 
   const emptyForm: Omit<Viaje, 'id'> = {
     folio: nextFolio(viajes.items),
@@ -60,13 +68,15 @@ export function ViajesPage() {
 
   const filtered = useMemo(
     () =>
-      viajes.items.filter((v) =>
-        `${v.folio} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
+      viajes.items
+        .filter((v) => todasLasFechas || v.fecha === fecha)
+        .filter((v) =>
+          `${v.folio} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
+            .toLowerCase()
+            .includes(search.toLowerCase()),
+        ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viajes.items, search, clientes.items, unidades.items],
+    [viajes.items, search, fecha, todasLasFechas, clientes.items, unidades.items],
   );
 
   function openNew() {
@@ -152,6 +162,46 @@ export function ViajesPage() {
           )
         }
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setFecha((f) => shiftDate(f, -1))}
+          disabled={todasLasFechas}
+          className="rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100 disabled:opacity-40"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <input
+          type="date"
+          value={fecha}
+          disabled={todasLasFechas}
+          onChange={(e) => setFecha(e.target.value)}
+          className={`${inputClass} w-44 disabled:opacity-40`}
+        />
+        <button
+          onClick={() => setFecha((f) => shiftDate(f, 1))}
+          disabled={todasLasFechas}
+          className="rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100 disabled:opacity-40"
+        >
+          <ChevronRight size={16} />
+        </button>
+        <GhostButton
+          type="button"
+          disabled={todasLasFechas}
+          onClick={() => setFecha(new Date().toISOString().slice(0, 10))}
+        >
+          Hoy
+        </GhostButton>
+        <label className="ml-2 flex items-center gap-2 text-sm text-ink-400">
+          <input
+            type="checkbox"
+            checked={todasLasFechas}
+            onChange={(e) => setTodasLasFechas(e.target.checked)}
+            className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+          />
+          Ver todas las fechas
+        </label>
+      </div>
 
       <CrudTable
         columns={columns}
