@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
+import { supabaseAuthAlta } from '../../lib/supabaseClient';
+import { mensajeDeError } from '../../lib/errors';
 import type { Estatus, Usuario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -17,7 +19,9 @@ export function UsuariosSection() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Usuario | null>(null);
-  const [nuevoId, setNuevoId] = useState('');
+  const [passwordTemporal, setPasswordTemporal] = useState('');
+  const [creando, setCreando] = useState(false);
+  const [error, setError] = useState('');
 
   const emptyForm: Omit<Usuario, 'id'> = {
     nombre: '',
@@ -39,24 +43,52 @@ export function UsuariosSection() {
   function openNew() {
     setEditing(null);
     setForm(emptyForm);
-    setNuevoId('');
+    setPasswordTemporal('');
+    setError('');
     setModalOpen(true);
   }
 
   function openEdit(u: Usuario) {
     setEditing(u);
     setForm(u);
+    setError('');
     setModalOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (editing) {
       usuarios.update(editing.id, form);
-    } else {
-      usuarios.add({ id: nuevoId.trim(), ...form });
+      setModalOpen(false);
+      return;
     }
-    setModalOpen(false);
+
+    setError('');
+    setCreando(true);
+    try {
+      const { data, error: errAuth } = await supabaseAuthAlta.auth.signUp({
+        email: form.email.trim(),
+        password: passwordTemporal,
+      });
+      if (errAuth) {
+        setError(mensajeDeError(errAuth));
+        return;
+      }
+      const nuevoId = data.user?.id;
+      if (!nuevoId) {
+        setError('Supabase no devolvio el usuario creado. Intenta de nuevo.');
+        return;
+      }
+      await usuarios.add({ id: nuevoId, ...form });
+      setModalOpen(false);
+      alert(
+        data.session
+          ? `Usuario creado. Ya puede iniciar sesion con ${form.email.trim()} y la contrasena que capturaste.`
+          : `Usuario creado. Supabase le va a pedir confirmar ${form.email.trim()} por correo antes de poder iniciar sesion.`,
+      );
+    } finally {
+      setCreando(false);
+    }
   }
 
   function handleDelete(u: Usuario) {
@@ -101,10 +133,9 @@ export function UsuariosSection() {
         >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {!editing && (
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-ink-300 sm:col-span-2">
-                Antes de llenar esto, crea a la persona en Supabase (Authentication &gt; Users &gt; Add user) con su
-                correo y contrasena. Luego pega aqui abajo el UUID que le asigno Supabase — ese UUID es lo que
-                conecta su acceso con su rol en este sistema.
+              <div className="rounded-xl border border-line-700 bg-bg-900 p-3 text-xs text-ink-400 sm:col-span-2">
+                Se crea la cuenta de acceso directo (correo + contrasena temporal) y su perfil en el sistema al mismo
+                tiempo. Comparte esa contrasena con la persona para que inicie sesion y la cambie despues.
               </div>
             )}
             <div className="sm:col-span-2">
@@ -116,6 +147,7 @@ export function UsuariosSection() {
               <Input
                 type="email"
                 required
+                disabled={!!editing}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
@@ -125,12 +157,14 @@ export function UsuariosSection() {
             </Field>
             {!editing && (
               <div className="sm:col-span-2">
-                <Field label="UUID de Supabase Auth">
+                <Field label="Contrasena temporal">
                   <Input
+                    type="text"
                     required
-                    placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                    value={nuevoId}
-                    onChange={(e) => setNuevoId(e.target.value)}
+                    minLength={6}
+                    placeholder="Minimo 6 caracteres"
+                    value={passwordTemporal}
+                    onChange={(e) => setPasswordTemporal(e.target.value)}
                   />
                 </Field>
               </div>
@@ -151,11 +185,15 @@ export function UsuariosSection() {
               </Select>
             </Field>
 
+            {error && <p className="text-sm text-breco-500 sm:col-span-2">{error}</p>}
+
             <div className="mt-2 flex justify-end gap-2 sm:col-span-2">
               <GhostButton type="button" onClick={() => setModalOpen(false)}>
                 Cancelar
               </GhostButton>
-              <PrimaryButton type="submit">{editing ? 'Guardar cambios' : 'Crear usuario'}</PrimaryButton>
+              <PrimaryButton type="submit" disabled={creando}>
+                {creando ? 'Creando...' : editing ? 'Guardar cambios' : 'Crear usuario'}
+              </PrimaryButton>
             </div>
           </form>
         </Modal>
