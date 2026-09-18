@@ -3,6 +3,8 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useData } from '../lib/DataContext';
+import { supabase } from '../lib/supabaseClient';
+import { mensajeDeError } from '../lib/errors';
 import { Field, Input, PrimaryButton } from '../components/ui/form';
 import { BrandName } from '../components/ui/BrandName';
 
@@ -14,8 +16,23 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [recuperando, setRecuperando] = useState(false);
+  const [mensajeRecuperar, setMensajeRecuperar] = useState('');
 
   if (estado === 'autenticado' || estado === 'sin-perfil') return <Navigate to="/" replace />;
+
+  async function handleOlvidoPassword() {
+    if (!email.trim()) {
+      setMensajeRecuperar('Escribe tu email arriba y dale clic de nuevo.');
+      return;
+    }
+    setRecuperando(true);
+    setMensajeRecuperar('');
+    const redirectTo = `${window.location.origin}${window.location.pathname}#/restablecer-password`;
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+    setRecuperando(false);
+    setMensajeRecuperar(err ? mensajeDeError(err) : 'Si ese correo tiene cuenta, te llegara un link para restablecer tu contrasena.');
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,6 +95,18 @@ export function LoginPage() {
               placeholder="••••••••"
             />
           </Field>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleOlvidoPassword}
+              disabled={recuperando}
+              className="text-xs font-medium text-breco-500 hover:underline disabled:opacity-50"
+            >
+              {recuperando ? 'Enviando...' : 'Olvidaste tu contrasena?'}
+            </button>
+          </div>
+          {mensajeRecuperar && <p className="text-xs text-ink-500">{mensajeRecuperar}</p>}
 
           {error && <p className="text-sm text-breco-500">{error}</p>}
 

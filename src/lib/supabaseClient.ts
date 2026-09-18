@@ -9,4 +9,11 @@ if (!url || !anonKey) {
   );
 }
 
-export const supabase = createClient(url, anonKey);
+// detectSessionInUrl se apaga a proposito: la app usa HashRouter, que lee
+// el mismo fragmento de URL (#...) donde Supabase manda los tokens de un
+// link de recuperacion de contrasena. RestablecerPasswordPage.tsx maneja
+// esa sesion a mano con supabase.auth.setSession(), evitando que ambos
+// (Supabase y el router) intenten interpretar el mismo hash a la vez.
+export const supabase = createClient(url, anonKey, {
+  auth: { detectSessionInUrl: false },
+});

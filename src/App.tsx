@@ -6,6 +6,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { RequirePermission } from './components/auth/RequirePermission';
 import { LoginPage } from './pages/LoginPage';
+import { RestablecerPasswordPage } from './pages/RestablecerPasswordPage';
 import { Dashboard } from './pages/Dashboard';
 import { ClientesPage } from './pages/catalogos/ClientesPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
@@ -29,6 +30,7 @@ function App() {
         <HashRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/restablecer-password" element={<RestablecerPasswordPage />} />
             <Route element={<RequireAuth />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
