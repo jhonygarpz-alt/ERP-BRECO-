@@ -1,6 +1,7 @@
 import type {
   Caja,
   Cliente,
+  CuentaBancaria,
   Destinatario,
   Empresa,
   EntregaTurnoNota,
@@ -696,6 +697,29 @@ export function empresaToRow(e: Empresa) {
     estatus: e.estatus,
     csf_storage_path: e.csfStoragePath,
     csf_importada_en: e.csfImportadaEn ?? null,
+  };
+}
+
+export function cuentaBancariaFromRow(row: Record<string, unknown>): CuentaBancaria {
+  return {
+    id: row.id as string,
+    numero: row.numero as string,
+    activa: row.activa as boolean,
+    descripcion: row.descripcion as string,
+    contabilizar: row.contabilizar as boolean,
+    banco: row.banco as string,
+    moneda: row.moneda as CuentaBancaria['moneda'],
+  };
+}
+export function cuentaBancariaToRow(c: CuentaBancaria) {
+  return {
+    id: c.id,
+    numero: c.numero,
+    activa: c.activa,
+    descripcion: c.descripcion,
+    contabilizar: c.contabilizar,
+    banco: c.banco,
+    moneda: c.moneda,
   };
 }
 

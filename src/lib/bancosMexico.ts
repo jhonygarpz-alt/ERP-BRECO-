@@ -1,0 +1,36 @@
+/**
+ * Bancos nacionales mas comunes en Mexico (instituciones de banca multiple),
+ * para usarse como catalogo predeterminado en los selectores de "Banco" en
+ * vez de captura libre.
+ */
+export const BANCOS_MEXICO: string[] = [
+  'Actinver',
+  'Afirme',
+  'BanCoppel',
+  'Banamex (Citibanamex)',
+  'Banco Azteca',
+  'Banco Base',
+  'Banco del Bajío (BanBajío)',
+  'Banco del Bienestar',
+  'Banjercito',
+  'Banobras',
+  'Banorte',
+  'Banregio',
+  'Bansí',
+  'Bancrea',
+  'BBVA México',
+  'Compartamos Banco',
+  'Consubanco',
+  'CIBanco',
+  'HSBC México',
+  'Inbursa',
+  'Intercam Banco',
+  'Invex',
+  'Mifel',
+  'Multiva',
+  'Nacional Financiera (NAFIN)',
+  'Santander México',
+  'Scotiabank',
+  'Ve por Más',
+  'Otro',
+];

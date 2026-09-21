@@ -510,3 +510,13 @@ export interface Proveedor {
   // Documentos
   documentos: ProveedorDocumento[];
 }
+
+export interface CuentaBancaria {
+  id: string;
+  numero: string;
+  activa: boolean;
+  descripcion: string;
+  contabilizar: boolean;
+  banco: string;
+  moneda: 'MXN' | 'USD';
+}

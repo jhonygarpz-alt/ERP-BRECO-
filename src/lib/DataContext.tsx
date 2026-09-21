@@ -5,6 +5,8 @@ import {
   cajaToRow,
   clienteFromRow,
   clienteToRow,
+  cuentaBancariaFromRow,
+  cuentaBancariaToRow,
   destinatarioFromRow,
   destinatarioToRow,
   empresaFromRow,
@@ -40,6 +42,7 @@ import { seedEmpresa } from './seed';
 import type {
   Caja,
   Cliente,
+  CuentaBancaria,
   Destinatario,
   Empresa,
   EntregaTurnoNota,
@@ -64,6 +67,7 @@ interface DataContextValue {
   cajas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Caja>>;
   operadores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Operador>>;
   proveedores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Proveedor>>;
+  cuentasBancarias: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, CuentaBancaria>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
   estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
@@ -99,6 +103,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'proveedores',
     proveedorFromRow,
     proveedorToRow,
+  );
+  const cuentasBancarias = useSupabaseCollection<Record<string, unknown>, CuentaBancaria>(
+    'cuentas_bancarias',
+    cuentaBancariaFromRow,
+    cuentaBancariaToRow,
   );
   const viajes = useSupabaseCollection<Record<string, unknown>, Viaje>('viajes', viajeFromRow, viajeToRow);
   const viajeUbicaciones = useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>(
@@ -161,6 +170,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         cajas,
         operadores,
         proveedores,
+        cuentasBancarias,
         viajes,
         viajeUbicaciones,
         estatusViajes,
