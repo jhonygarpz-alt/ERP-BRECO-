@@ -54,7 +54,7 @@ const emptyForm: Omit<Caja, 'id'> = {
 };
 
 export function RemolquesPage() {
-  const { cajas, empresa } = useData();
+  const { cajas, empresa, gruposUnidad } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -302,7 +302,12 @@ export function RemolquesPage() {
                     <Input value={form.marca ?? ''} onChange={(e) => setForm({ ...form, marca: e.target.value })} />
                   </Field>
                   <Field label="Grupo de unidades">
-                    <Input value={form.grupoUnidades} onChange={(e) => setForm({ ...form, grupoUnidades: e.target.value })} />
+                    <Select value={form.grupoUnidades} onChange={(e) => setForm({ ...form, grupoUnidades: e.target.value })}>
+                      <option value="">Sin grupo</option>
+                      {gruposUnidad.items.map((g) => (
+                        <option key={g.id} value={g.nombre}>{g.nombre}</option>
+                      ))}
+                    </Select>
                   </Field>
                   <Field label="Capacidad (descripción)">
                     <Input placeholder="Ej. 53 pies" value={form.capacidad} onChange={(e) => setForm({ ...form, capacidad: e.target.value })} />

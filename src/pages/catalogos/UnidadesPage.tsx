@@ -66,7 +66,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
 };
 
 export function UnidadesPage() {
-  const { unidades, operadores, clientes, empresa, estatusUnidades } = useData();
+  const { unidades, operadores, clientes, empresa, estatusUnidades, gruposUnidad } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -362,7 +362,12 @@ export function UnidadesPage() {
                     </Select>
                   </Field>
                   <Field label="Grupo de unidades">
-                    <Input value={form.grupoUnidades} onChange={(e) => setForm({ ...form, grupoUnidades: e.target.value })} />
+                    <Select value={form.grupoUnidades} onChange={(e) => setForm({ ...form, grupoUnidades: e.target.value })}>
+                      <option value="">Sin grupo</option>
+                      {gruposUnidad.items.map((g) => (
+                        <option key={g.id} value={g.nombre}>{g.nombre}</option>
+                      ))}
+                    </Select>
                   </Field>
                   <Field label="Estatus operativo">
                     <Select value={form.estatus} onChange={(e) => setForm({ ...form, estatus: e.target.value })}>

@@ -542,3 +542,10 @@ export interface ClasificacionViaje {
   clasificacion: string;
   activo: boolean;
 }
+
+export interface GrupoUnidad {
+  id: string;
+  codigo: string;
+  nombre: string;
+  color: string;
+}

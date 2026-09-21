@@ -11,6 +11,7 @@ import type {
   EstatusViajeCustom,
   Factura,
   FacturaSistema,
+  GrupoUnidad,
   Operador,
   Proveedor,
   ReporteExterno,
@@ -763,6 +764,18 @@ export function clasificacionViajeFromRow(row: Record<string, unknown>): Clasifi
 }
 export function clasificacionViajeToRow(c: ClasificacionViaje) {
   return { id: c.id, codigo: c.codigo || null, clasificacion: c.clasificacion, activo: c.activo };
+}
+
+export function grupoUnidadFromRow(row: Record<string, unknown>): GrupoUnidad {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    nombre: row.nombre as string,
+    color: row.color as string,
+  };
+}
+export function grupoUnidadToRow(g: GrupoUnidad) {
+  return { id: g.id, codigo: g.codigo || null, nombre: g.nombre, color: g.color };
 }
 
 export function viajeUbicacionFromRow(row: Record<string, unknown>): ViajeUbicacion {

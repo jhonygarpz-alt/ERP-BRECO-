@@ -19,6 +19,7 @@ import { CuentasBancariasPage } from './pages/catalogos/CuentasBancariasPage';
 import { EstatusViajePage } from './pages/catalogos/EstatusViajePage';
 import { EstatusUnidadPage } from './pages/catalogos/EstatusUnidadPage';
 import { ClasificacionesViajePage } from './pages/catalogos/ClasificacionesViajePage';
+import { GruposUnidadPage } from './pages/catalogos/GruposUnidadPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
@@ -59,6 +60,7 @@ function App() {
                   <Route path="/catalogos/estatus-viaje" element={<EstatusViajePage />} />
                   <Route path="/catalogos/estatus-unidad" element={<EstatusUnidadPage />} />
                   <Route path="/catalogos/clasificaciones-viaje" element={<ClasificacionesViajePage />} />
+                  <Route path="/catalogos/grupos-unidad" element={<GruposUnidadPage />} />
                   <Route path="/catalogos/unidades" element={<UnidadesPage />} />
                   <Route path="/catalogos/remolques" element={<RemolquesPage />} />
                   <Route path="/catalogos/operadores" element={<OperadoresPage />} />
