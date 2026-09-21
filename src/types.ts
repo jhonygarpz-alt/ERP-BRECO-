@@ -117,13 +117,77 @@ export interface Caja {
 
 export type EstatusOperador = 'Disponible' | 'En viaje' | 'Descanso' | 'Baja';
 
+/** Un archivo cargado al expediente del operador (guardado en Supabase Storage). */
+export interface OperadorDocumento {
+  id: string;
+  descripcion: string;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn: string;
+}
+
+/** Un renglon de la lista "Vencimientos de Documentos" del expediente. */
+export interface OperadorVencimiento {
+  documento: string;
+  nombre: string;
+  fecha: string;
+  activo: boolean;
+}
+
 export interface Operador {
   id: string;
+  numero: string;
+  /** Nombre completo (calculado a partir de nombres/apellidos); es lo que usa el resto del sistema para mostrar al operador. */
   nombre: string;
-  licencia: string;
-  tipoLicencia: string;
+  nombres: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string;
+  activo: boolean;
+  esPermisionario: boolean;
+  esExtranjero: boolean;
+  rfc: string;
+  curp: string;
+  fechaContratacion: string;
+  sucursal: string;
   telefono: string;
+  celular: string;
+  hashGmtgps: string;
+  registroPatronal: string;
+  fotoDataUrl: string;
+  observaciones: string;
+  // Direccion del operador
+  pais: string;
+  estado: string;
+  municipio: string;
+  localidad: string;
+  cp: string;
+  colonia: string;
+  calle: string;
+  numeroExterior: string;
+  numeroInterior: string;
+  domicilioReferencia: string;
+  // Documentos de identidad
+  licencia: string;
   vigenciaLicencia: string;
+  pasaporte: string;
+  vigenciaPasaporte: string;
+  licenciaB: boolean;
+  licenciaC: boolean;
+  licenciaE: boolean;
+  // Informacion medica
+  noImss: string;
+  grupoSanguineo: string;
+  alergias: string;
+  diabetico: boolean;
+  hipertenso: boolean;
+  // Expediente
+  documentos: OperadorDocumento[];
+  vencimientos: OperadorVencimiento[];
+  // Informacion bancaria
+  banco: string;
+  cuentaClabe: string;
+  noTarjeta: string;
+  // Estatus operativo (Disponible/En viaje/Descanso/Baja), usado en Trafico
   estatus: EstatusOperador;
 }
 
