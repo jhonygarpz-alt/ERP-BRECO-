@@ -37,7 +37,7 @@ const catalogos: CatalogoTile[] = [
   { to: '/catalogos/estatus-unidad', label: 'Estatus de Unidades', icon: Tags, gradient: ['#f472b6', '#be185d'] },
   { to: '/catalogos/clasificaciones-viaje', label: 'Clasificaciones de Viaje', icon: Layers, gradient: ['#a3e635', '#4d7c0f'] },
   { to: '/catalogos/grupos-unidad', label: 'Grupos de Unidades', icon: Boxes, gradient: ['#818cf8', '#4338ca'] },
-  { label: 'Tipos de Unidades', icon: Truck, gradient: ['#38bdf8', '#0369a1'] },
+  { to: '/catalogos/tipos-viaje', label: 'Tipos de Viaje', icon: Truck, gradient: ['#38bdf8', '#0369a1'] },
   { label: 'Clasificaciones de Operador', icon: Network, gradient: ['#f59e0b', '#92400e'] },
 ];
 

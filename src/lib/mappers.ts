@@ -18,6 +18,7 @@ import type {
   Rol,
   SemaforoEntrega,
   TipoNotaEntregaTurno,
+  TipoViaje,
   Unidad,
   Usuario,
   Viaje,
@@ -776,6 +777,18 @@ export function grupoUnidadFromRow(row: Record<string, unknown>): GrupoUnidad {
 }
 export function grupoUnidadToRow(g: GrupoUnidad) {
   return { id: g.id, codigo: g.codigo || null, nombre: g.nombre, color: g.color };
+}
+
+export function tipoViajeFromRow(row: Record<string, unknown>): TipoViaje {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    tipoViaje: row.tipo_viaje as string,
+    activo: row.activo as boolean,
+  };
+}
+export function tipoViajeToRow(t: TipoViaje) {
+  return { id: t.id, codigo: t.codigo || null, tipo_viaje: t.tipoViaje, activo: t.activo };
 }
 
 export function viajeUbicacionFromRow(row: Record<string, unknown>): ViajeUbicacion {

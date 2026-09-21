@@ -549,3 +549,10 @@ export interface GrupoUnidad {
   nombre: string;
   color: string;
 }
+
+export interface TipoViaje {
+  id: string;
+  codigo: string;
+  tipoViaje: string;
+  activo: boolean;
+}

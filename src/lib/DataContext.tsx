@@ -35,6 +35,8 @@ import {
   reporteToRow,
   rolFromRow,
   rolToRow,
+  tipoViajeFromRow,
+  tipoViajeToRow,
   unidadFromRow,
   unidadToRow,
   usuarioFromRow,
@@ -63,6 +65,7 @@ import type {
   Proveedor,
   ReporteExterno,
   Rol,
+  TipoViaje,
   Unidad,
   Usuario,
   Viaje,
@@ -80,6 +83,7 @@ interface DataContextValue {
   estatusUnidades: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusUnidadCustom>>;
   clasificacionesViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ClasificacionViaje>>;
   gruposUnidad: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GrupoUnidad>>;
+  tiposViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TipoViaje>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
   estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
@@ -135,6 +139,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'grupos_unidad',
     grupoUnidadFromRow,
     grupoUnidadToRow,
+  );
+  const tiposViaje = useSupabaseCollection<Record<string, unknown>, TipoViaje>(
+    'tipos_viaje',
+    tipoViajeFromRow,
+    tipoViajeToRow,
   );
   const viajes = useSupabaseCollection<Record<string, unknown>, Viaje>('viajes', viajeFromRow, viajeToRow);
   const viajeUbicaciones = useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>(
@@ -201,6 +210,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         estatusUnidades,
         clasificacionesViaje,
         gruposUnidad,
+        tiposViaje,
         viajes,
         viajeUbicaciones,
         estatusViajes,
