@@ -59,6 +59,31 @@ export interface Cliente {
   bancoNoCuenta: string;
 }
 
+/** Ubicacion fisica de un cliente (o independiente) que sirve de origen/destino en un viaje. */
+export interface Destinatario {
+  id: string;
+  numero: string;
+  rfc: string;
+  noEquivalencia: string;
+  nombre: string;
+  estatus: Estatus;
+  esPatio: boolean;
+  clienteId?: string;
+  // Domicilio Fiscal
+  pais: string;
+  estado: string;
+  municipio: string;
+  cp: string;
+  localidad: string;
+  colonia: string;
+  calle: string;
+  numeroExterior: string;
+  numeroInterior: string;
+  telefono: string;
+  contacto: string;
+  correo: string;
+}
+
 export type TipoUnidad = 'Tractocamion' | 'Rabon' | 'Torton' | 'Camioneta';
 export type EstatusUnidad = 'Disponible' | 'En viaje' | 'Taller' | 'Fuera de servicio';
 

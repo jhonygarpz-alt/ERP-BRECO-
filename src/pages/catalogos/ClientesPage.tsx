@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import { useColoniasPorCP } from '../../lib/useColoniasPorCP';
 import { uid } from '../../lib/storage';
 import type { Cliente, ClienteContacto } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -79,34 +79,13 @@ export function ClientesPage() {
   const [form, setForm] = useState(emptyForm);
   const [contactoForm, setContactoForm] = useState<ClienteContacto | null>(null);
   const [contactoEditIndex, setContactoEditIndex] = useState<number | null>(null);
-  const [coloniasSugeridas, setColoniasSugeridas] = useState<{ colonia: string; municipio: string; estado: string }[]>([]);
+  const coloniasSugeridas = useColoniasPorCP(form.cp);
 
-  // Predictivo de colonias por codigo postal, usando el Catalogo Nacional de
-  // Codigos Postales (Correos de Mexico) cargado en Supabase.
   useEffect(() => {
-    const cp = form.cp.trim();
-    if (!/^\d{5}$/.test(cp)) {
-      setColoniasSugeridas([]);
-      return;
+    if (coloniasSugeridas.length > 0) {
+      setForm((f) => ({ ...f, estado: coloniasSugeridas[0].estado, municipio: coloniasSugeridas[0].municipio }));
     }
-    let cancelado = false;
-    const timeout = setTimeout(async () => {
-      const { data } = await supabase
-        .from('codigos_postales_mx')
-        .select('colonia, municipio, estado')
-        .eq('codigo_postal', cp);
-      if (cancelado) return;
-      const filas = data ?? [];
-      setColoniasSugeridas(filas);
-      if (filas.length > 0) {
-        setForm((f) => (f.cp.trim() === cp ? { ...f, estado: filas[0].estado, municipio: filas[0].municipio } : f));
-      }
-    }, 350);
-    return () => {
-      cancelado = true;
-      clearTimeout(timeout);
-    };
-  }, [form.cp]);
+  }, [coloniasSugeridas]);
 
   const filtered = useMemo(
     () =>

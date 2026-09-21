@@ -5,6 +5,8 @@ import {
   cajaToRow,
   clienteFromRow,
   clienteToRow,
+  destinatarioFromRow,
+  destinatarioToRow,
   empresaFromRow,
   empresaToRow,
   entregaTurnoNotaFromRow,
@@ -36,6 +38,7 @@ import { seedEmpresa } from './seed';
 import type {
   Caja,
   Cliente,
+  Destinatario,
   Empresa,
   EntregaTurnoNota,
   EntregaTurnoUnidad,
@@ -53,6 +56,7 @@ import type {
 
 interface DataContextValue {
   clientes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Cliente>>;
+  destinatarios: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Destinatario>>;
   unidades: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Unidad>>;
   cajas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Caja>>;
   operadores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Operador>>;
@@ -75,6 +79,11 @@ const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const clientes = useSupabaseCollection<Record<string, unknown>, Cliente>('clientes', clienteFromRow, clienteToRow);
+  const destinatarios = useSupabaseCollection<Record<string, unknown>, Destinatario>(
+    'destinatarios',
+    destinatarioFromRow,
+    destinatarioToRow,
+  );
   const unidades = useSupabaseCollection<Record<string, unknown>, Unidad>('unidades', unidadFromRow, unidadToRow);
   const cajas = useSupabaseCollection<Record<string, unknown>, Caja>('cajas', cajaFromRow, cajaToRow);
   const operadores = useSupabaseCollection<Record<string, unknown>, Operador>(
@@ -138,6 +147,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     <DataContext.Provider
       value={{
         clientes,
+        destinatarios,
         unidades,
         cajas,
         operadores,

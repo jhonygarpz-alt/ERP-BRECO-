@@ -1,6 +1,7 @@
 import type {
   Caja,
   Cliente,
+  Destinatario,
   Empresa,
   EntregaTurnoNota,
   EntregaTurnoUnidad,
@@ -159,6 +160,55 @@ export function cajaToRow(c: Caja) {
     marca: c.marca ?? null,
     modelo: c.modelo ?? null,
     anio: c.anio ?? null,
+  };
+}
+
+export function destinatarioFromRow(row: Record<string, unknown>): Destinatario {
+  return {
+    id: row.id as string,
+    numero: row.numero as string,
+    rfc: row.rfc as string,
+    noEquivalencia: row.no_equivalencia as string,
+    nombre: row.nombre as string,
+    estatus: row.estatus as Destinatario['estatus'],
+    esPatio: row.es_patio as boolean,
+    clienteId: (row.cliente_id as string | null) ?? undefined,
+    pais: row.pais as string,
+    estado: row.estado as string,
+    municipio: row.municipio as string,
+    cp: row.cp as string,
+    localidad: row.localidad as string,
+    colonia: row.colonia as string,
+    calle: row.calle as string,
+    numeroExterior: row.numero_exterior as string,
+    numeroInterior: row.numero_interior as string,
+    telefono: row.telefono as string,
+    contacto: row.contacto as string,
+    correo: row.correo as string,
+  };
+}
+export function destinatarioToRow(d: Destinatario) {
+  return {
+    id: d.id,
+    numero: d.numero || null,
+    rfc: d.rfc,
+    no_equivalencia: d.noEquivalencia,
+    nombre: d.nombre,
+    estatus: d.estatus,
+    es_patio: d.esPatio,
+    cliente_id: d.clienteId ?? null,
+    pais: d.pais,
+    estado: d.estado,
+    municipio: d.municipio,
+    cp: d.cp,
+    localidad: d.localidad,
+    colonia: d.colonia,
+    calle: d.calle,
+    numero_exterior: d.numeroExterior,
+    numero_interior: d.numeroInterior,
+    telefono: d.telefono,
+    contacto: d.contacto,
+    correo: d.correo,
   };
 }
 
