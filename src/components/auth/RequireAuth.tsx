@@ -1,8 +1,9 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext';
 
 export function RequireAuth() {
   const { estado, logout } = useAuth();
+  const location = useLocation();
 
   if (estado === 'cargando') {
     return (
@@ -29,6 +30,15 @@ export function RequireAuth() {
         </button>
       </div>
     );
+  }
+
+  // Un super admin no pertenece a ninguna empresa; su unica vista es el
+  // panel de Superadmin, nunca el ERP normal de una empresa.
+  if (estado === 'super-admin' && !location.pathname.startsWith('/superadmin')) {
+    return <Navigate to="/superadmin" replace />;
+  }
+  if (estado === 'autenticado' && location.pathname.startsWith('/superadmin')) {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

@@ -1,6 +1,5 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useSupabaseCollection } from './supabaseCollection';
-import { useSupabaseSingleton } from './supabaseSingleton';
 import {
   cajaFromRow,
   cajaToRow,
@@ -65,7 +64,9 @@ interface DataContextValue {
   facturas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Factura>>;
   facturasSistema: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FacturaSistema>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
-  empresa: ReturnType<typeof useSupabaseSingleton<Record<string, unknown>, Empresa>>;
+  empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
+  /** Compatibilidad: la empresa del usuario conectado (antes era una tabla singleton "empresa"). */
+  empresa: { value: Empresa; update: (patch: Partial<Empresa>) => Promise<void> };
   usuarios: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Usuario>>;
   roles: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Rol>>;
 }
@@ -113,15 +114,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     reporteFromRow,
     reporteToRow,
   );
-  const empresa = useSupabaseSingleton<Record<string, unknown>, Empresa>(
-    'empresa',
-    'main',
-    seedEmpresa,
-    empresaFromRow,
-    empresaToRow,
-  );
+  const empresas = useSupabaseCollection<Record<string, unknown>, Empresa>('empresas', empresaFromRow, empresaToRow);
   const usuarios = useSupabaseCollection<Record<string, unknown>, Usuario>('usuarios', usuarioFromRow, usuarioToRow);
   const roles = useSupabaseCollection<Record<string, unknown>, Rol>('roles', rolFromRow, rolToRow);
+
+  // Compatibilidad hacia atras: decenas de paginas ya usan
+  // useData().empresa.value / .update() como si fuera una fila unica (asi
+  // era antes, con la tabla singleton "empresa"). Ahora "empresas" es una
+  // coleccion real con RLS, pero para un usuario normal (no super admin)
+  // siempre trae exactamente su propia empresa -- por eso items[0] alcanza.
+  const empresa = useMemo(
+    () => ({
+      value: empresas.items[0] ?? seedEmpresa,
+      update: async (patch: Partial<Empresa>) => {
+        const actual = empresas.items[0];
+        if (actual) await empresas.update(actual.id, patch);
+      },
+    }),
+    [empresas],
+  );
 
   return (
     <DataContext.Provider
@@ -138,6 +149,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         facturas,
         facturasSistema,
         reportes,
+        empresas,
         empresa,
         usuarios,
         roles,

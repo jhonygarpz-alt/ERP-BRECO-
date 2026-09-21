@@ -6,6 +6,7 @@ import type { Empresa } from '../types';
 // en la base de datos real -- supabase/schema.sql los siembra la primera
 // vez que se corre.
 export const seedEmpresa: Empresa = {
+  id: '',
   nombre: 'BRECO Transportes',
   razonSocial: 'Pendiente',
   rfc: 'Pendiente',
@@ -14,4 +15,5 @@ export const seedEmpresa: Empresa = {
   email: 'Pendiente',
   sitioWeb: '',
   logoDataUrl: '',
+  estatus: 'activa',
 };

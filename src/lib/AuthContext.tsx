@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import { useData } from './DataContext';
 import type { Modulo, PermisoModulo } from '../types';
 
-type EstadoSesion = 'cargando' | 'sin-sesion' | 'sin-perfil' | 'autenticado';
+type EstadoSesion = 'cargando' | 'sin-sesion' | 'sin-perfil' | 'autenticado' | 'super-admin';
 
 interface AuthContextValue {
   estado: EstadoSesion;
@@ -43,6 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     estado = 'sin-sesion';
   } else if (!usuarioActual) {
     estado = 'sin-perfil';
+  } else if (usuarioActual.esSuperAdmin) {
+    estado = 'super-admin';
   } else {
     estado = 'autenticado';
   }

@@ -3,11 +3,13 @@ import { DataProvider } from './lib/DataContext';
 import { AuthProvider } from './lib/AuthContext';
 import { ThemeProvider } from './lib/ThemeContext';
 import { AppLayout } from './components/layout/AppLayout';
+import { SuperAdminLayout } from './components/layout/SuperAdminLayout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { RequirePermission } from './components/auth/RequirePermission';
 import { LoginPage } from './pages/LoginPage';
 import { RestablecerPasswordPage } from './pages/RestablecerPasswordPage';
 import { Dashboard } from './pages/Dashboard';
+import { EmpresasSection } from './pages/superadmin/EmpresasSection';
 import { ClientesPage } from './pages/catalogos/ClientesPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { CajasPage } from './pages/catalogos/CajasPage';
@@ -32,6 +34,10 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/restablecer-password" element={<RestablecerPasswordPage />} />
             <Route element={<RequireAuth />}>
+              <Route element={<SuperAdminLayout />}>
+                <Route path="/superadmin" element={<EmpresasSection />} />
+              </Route>
+
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
 

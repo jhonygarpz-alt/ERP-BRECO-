@@ -325,10 +325,12 @@ export function rolFromRow(row: Record<string, unknown>): Rol {
     nombre: row.nombre as string,
     descripcion: row.descripcion as string,
     permisos: row.permisos as Rol['permisos'],
+    empresaId: (row.empresa_id as string | null) ?? undefined,
   };
 }
 export function rolToRow(r: Rol) {
-  return { ...r };
+  const { empresaId, ...resto } = r;
+  return { ...resto, ...(empresaId ? { empresa_id: empresaId } : {}) };
 }
 
 export function usuarioFromRow(row: Record<string, unknown>): Usuario {
@@ -339,6 +341,8 @@ export function usuarioFromRow(row: Record<string, unknown>): Usuario {
     telefono: row.telefono as string,
     rolId: (row.rol_id as string | null) ?? '',
     estatus: row.estatus as Usuario['estatus'],
+    empresaId: (row.empresa_id as string | null) ?? undefined,
+    esSuperAdmin: (row.es_super_admin as boolean | null) ?? false,
   };
 }
 export function usuarioToRow(u: Usuario) {
@@ -349,11 +353,14 @@ export function usuarioToRow(u: Usuario) {
     telefono: u.telefono,
     rol_id: u.rolId || null,
     estatus: u.estatus,
+    ...(u.empresaId ? { empresa_id: u.empresaId } : {}),
+    ...(u.esSuperAdmin ? { es_super_admin: u.esSuperAdmin } : {}),
   };
 }
 
 export function empresaFromRow(row: Record<string, unknown>): Empresa {
   return {
+    id: row.id as string,
     nombre: row.nombre as string,
     razonSocial: row.razon_social as string,
     rfc: row.rfc as string,
@@ -362,10 +369,12 @@ export function empresaFromRow(row: Record<string, unknown>): Empresa {
     email: row.email as string,
     sitioWeb: row.sitio_web as string,
     logoDataUrl: row.logo_data_url as string,
+    estatus: (row.estatus as Empresa['estatus']) ?? 'activa',
   };
 }
 export function empresaToRow(e: Empresa) {
   return {
+    id: e.id,
     nombre: e.nombre,
     razon_social: e.razonSocial,
     rfc: e.rfc,
@@ -374,6 +383,7 @@ export function empresaToRow(e: Empresa) {
     email: e.email,
     sitio_web: e.sitioWeb,
     logo_data_url: e.logoDataUrl,
+    estatus: e.estatus,
   };
 }
 

@@ -19,7 +19,7 @@ export function LoginPage() {
   const [recuperando, setRecuperando] = useState(false);
   const [mensajeRecuperar, setMensajeRecuperar] = useState('');
 
-  if (estado === 'autenticado' || estado === 'sin-perfil') return <Navigate to="/" replace />;
+  if (estado === 'autenticado' || estado === 'sin-perfil' || estado === 'super-admin') return <Navigate to="/" replace />;
 
   async function handleOlvidoPassword() {
     if (!email.trim()) {

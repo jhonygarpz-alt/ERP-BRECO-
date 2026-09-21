@@ -171,6 +171,7 @@ export interface FacturaSistema {
 }
 
 export interface Empresa {
+  id: string;
   nombre: string;
   razonSocial: string;
   rfc: string;
@@ -179,6 +180,7 @@ export interface Empresa {
   email: string;
   sitioWeb: string;
   logoDataUrl: string;
+  estatus: 'activa' | 'inactiva';
 }
 
 export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'EntregaTurno' | 'Reportes' | 'Configuracion';
@@ -203,6 +205,8 @@ export interface Rol {
   nombre: string;
   descripcion: string;
   permisos: Record<Modulo, PermisoModulo>;
+  /** Solo se manda explicito cuando el super admin siembra los roles de una empresa nueva. */
+  empresaId?: string;
 }
 
 export interface Usuario {
@@ -212,4 +216,6 @@ export interface Usuario {
   telefono: string;
   rolId: string;
   estatus: Estatus;
+  empresaId?: string;
+  esSuperAdmin?: boolean;
 }
