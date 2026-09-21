@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
+import { LogIn, Truck } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
-import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabaseClient';
 import { mensajeDeError } from '../lib/errors';
 import { Field, Input, PrimaryButton } from '../components/ui/form';
 import { BrandName } from '../components/ui/BrandName';
 
+interface EmpresaLoginBranding {
+  nombre: string;
+  logoDataUrl: string;
+}
+
 export function LoginPage() {
   const { estado, login } = useAuth();
-  const { empresa } = useData();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +21,30 @@ export function LoginPage() {
   const [enviando, setEnviando] = useState(false);
   const [recuperando, setRecuperando] = useState(false);
   const [mensajeRecuperar, setMensajeRecuperar] = useState('');
+  const [empresaLogin, setEmpresaLogin] = useState<EmpresaLoginBranding | null>(null);
+
+  // Antes de iniciar sesion no hay forma de saber (via RLS normal) a que
+  // empresa pertenece este usuario, asi que se consulta con una funcion
+  // publica minima (solo regresa nombre + logo) mientras escribe su email,
+  // para personalizar el logo/nombre en esta pantalla por empresa.
+  useEffect(() => {
+    const correo = email.trim();
+    if (!correo.includes('@')) {
+      setEmpresaLogin(null);
+      return;
+    }
+    let cancelado = false;
+    const timeout = setTimeout(async () => {
+      const { data } = await supabase.rpc('empresa_por_email', { p_email: correo });
+      if (cancelado) return;
+      const fila = Array.isArray(data) ? data[0] : null;
+      setEmpresaLogin(fila ? { nombre: fila.nombre, logoDataUrl: fila.logo_data_url ?? '' } : null);
+    }, 400);
+    return () => {
+      cancelado = true;
+      clearTimeout(timeout);
+    };
+  }, [email]);
 
   if (estado === 'autenticado' || estado === 'sin-perfil' || estado === 'super-admin') return <Navigate to="/" replace />;
 
@@ -50,18 +77,18 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-bg-950 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">
-          {empresa.value.logoDataUrl ? (
+          {empresaLogin?.logoDataUrl ? (
             <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-bg-800">
-              <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
+              <img src={empresaLogin.logoDataUrl} alt={empresaLogin.nombre} className="h-full w-full object-contain" />
             </div>
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-breco-500 text-2xl font-black italic text-white shadow-lg shadow-breco-glow">
-              B
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-breco-500 text-white shadow-lg shadow-breco-glow">
+              <Truck size={26} />
             </div>
           )}
           <div className="text-center">
             <div className="text-lg tracking-wide text-ink-100">
-              <BrandName nombre={empresa.value.nombre} />
+              {empresaLogin ? <BrandName nombre={empresaLogin.nombre} /> : 'Sistema de Trafico'}
             </div>
             <div className="text-xs font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
           </div>
@@ -117,7 +144,7 @@ export function LoginPage() {
         </form>
 
         <p className="mt-4 text-center text-xs text-ink-600">
-          Acceso interno de BRECO Transportes. Contacta a un administrador si no tienes cuenta.
+          {empresaLogin ? `Acceso interno de ${empresaLogin.nombre}.` : 'Acceso interno.'} Contacta a un administrador si no tienes cuenta.
         </p>
       </div>
     </div>
