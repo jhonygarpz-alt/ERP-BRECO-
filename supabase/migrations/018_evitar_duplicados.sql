@@ -6,6 +6,13 @@
 -- registros que todavia no capturan ese dato opcional.
 -- ============================================================================
 
+-- Limpia placeholders capturados como si fueran datos reales (ej.
+-- "PENDIENTE"), que de otra forma chocarian entre si al crear los indices
+-- de abajo -- no es informacion real, asi que se deja en blanco.
+update public.operadores set licencia = '' where upper(trim(licencia)) = 'PENDIENTE';
+update public.operadores set rfc = '' where upper(trim(rfc)) = 'PENDIENTE';
+update public.clientes set rfc = '' where upper(trim(rfc)) = 'PENDIENTE';
+
 -- Operadores: numero siempre unico por empresa (ya sea autoasignado o
 -- editado a mano); RFC y numero de licencia unicos por empresa cuando
 -- tienen valor -- son los datos obligatorios que identifican a un
