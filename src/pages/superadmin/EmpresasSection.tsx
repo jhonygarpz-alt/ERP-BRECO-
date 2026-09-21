@@ -136,7 +136,7 @@ export function EmpresasSection() {
     { header: 'Empresa', render: (e) => <span className="font-medium text-ink-100">{e.nombre}</span> },
     { header: 'RFC', render: (e) => e.rfc || 'N/D' },
     { header: 'Email', render: (e) => e.email || 'N/D' },
-    { header: 'Estatus', render: (e) => <StatusBadge status={e.estatus} /> },
+    { header: 'Estatus', render: (e) => <StatusBadge status={e.estatus} tone={e.estatus === 'activa' ? 'green' : 'red'} /> },
   ];
 
   return (
