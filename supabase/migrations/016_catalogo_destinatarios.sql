@@ -6,14 +6,14 @@
 -- ============================================================================
 
 create table if not exists public.destinatarios (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   numero text not null default '',
   rfc text not null default '',
   no_equivalencia text not null default '',
   nombre text not null default '',
   estatus text not null default 'activo' check (estatus in ('activo', 'inactivo')),
   es_patio boolean not null default false,
-  cliente_id uuid references public.clientes (id) on delete set null,
+  cliente_id text references public.clientes (id) on delete set null,
   pais text not null default 'Mexico',
   estado text not null default '',
   municipio text not null default '',
