@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabaseClient';
 import { mensajeDeError } from '../../lib/errors';
 import { unidadToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
-import type { EstatusUnidad, TipoUnidad, Unidad, UnidadArchivo, UnidadDocumentoVencimiento } from '../../types';
+import { CONFIG_AUTOTRANSPORTE_SAT } from '../../lib/catalogosSat';
+import type { EstatusUnidad, Unidad, UnidadArchivo, UnidadDocumentoVencimiento } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
@@ -15,12 +16,6 @@ import { StatusBadge } from '../../components/ui/Badge';
 
 const BUCKET = 'unidad-documentos';
 
-const tipos: { value: TipoUnidad; label: string }[] = [
-  { value: 'Tractocamion', label: 'Vehiculo Articulado - Tractocamion' },
-  { value: 'Rabon', label: 'Vehiculo Unitario - Rabon' },
-  { value: 'Torton', label: 'Vehiculo Unitario - Torton' },
-  { value: 'Camioneta', label: 'Vehiculo Unitario - Camioneta' },
-];
 const estatuses: EstatusUnidad[] = ['Disponible', 'En viaje', 'Taller', 'Fuera de servicio'];
 const TIPOS_TRANSMISION = ['Manual', 'Automatica'];
 const TIPOS_COMBUSTIBLE = ['Diesel', 'Gasolina', 'Gas Natural', 'Electrico'];
@@ -30,7 +25,7 @@ const emptyDocVencimiento: UnidadDocumentoVencimiento = { numeroDocumento: '', d
 const emptyForm: Omit<Unidad, 'id'> = {
   economico: '',
   placas: '',
-  tipo: 'Tractocamion',
+  tipo: '',
   marca: '',
   modelo: '',
   anio: new Date().getFullYear(),
@@ -321,9 +316,10 @@ export function UnidadesPage() {
                     />
                   </Field>
                   <Field label="Tipo de unidad">
-                    <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as TipoUnidad })}>
-                      {tipos.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                    <Select required value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
+                      <option value="">Selecciona...</option>
+                      {CONFIG_AUTOTRANSPORTE_SAT.map((t) => (
+                        <option key={t.clave} value={t.clave}>{t.clave} - {t.descripcion}</option>
                       ))}
                     </Select>
                   </Field>

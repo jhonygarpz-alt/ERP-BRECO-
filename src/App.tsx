@@ -14,7 +14,7 @@ import { CatalogosHubPage } from './pages/catalogos/CatalogosHubPage';
 import { ClientesPage } from './pages/catalogos/ClientesPage';
 import { DestinatariosPage } from './pages/catalogos/DestinatariosPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
-import { CajasPage } from './pages/catalogos/CajasPage';
+import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { FacturacionPage } from './pages/FacturacionPage';
@@ -48,7 +48,7 @@ function App() {
                   <Route path="/catalogos/clientes" element={<ClientesPage />} />
                   <Route path="/catalogos/destinatarios" element={<DestinatariosPage />} />
                   <Route path="/catalogos/unidades" element={<UnidadesPage />} />
-                  <Route path="/catalogos/cajas" element={<CajasPage />} />
+                  <Route path="/catalogos/remolques" element={<RemolquesPage />} />
                   <Route path="/catalogos/operadores" element={<OperadoresPage />} />
                 </Route>
 

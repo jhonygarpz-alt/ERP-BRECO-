@@ -84,7 +84,6 @@ export interface Destinatario {
   correo: string;
 }
 
-export type TipoUnidad = 'Tractocamion' | 'Rabon' | 'Torton' | 'Camioneta';
 export type EstatusUnidad = 'Disponible' | 'En viaje' | 'Taller' | 'Fuera de servicio';
 
 /** Un renglon de la tabla "Documentos de la unidad" (solo metadatos, sin archivo adjunto). */
@@ -107,7 +106,8 @@ export interface Unidad {
   id: string;
   economico: string;
   placas: string;
-  tipo: TipoUnidad;
+  /** Clave del catalogo SAT c_ConfigAutotransporte (Carta Porte). */
+  tipo: string;
   marca: string;
   modelo: string;
   anio: number;
@@ -153,19 +153,63 @@ export interface Unidad {
   vigenciaHasta: string;
 }
 
-export type TipoCaja = 'Seca' | 'Refrigerada' | 'Plataforma' | 'Contenedor';
 export type EstatusCaja = 'Disponible' | 'En uso' | 'Mantenimiento';
 
+/** Un renglon de la tabla "Documentos del remolque" (solo metadatos, sin archivo adjunto). */
+export interface CajaDocumentoVencimiento {
+  numeroDocumento: string;
+  documento: string;
+  fechaVencimiento: string;
+}
+
+/** Un archivo cargado en "Archivos adicionales" del remolque (guardado en Supabase Storage). */
+export interface CajaArchivo {
+  id: string;
+  descripcion: string;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn: string;
+}
+
+/** Catalogo "Remolques" (antes "Cajas"): remolques y semirremolques de la flota. */
 export interface Caja {
   id: string;
   economico: string;
   placas: string;
-  tipo: TipoCaja;
+  /** Clave del catalogo SAT c_SubTipoRem (Carta Porte). */
+  tipo: string;
   capacidad: string;
   estatus: EstatusCaja;
   marca?: string;
   modelo?: string;
   anio?: number;
+  // Informacion general
+  activa: boolean;
+  rentada: boolean;
+  esPermisionario: boolean;
+  descripcion: string;
+  sucursal: string;
+  identidadSatelital: string;
+  identificadorConvoy: string;
+  numeroSerie: string;
+  color: string;
+  grupoUnidades: string;
+  fotoDataUrl: string;
+  // Especificaciones del remolque
+  largoMetros: number;
+  anchoMetros: number;
+  altoMetros: number;
+  capacidadKg: number;
+  numeroEjes: number;
+  pesoTaraTon: number;
+  // Documentos / Archivos adicionales
+  documentosVencimiento: CajaDocumentoVencimiento[];
+  archivosAdicionales: CajaArchivo[];
+  // Seguros
+  aseguradora: string;
+  noPoliza: string;
+  vigenciaDesde: string;
+  vigenciaHasta: string;
 }
 
 export type EstatusOperador = 'Disponible' | 'En viaje' | 'Descanso' | 'Baja';

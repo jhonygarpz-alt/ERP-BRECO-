@@ -29,7 +29,7 @@ const catalogos: CatalogoTile[] = [
   { to: '/catalogos/destinatarios', label: 'Destinatarios', icon: Building2, gradient: ['#60a5fa', '#1d4ed8'] },
   { to: '/catalogos/operadores', label: 'Operadores', icon: IdCard, gradient: ['#c084fc', '#7e22ce'] },
   { to: '/catalogos/unidades', label: 'Unidades', icon: Truck, gradient: ['#fb7185', '#dc2626'] },
-  { to: '/catalogos/cajas', label: 'Cajas', icon: PackageSearch, gradient: ['#fbbf24', '#d97706'] },
+  { to: '/catalogos/remolques', label: 'Remolques', icon: PackageSearch, gradient: ['#fbbf24', '#d97706'] },
   { label: 'Proveedores', icon: Wrench, gradient: ['#fb923c', '#c2410c'] },
   { label: 'Constancia de Situacion Fiscal', icon: FileCheck2, gradient: ['#94a3b8', '#334155'] },
   { label: 'Cuentas Bancarias', icon: Landmark, gradient: ['#4ade80', '#15803d'] },
