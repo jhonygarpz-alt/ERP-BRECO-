@@ -16,4 +16,5 @@ export const seedEmpresa: Empresa = {
   sitioWeb: '',
   logoDataUrl: '',
   estatus: 'activa',
+  csfStoragePath: '',
 };

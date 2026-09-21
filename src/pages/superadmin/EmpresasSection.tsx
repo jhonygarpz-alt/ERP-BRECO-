@@ -104,6 +104,7 @@ export function EmpresasSection() {
         sitioWeb: '',
         logoDataUrl: '',
         estatus: 'activa',
+        csfStoragePath: '',
       };
       await empresas.add(nuevaEmpresa);
 

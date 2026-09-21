@@ -678,6 +678,8 @@ export function empresaFromRow(row: Record<string, unknown>): Empresa {
     sitioWeb: row.sitio_web as string,
     logoDataUrl: row.logo_data_url as string,
     estatus: (row.estatus as Empresa['estatus']) ?? 'activa',
+    csfStoragePath: (row.csf_storage_path as string | null) ?? '',
+    csfImportadaEn: (row.csf_importada_en as string | null) ?? undefined,
   };
 }
 export function empresaToRow(e: Empresa) {
@@ -692,6 +694,8 @@ export function empresaToRow(e: Empresa) {
     sitio_web: e.sitioWeb,
     logo_data_url: e.logoDataUrl,
     estatus: e.estatus,
+    csf_storage_path: e.csfStoragePath,
+    csf_importada_en: e.csfImportadaEn ?? null,
   };
 }
 

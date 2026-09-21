@@ -415,6 +415,9 @@ export interface Empresa {
   sitioWeb: string;
   logoDataUrl: string;
   estatus: 'activa' | 'inactiva';
+  /** Ruta en Supabase Storage (bucket "empresa-documentos") del ultimo PDF de Constancia de Situacion Fiscal importado. */
+  csfStoragePath: string;
+  csfImportadaEn?: string;
 }
 
 export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'EntregaTurno' | 'Reportes' | 'Configuracion';
