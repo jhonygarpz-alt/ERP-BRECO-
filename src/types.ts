@@ -535,3 +535,10 @@ export interface CuentaBancaria {
   banco: string;
   moneda: 'MXN' | 'USD';
 }
+
+export interface ClasificacionViaje {
+  id: string;
+  codigo: string;
+  clasificacion: string;
+  activo: boolean;
+}

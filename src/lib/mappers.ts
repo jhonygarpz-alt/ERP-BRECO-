@@ -1,5 +1,6 @@
 import type {
   Caja,
+  ClasificacionViaje,
   Cliente,
   CuentaBancaria,
   Destinatario,
@@ -750,6 +751,18 @@ export function cuentaBancariaToRow(c: CuentaBancaria) {
     banco: c.banco,
     moneda: c.moneda,
   };
+}
+
+export function clasificacionViajeFromRow(row: Record<string, unknown>): ClasificacionViaje {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    clasificacion: row.clasificacion as string,
+    activo: row.activo as boolean,
+  };
+}
+export function clasificacionViajeToRow(c: ClasificacionViaje) {
+  return { id: c.id, codigo: c.codigo || null, clasificacion: c.clasificacion, activo: c.activo };
 }
 
 export function viajeUbicacionFromRow(row: Record<string, unknown>): ViajeUbicacion {
