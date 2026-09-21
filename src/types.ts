@@ -453,3 +453,57 @@ export interface Usuario {
   empresaId?: string;
   esSuperAdmin?: boolean;
 }
+
+export type TipoProveedor = 'Nacional' | 'Extranjero';
+
+/** Un archivo cargado en la pestana "Documentos" del proveedor (guardado en Supabase Storage). */
+export interface ProveedorDocumento {
+  id: string;
+  descripcion: string;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn: string;
+}
+
+export interface Proveedor {
+  id: string;
+  numero: string;
+  fecha: string;
+  estatus: Estatus;
+  tipo: TipoProveedor;
+  rfc: string;
+  nombre: string;
+  nombreCorto: string;
+  esProveedorCombustible: boolean;
+  proveedorBienes: boolean;
+  proveedorServicios: boolean;
+  grupo: string;
+  tipoOperacion: string;
+  tipoTercero: string;
+  shortNameSap: string;
+  // Domicilio Fiscal
+  pais: string;
+  estado: string;
+  cp: string;
+  municipio: string;
+  colonia: string;
+  localidad: string;
+  calle: string;
+  numeroExterior: string;
+  numeroInterior: string;
+  correo: string;
+  telefonos: string;
+  celular: string;
+  nextel: string;
+  // Creditos
+  formaPago: string;
+  diasCredito: number;
+  limiteCreditoMxn: number;
+  limiteCreditoUsd: number;
+  // Cuenta Bancaria
+  banco: string;
+  cuentaClabe: string;
+  noCuenta: string;
+  // Documentos
+  documentos: ProveedorDocumento[];
+}
