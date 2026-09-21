@@ -7,16 +7,15 @@ import { mensajeDeError } from '../../lib/errors';
 import { unidadToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { CONFIG_AUTOTRANSPORTE_SAT } from '../../lib/catalogosSat';
-import type { EstatusUnidad, Unidad, UnidadArchivo, UnidadDocumentoVencimiento } from '../../types';
+import type { Unidad, UnidadArchivo, UnidadDocumentoVencimiento } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
-import { StatusBadge } from '../../components/ui/Badge';
+import { StatusBadge, type Tone } from '../../components/ui/Badge';
 
 const BUCKET = 'unidad-documentos';
 
-const estatuses: EstatusUnidad[] = ['Disponible', 'En viaje', 'Taller', 'Fuera de servicio'];
 const TIPOS_TRANSMISION = ['Manual', 'Automatica'];
 const TIPOS_COMBUSTIBLE = ['Diesel', 'Gasolina', 'Gas Natural', 'Electrico'];
 
@@ -67,7 +66,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
 };
 
 export function UnidadesPage() {
-  const { unidades, operadores, clientes, empresa } = useData();
+  const { unidades, operadores, clientes, empresa, estatusUnidades } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -85,6 +84,8 @@ export function UnidadesPage() {
   const [subiendoArch, setSubiendoArch] = useState(false);
   const [errorArch, setErrorArch] = useState('');
 
+  const estatusTono = (nombre: string) =>
+    (estatusUnidades.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
   const operadorNombre = (id?: string) => operadores.items.find((o) => o.id === id)?.nombre ?? '—';
   const clienteNombre = (id?: string) => clientes.items.find((c) => c.id === id)?.nombre ?? '—';
 
@@ -245,7 +246,7 @@ export function UnidadesPage() {
     },
     { header: 'Operador asignado', render: (u) => operadorNombre(u.operadorAsignadoId) },
     { header: 'Cliente asignado', render: (u) => clienteNombre(u.clienteAsignadoId) },
-    { header: 'Estatus', render: (u) => <StatusBadge status={u.estatus} /> },
+    { header: 'Estatus', render: (u) => <StatusBadge status={u.estatus} tone={estatusTono(u.estatus)} /> },
     {
       header: 'Activa',
       render: (u) => <StatusBadge status={u.activa ? 'Si' : 'No'} tone={u.activa ? 'green' : 'red'} />,
@@ -364,9 +365,9 @@ export function UnidadesPage() {
                     <Input value={form.grupoUnidades} onChange={(e) => setForm({ ...form, grupoUnidades: e.target.value })} />
                   </Field>
                   <Field label="Estatus operativo">
-                    <Select value={form.estatus} onChange={(e) => setForm({ ...form, estatus: e.target.value as EstatusUnidad })}>
-                      {estatuses.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                    <Select value={form.estatus} onChange={(e) => setForm({ ...form, estatus: e.target.value })}>
+                      {estatusUnidades.items.map((s) => (
+                        <option key={s.id} value={s.nombre}>{s.nombre}</option>
                       ))}
                     </Select>
                   </Field>

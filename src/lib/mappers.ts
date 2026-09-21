@@ -6,6 +6,7 @@ import type {
   Empresa,
   EntregaTurnoNota,
   EntregaTurnoUnidad,
+  EstatusUnidadCustom,
   EstatusViajeCustom,
   Factura,
   FacturaSistema,
@@ -496,6 +497,18 @@ export function estatusViajeToRow(e: EstatusViajeCustom) {
     es_descarga: e.esDescarga,
     es_termino_descarga: e.esTerminoDescarga,
   };
+}
+
+export function estatusUnidadFromRow(row: Record<string, unknown>): EstatusUnidadCustom {
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    color: (row.color as string) || 'gray',
+    tipoEstatus: row.tipo_estatus as EstatusUnidadCustom['tipoEstatus'],
+  };
+}
+export function estatusUnidadToRow(e: EstatusUnidadCustom) {
+  return { id: e.id, nombre: e.nombre, color: e.color, tipo_estatus: e.tipoEstatus };
 }
 
 export function entregaTurnoUnidadFromRow(row: Record<string, unknown>): EntregaTurnoUnidad {

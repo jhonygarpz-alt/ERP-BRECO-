@@ -17,6 +17,7 @@ import { ProveedoresPage } from './pages/catalogos/ProveedoresPage';
 import { ConstanciaFiscalPage } from './pages/catalogos/ConstanciaFiscalPage';
 import { CuentasBancariasPage } from './pages/catalogos/CuentasBancariasPage';
 import { EstatusViajePage } from './pages/catalogos/EstatusViajePage';
+import { EstatusUnidadPage } from './pages/catalogos/EstatusUnidadPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
@@ -55,6 +56,7 @@ function App() {
                   <Route path="/catalogos/constancia-fiscal" element={<ConstanciaFiscalPage />} />
                   <Route path="/catalogos/cuentas-bancarias" element={<CuentasBancariasPage />} />
                   <Route path="/catalogos/estatus-viaje" element={<EstatusViajePage />} />
+                  <Route path="/catalogos/estatus-unidad" element={<EstatusUnidadPage />} />
                   <Route path="/catalogos/unidades" element={<UnidadesPage />} />
                   <Route path="/catalogos/remolques" element={<RemolquesPage />} />
                   <Route path="/catalogos/operadores" element={<OperadoresPage />} />

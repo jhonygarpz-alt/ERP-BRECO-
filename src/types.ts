@@ -84,7 +84,18 @@ export interface Destinatario {
   correo: string;
 }
 
-export type EstatusUnidad = 'Disponible' | 'En viaje' | 'Taller' | 'Fuera de servicio';
+// El catalogo "estatus_unidad" permite agregar mas desde la app -- por eso
+// es string libre y no una union cerrada (igual que EstatusViaje).
+export type EstatusUnidad = string;
+
+export type TipoEstatusUnidad = 'Disponible' | 'Ocupada';
+
+export interface EstatusUnidadCustom {
+  id: string;
+  nombre: string;
+  color: string;
+  tipoEstatus: TipoEstatusUnidad;
+}
 
 /** Un renglon de la tabla "Documentos de la unidad" (solo metadatos, sin archivo adjunto). */
 export interface UnidadDocumentoVencimiento {
