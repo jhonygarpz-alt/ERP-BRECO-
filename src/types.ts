@@ -297,6 +297,8 @@ export interface Operador {
   noTarjeta: string;
   // Estatus operativo (Disponible/En viaje/Descanso/Baja), usado en Trafico
   estatus: EstatusOperador;
+  /** Nombre de una fila del catalogo "clasificaciones_operador" (ej. Propio, Permisionario, Torton, Full...). */
+  clasificacion: string;
 }
 
 // Los 4 valores originales siguen siendo el default, pero el catalogo
@@ -554,5 +556,12 @@ export interface TipoViaje {
   id: string;
   codigo: string;
   tipoViaje: string;
+  activo: boolean;
+}
+
+export interface ClasificacionOperador {
+  id: string;
+  codigo: string;
+  clasificacion: string;
   activo: boolean;
 }

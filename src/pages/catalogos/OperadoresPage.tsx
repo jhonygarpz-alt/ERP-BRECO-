@@ -77,6 +77,7 @@ const emptyForm: Omit<Operador, 'id'> = {
   cuentaClabe: '',
   noTarjeta: '',
   estatus: 'Disponible',
+  clasificacion: '',
 };
 
 function nombreCompleto(f: { nombres: string; apellidoPaterno: string; apellidoMaterno: string }) {
@@ -84,7 +85,7 @@ function nombreCompleto(f: { nombres: string; apellidoPaterno: string; apellidoM
 }
 
 export function OperadoresPage() {
-  const { operadores, empresa } = useData();
+  const { operadores, empresa, clasificacionesOperador } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -366,6 +367,14 @@ export function OperadoresPage() {
                   </Field>
                   <Field label="Registro Patronal">
                     <Input value={form.registroPatronal} onChange={(e) => setForm({ ...form, registroPatronal: e.target.value })} />
+                  </Field>
+                  <Field label="Clasificación">
+                    <Select value={form.clasificacion} onChange={(e) => setForm({ ...form, clasificacion: e.target.value })}>
+                      <option value="">Sin clasificar</option>
+                      {clasificacionesOperador.items.map((c) => (
+                        <option key={c.id} value={c.clasificacion}>{c.clasificacion}</option>
+                      ))}
+                    </Select>
                   </Field>
                 </div>
               </div>

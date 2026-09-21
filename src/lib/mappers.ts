@@ -1,5 +1,6 @@
 import type {
   Caja,
+  ClasificacionOperador,
   ClasificacionViaje,
   Cliente,
   CuentaBancaria,
@@ -377,6 +378,7 @@ export function operadorFromRow(row: Record<string, unknown>): Operador {
     cuentaClabe: row.cuenta_clabe as string,
     noTarjeta: row.no_tarjeta as string,
     estatus: row.estatus as Operador['estatus'],
+    clasificacion: (row.clasificacion as string | null) ?? '',
   };
 }
 export function operadorToRow(o: Operador) {
@@ -428,6 +430,7 @@ export function operadorToRow(o: Operador) {
     cuenta_clabe: o.cuentaClabe,
     no_tarjeta: o.noTarjeta,
     estatus: o.estatus,
+    clasificacion: o.clasificacion,
   };
 }
 
@@ -764,6 +767,18 @@ export function clasificacionViajeFromRow(row: Record<string, unknown>): Clasifi
   };
 }
 export function clasificacionViajeToRow(c: ClasificacionViaje) {
+  return { id: c.id, codigo: c.codigo || null, clasificacion: c.clasificacion, activo: c.activo };
+}
+
+export function clasificacionOperadorFromRow(row: Record<string, unknown>): ClasificacionOperador {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    clasificacion: row.clasificacion as string,
+    activo: row.activo as boolean,
+  };
+}
+export function clasificacionOperadorToRow(c: ClasificacionOperador) {
   return { id: c.id, codigo: c.codigo || null, clasificacion: c.clasificacion, activo: c.activo };
 }
 
