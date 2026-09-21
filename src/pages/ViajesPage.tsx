@@ -123,7 +123,15 @@ export function ViajesPage() {
         await estatusViajes.update(existente.id, { color: nuevoEstatusColor });
       }
     } else {
-      await estatusViajes.add({ id: uid('est'), nombre, color: nuevoEstatusColor });
+      await estatusViajes.add({
+        id: uid('est'),
+        nombre,
+        color: nuevoEstatusColor,
+        activo: true,
+        esCarga: false,
+        esDescarga: false,
+        esTerminoDescarga: false,
+      });
     }
     setForm({ ...form, estatus: nombre });
     setNuevoEstatusOpen(false);

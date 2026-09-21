@@ -476,10 +476,26 @@ export function viajeToRow(v: Viaje) {
 }
 
 export function estatusViajeFromRow(row: Record<string, unknown>): EstatusViajeCustom {
-  return { id: row.id as string, nombre: row.nombre as string, color: (row.color as string) || 'gray' };
+  return {
+    id: row.id as string,
+    nombre: row.nombre as string,
+    color: (row.color as string) || 'gray',
+    activo: (row.activo as boolean | null) ?? true,
+    esCarga: (row.es_carga as boolean | null) ?? false,
+    esDescarga: (row.es_descarga as boolean | null) ?? false,
+    esTerminoDescarga: (row.es_termino_descarga as boolean | null) ?? false,
+  };
 }
 export function estatusViajeToRow(e: EstatusViajeCustom) {
-  return { id: e.id, nombre: e.nombre, color: e.color };
+  return {
+    id: e.id,
+    nombre: e.nombre,
+    color: e.color,
+    activo: e.activo,
+    es_carga: e.esCarga,
+    es_descarga: e.esDescarga,
+    es_termino_descarga: e.esTerminoDescarga,
+  };
 }
 
 export function entregaTurnoUnidadFromRow(row: Record<string, unknown>): EntregaTurnoUnidad {

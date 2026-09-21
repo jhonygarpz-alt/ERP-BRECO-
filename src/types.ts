@@ -297,6 +297,10 @@ export interface EstatusViajeCustom {
   id: string;
   nombre: string;
   color: string;
+  activo: boolean;
+  esCarga: boolean;
+  esDescarga: boolean;
+  esTerminoDescarga: boolean;
 }
 
 export type SemaforoEntrega = 'verde' | 'amarillo' | 'rojo';
