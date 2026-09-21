@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Download, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import { Download, Pencil, Plus, Trash2, Upload, UserRound } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -142,6 +142,14 @@ export function OperadoresPage() {
     if (confirm(`Eliminar al operador "${o.nombre}"?`)) operadores.remove(o.id);
   }
 
+  function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setForm((f) => ({ ...f, fotoDataUrl: reader.result as string }));
+    reader.readAsDataURL(file);
+  }
+
   async function handleUploadDocumento(file: File) {
     if (!editing) return;
     setSubiendoDoc(true);
@@ -238,72 +246,101 @@ export function OperadoresPage() {
       {modalOpen && (
         <Modal title={editing ? 'Editando Operador' : 'Agregando Operador'} onClose={() => setModalOpen(false)} wide="xl">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <section>
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Información general del operador</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Field label="Número">
-                  <Input value={editing ? form.numero : ''} disabled placeholder="Automatico" />
-                </Field>
-                <div className="flex flex-wrap items-center gap-5 sm:col-span-2 sm:self-end sm:pb-2">
-                  <label className="flex items-center gap-2 text-sm text-ink-300">
-                    <input type="checkbox" checked={form.activo} onChange={(e) => setForm({ ...form, activo: e.target.checked })} />
-                    Operador Activo
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-ink-300">
-                    <input
-                      type="checkbox"
-                      checked={form.esPermisionario}
-                      onChange={(e) => setForm({ ...form, esPermisionario: e.target.checked })}
-                    />
-                    Es un permisionario
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-ink-300">
-                    <input
-                      type="checkbox"
-                      checked={form.esExtranjero}
-                      onChange={(e) => setForm({ ...form, esExtranjero: e.target.checked })}
-                    />
-                    Operador Extranjero
-                  </label>
-                </div>
-                <Field label="Nombre(s)">
-                  <Input required value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} />
-                </Field>
-                <Field label="Apellido Paterno">
-                  <Input required value={form.apellidoPaterno} onChange={(e) => setForm({ ...form, apellidoPaterno: e.target.value })} />
-                </Field>
-                <Field label="Apellido Materno">
-                  <Input value={form.apellidoMaterno} onChange={(e) => setForm({ ...form, apellidoMaterno: e.target.value })} />
-                </Field>
-                <Field label="RFC">
-                  <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
-                </Field>
-                <Field label="CURP">
-                  <Input value={form.curp} onChange={(e) => setForm({ ...form, curp: e.target.value.toUpperCase() })} />
-                </Field>
-                <Field label="Fecha de contratación">
-                  <Input type="date" value={form.fechaContratacion} onChange={(e) => setForm({ ...form, fechaContratacion: e.target.value })} />
-                </Field>
-                <Field label="Sucursal">
-                  <Input required value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })} />
-                </Field>
-                <Field label="Teléfono">
-                  <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
-                </Field>
-                <Field label="Celular">
-                  <Input value={form.celular} onChange={(e) => setForm({ ...form, celular: e.target.value })} />
-                </Field>
-                <Field label="Hash GMTGPS">
-                  <Input value={form.hashGmtgps} onChange={(e) => setForm({ ...form, hashGmtgps: e.target.value })} />
-                </Field>
-                <Field label="Registro Patronal">
-                  <Input value={form.registroPatronal} onChange={(e) => setForm({ ...form, registroPatronal: e.target.value })} />
-                </Field>
-                <div className="sm:col-span-3">
-                  <Field label="Observaciones">
-                    <Textarea rows={2} value={form.observaciones} onChange={(e) => setForm({ ...form, observaciones: e.target.value })} />
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Información general del operador</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <Field label="Número">
+                    <Input value={editing ? form.numero : ''} disabled placeholder="Automatico" />
+                  </Field>
+                  <div className="flex flex-wrap items-center gap-5 sm:col-span-2 sm:self-end sm:pb-2">
+                    <label className="flex items-center gap-2 text-sm text-ink-300">
+                      <input type="checkbox" checked={form.activo} onChange={(e) => setForm({ ...form, activo: e.target.checked })} />
+                      Operador Activo
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-ink-300">
+                      <input
+                        type="checkbox"
+                        checked={form.esPermisionario}
+                        onChange={(e) => setForm({ ...form, esPermisionario: e.target.checked })}
+                      />
+                      Es un permisionario
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-ink-300">
+                      <input
+                        type="checkbox"
+                        checked={form.esExtranjero}
+                        onChange={(e) => setForm({ ...form, esExtranjero: e.target.checked })}
+                      />
+                      Operador Extranjero
+                    </label>
+                  </div>
+                  <Field label="Nombre(s)">
+                    <Input required value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} />
+                  </Field>
+                  <Field label="Apellido Paterno">
+                    <Input required value={form.apellidoPaterno} onChange={(e) => setForm({ ...form, apellidoPaterno: e.target.value })} />
+                  </Field>
+                  <Field label="Apellido Materno">
+                    <Input value={form.apellidoMaterno} onChange={(e) => setForm({ ...form, apellidoMaterno: e.target.value })} />
+                  </Field>
+                  <Field label="RFC">
+                    <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
+                  </Field>
+                  <Field label="CURP">
+                    <Input value={form.curp} onChange={(e) => setForm({ ...form, curp: e.target.value.toUpperCase() })} />
+                  </Field>
+                  <Field label="Fecha de contratación">
+                    <Input type="date" value={form.fechaContratacion} onChange={(e) => setForm({ ...form, fechaContratacion: e.target.value })} />
+                  </Field>
+                  <Field label="Sucursal">
+                    <Input required value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })} />
+                  </Field>
+                  <Field label="Teléfono">
+                    <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
+                  </Field>
+                  <Field label="Celular">
+                    <Input value={form.celular} onChange={(e) => setForm({ ...form, celular: e.target.value })} />
+                  </Field>
+                  <Field label="Hash GMTGPS">
+                    <Input value={form.hashGmtgps} onChange={(e) => setForm({ ...form, hashGmtgps: e.target.value })} />
+                  </Field>
+                  <Field label="Registro Patronal">
+                    <Input value={form.registroPatronal} onChange={(e) => setForm({ ...form, registroPatronal: e.target.value })} />
                   </Field>
                 </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Foto del operador</h3>
+                  <div className="flex flex-col items-center gap-3 rounded-xl border border-line-800 bg-bg-900 p-4">
+                    <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-line-700 bg-bg-800">
+                      {form.fotoDataUrl ? (
+                        <img src={form.fotoDataUrl} alt={form.nombre || 'Operador'} className="h-full w-full object-cover" />
+                      ) : (
+                        <UserRound size={44} className="text-ink-600" />
+                      )}
+                    </div>
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line-700 bg-bg-800 px-3 py-2 text-xs font-medium text-ink-300 hover:border-line-600 hover:text-ink-100">
+                      <Upload size={14} />
+                      Seleccionar archivo
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
+                    </label>
+                    {form.fotoDataUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, fotoDataUrl: '' })}
+                        className="text-xs font-medium text-breco-500 hover:underline"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <Field label="Observaciones">
+                  <Textarea rows={5} value={form.observaciones} onChange={(e) => setForm({ ...form, observaciones: e.target.value })} />
+                </Field>
               </div>
             </section>
 
