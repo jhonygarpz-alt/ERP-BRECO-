@@ -79,7 +79,18 @@ export function ClientesPage() {
   const [form, setForm] = useState(emptyForm);
   const [contactoForm, setContactoForm] = useState<ClienteContacto | null>(null);
   const [contactoEditIndex, setContactoEditIndex] = useState<number | null>(null);
+  const [error, setError] = useState('');
   const coloniasSugeridas = useColoniasPorCP(form.cp);
+
+  /** Numero de cliente y RFC (los datos obligatorios que identifican al cliente) no se pueden repetir dentro de la misma empresa. */
+  function buscarDuplicado(): string | null {
+    const numero = form.numeroCliente.trim();
+    const rfc = form.rfc.trim().toUpperCase();
+    const otros = clientes.items.filter((c) => c.id !== editing?.id);
+    if (numero && otros.some((c) => c.numeroCliente === numero)) return `Ya existe un cliente con el numero ${numero}.`;
+    if (rfc && otros.some((c) => c.rfc.trim().toUpperCase() === rfc)) return `Ya existe un cliente con el RFC ${rfc}.`;
+    return null;
+  }
 
   useEffect(() => {
     if (coloniasSugeridas.length > 0) {
@@ -112,12 +123,14 @@ export function ClientesPage() {
   function openNew() {
     setEditing(null);
     setForm(emptyForm);
+    setError('');
     setModalOpen(true);
   }
 
   function openEdit(c: Cliente) {
     setEditing(c);
     setForm(c);
+    setError('');
     setModalOpen(true);
   }
 
@@ -129,6 +142,12 @@ export function ClientesPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const duplicado = buscarDuplicado();
+    if (duplicado) {
+      setError(duplicado);
+      return;
+    }
+    setError('');
     if (editing) {
       clientes.update(editing.id, form);
     } else {
@@ -199,7 +218,11 @@ export function ClientesPage() {
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Datos Generales</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Field label="Numero Cliente">
-                  <Input value={editing ? form.numeroCliente : ''} disabled placeholder="Automatico" />
+                  <Input
+                    value={form.numeroCliente}
+                    placeholder="Dejar en blanco para autoasignar"
+                    onChange={(e) => setForm({ ...form, numeroCliente: e.target.value })}
+                  />
                 </Field>
                 <div className="sm:col-span-2">
                   <Field label="Nombre Fiscal">
@@ -533,7 +556,8 @@ export function ClientesPage() {
               </div>
             </section>
 
-            <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {error && <p className="flex-1 text-sm text-breco-500">{error}</p>}
               <GhostButton type="button" onClick={closeModal}>
                 Cancelar
               </GhostButton>

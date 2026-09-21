@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { useColoniasPorCP } from '../../lib/useColoniasPorCP';
 import { mensajeDeError } from '../../lib/errors';
+import { operadorToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import type { EstatusOperador, Operador, OperadorDocumento, OperadorVencimiento } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -93,10 +94,26 @@ export function OperadoresPage() {
   const [editing, setEditing] = useState<Operador | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [tab, setTab] = useState<'general' | 'expediente' | 'bancaria'>('general');
+  const [draftId, setDraftId] = useState('');
   const [docDescripcion, setDocDescripcion] = useState('');
   const [subiendoDoc, setSubiendoDoc] = useState(false);
   const [errorDoc, setErrorDoc] = useState('');
+  const [error, setError] = useState('');
   const coloniasSugeridas = useColoniasPorCP(form.cp);
+
+  /** Los datos obligatorios que identifican a un operador no se pueden repetir dentro de la misma empresa. */
+  function buscarDuplicado(): string | null {
+    const numero = form.numero.trim();
+    const rfc = form.rfc.trim().toUpperCase();
+    const licencia = form.licencia.trim().toUpperCase();
+    const otros = operadores.items.filter((o) => o.id !== editing?.id);
+    if (numero && otros.some((o) => o.numero === numero)) return `Ya existe un operador con el numero ${numero}.`;
+    if (rfc && otros.some((o) => o.rfc.trim().toUpperCase() === rfc)) return `Ya existe un operador con el RFC ${rfc}.`;
+    if (licencia && otros.some((o) => o.licencia.trim().toUpperCase() === licencia)) {
+      return `Ya existe un operador con el numero de licencia ${licencia}.`;
+    }
+    return null;
+  }
 
   useEffect(() => {
     if (coloniasSugeridas.length > 0) {
@@ -112,30 +129,57 @@ export function OperadoresPage() {
   function openNew() {
     setEditing(null);
     setForm(emptyForm);
+    setDraftId(uid('op'));
     setTab('general');
     setDocDescripcion('');
     setErrorDoc('');
+    setError('');
     setModalOpen(true);
   }
 
   function openEdit(o: Operador) {
     setEditing(o);
     setForm(o);
+    setDraftId(o.id);
     setTab('general');
     setDocDescripcion('');
     setErrorDoc('');
+    setError('');
     setModalOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const duplicado = buscarDuplicado();
+    if (duplicado) {
+      setError(duplicado);
+      return;
+    }
+    setError('');
     const nombre = nombreCompleto(form) || form.nombre;
     if (editing) {
       operadores.update(editing.id, { ...form, nombre });
     } else {
-      operadores.add({ id: uid('op'), ...form, nombre });
+      operadores.add({ id: draftId, ...form, nombre });
     }
     setModalOpen(false);
+  }
+
+  /**
+   * Sube el primer documento a un operador que aun no se ha guardado, lo
+   * crea de una vez en la base de datos (con lo capturado hasta ese
+   * momento) para poder asociarle el archivo -- asi el expediente no
+   * depende de guardar el formulario completo primero.
+   */
+  async function crearOperadorComoDraft(): Promise<Operador> {
+    const nombre = nombreCompleto(form) || form.nombre;
+    const nuevo: Operador = { ...form, id: draftId, nombre };
+    const { error } = await supabase.from('operadores').insert(operadorToRow(nuevo) as never);
+    if (error) throw error;
+    setEditing(nuevo);
+    setForm(nuevo);
+    operadores.reload();
+    return nuevo;
   }
 
   function handleDelete(o: Operador) {
@@ -151,10 +195,19 @@ export function OperadoresPage() {
   }
 
   async function handleUploadDocumento(file: File) {
-    if (!editing) return;
     setSubiendoDoc(true);
     setErrorDoc('');
-    const path = `${empresa.value.id}/${editing.id}/${Date.now()}_${file.name}`;
+    let operador = editing;
+    if (!operador) {
+      try {
+        operador = await crearOperadorComoDraft();
+      } catch (err) {
+        setSubiendoDoc(false);
+        setErrorDoc(mensajeDeError(err));
+        return;
+      }
+    }
+    const path = `${empresa.value.id}/${operador.id}/${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from(BUCKET).upload(path, file);
     setSubiendoDoc(false);
     if (error) {
@@ -169,9 +222,10 @@ export function OperadoresPage() {
       subidoEn: new Date().toISOString(),
     };
     const nuevos = [...form.documentos, nuevoDoc];
-    setForm({ ...form, documentos: nuevos });
+    setForm((f) => ({ ...f, documentos: nuevos }));
     setDocDescripcion('');
-    await operadores.update(editing.id, { documentos: nuevos });
+    await supabase.from('operadores').update({ documentos: nuevos } as never).eq('id', operador.id);
+    operadores.reload();
   }
 
   async function handleVerDocumento(doc: OperadorDocumento) {
@@ -189,7 +243,8 @@ export function OperadoresPage() {
     await supabase.storage.from(BUCKET).remove([doc.storagePath]);
     const nuevos = form.documentos.filter((d) => d.id !== doc.id);
     setForm({ ...form, documentos: nuevos });
-    await operadores.update(editing.id, { documentos: nuevos });
+    await supabase.from('operadores').update({ documentos: nuevos } as never).eq('id', editing.id);
+    operadores.reload();
   }
 
   const [vencForm, setVencForm] = useState<OperadorVencimiento | null>(null);
@@ -251,7 +306,11 @@ export function OperadoresPage() {
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Información general del operador</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <Field label="Número">
-                    <Input value={editing ? form.numero : ''} disabled placeholder="Automatico" />
+                    <Input
+                      value={form.numero}
+                      placeholder="Dejar en blanco para autoasignar"
+                      onChange={(e) => setForm({ ...form, numero: e.target.value })}
+                    />
                   </Field>
                   <div className="flex flex-wrap items-center gap-5 sm:col-span-2 sm:self-end sm:pb-2">
                     <label className="flex items-center gap-2 text-sm text-ink-300">
@@ -487,30 +546,27 @@ export function OperadoresPage() {
                 <div className="space-y-6">
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Fotos / Documentos</h4>
-                    {!editing && (
-                      <p className="mb-2 text-xs text-ink-600">Guarda el operador primero para poder subir documentos a su expediente.</p>
-                    )}
-                    {editing && (
-                      <div className="flex flex-wrap items-end gap-2">
-                        <Field label="Descripción">
-                          <Input value={docDescripcion} onChange={(e) => setDocDescripcion(e.target.value)} placeholder="Ej. Licencia federal" />
-                        </Field>
-                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line-700 bg-bg-800 px-4 py-2 text-sm font-medium text-ink-300 hover:border-line-600 hover:text-ink-100">
-                          <Upload size={15} />
-                          {subiendoDoc ? 'Subiendo...' : 'Seleccionar archivo'}
-                          <input
-                            type="file"
-                            className="hidden"
-                            disabled={subiendoDoc}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleUploadDocumento(file);
-                              e.target.value = '';
-                            }}
-                          />
-                        </label>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap items-end gap-2">
+                      <Field label="Descripción">
+                        <Input value={docDescripcion} onChange={(e) => setDocDescripcion(e.target.value)} placeholder="Ej. Licencia federal" />
+                      </Field>
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line-700 bg-bg-800 px-4 py-2 text-sm font-medium text-ink-300 hover:border-line-600 hover:text-ink-100">
+                        <Upload size={15} />
+                        {subiendoDoc ? 'Subiendo...' : 'Seleccionar archivo'}
+                        <input
+                          type="file"
+                          accept=".pdf,.zip,.rar,.7z,image/*"
+                          className="hidden"
+                          disabled={subiendoDoc}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleUploadDocumento(file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-ink-600">PDF, imagenes o archivos comprimidos (zip/rar).</p>
                     {errorDoc && <p className="mt-2 text-sm text-breco-500">{errorDoc}</p>}
                     <div className="mt-3 overflow-hidden rounded-xl border border-line-800">
                       <table className="w-full text-left text-sm">
@@ -650,7 +706,8 @@ export function OperadoresPage() {
               </Field>
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {error && <p className="flex-1 text-sm text-breco-500">{error}</p>}
               <GhostButton type="button" onClick={() => setModalOpen(false)}>
                 Cancelar
               </GhostButton>

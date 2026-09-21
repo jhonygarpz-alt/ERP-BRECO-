@@ -50,7 +50,16 @@ export function DestinatariosPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Destinatario | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [error, setError] = useState('');
   const coloniasSugeridas = useColoniasPorCP(form.cp);
+
+  /** El numero (dato obligatorio) no se puede repetir dentro de la misma empresa; el RFC si puede repetirse a proposito (varias ubicaciones del mismo cliente). */
+  function buscarDuplicado(): string | null {
+    const numero = form.numero.trim();
+    const otros = destinatarios.items.filter((d) => d.id !== editing?.id);
+    if (numero && otros.some((d) => d.numero === numero)) return `Ya existe un remitente-destinatario con el numero ${numero}.`;
+    return null;
+  }
 
   useEffect(() => {
     if (coloniasSugeridas.length > 0) {
@@ -71,17 +80,25 @@ export function DestinatariosPage() {
   function openNew() {
     setEditing(null);
     setForm(emptyForm);
+    setError('');
     setModalOpen(true);
   }
 
   function openEdit(d: Destinatario) {
     setEditing(d);
     setForm(d);
+    setError('');
     setModalOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const duplicado = buscarDuplicado();
+    if (duplicado) {
+      setError(duplicado);
+      return;
+    }
+    setError('');
     if (editing) {
       destinatarios.update(editing.id, form);
     } else {
@@ -133,7 +150,11 @@ export function DestinatariosPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Field label="Número">
-                <Input value={editing ? form.numero : ''} disabled placeholder="Automatico" />
+                <Input
+                  value={form.numero}
+                  placeholder="Dejar en blanco para autoasignar"
+                  onChange={(e) => setForm({ ...form, numero: e.target.value })}
+                />
               </Field>
               <Field label="RFC">
                 <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
@@ -242,7 +263,8 @@ export function DestinatariosPage() {
               </p>
             </section>
 
-            <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {error && <p className="flex-1 text-sm text-breco-500">{error}</p>}
               <GhostButton type="button" onClick={() => setModalOpen(false)}>
                 Cancelar
               </GhostButton>
