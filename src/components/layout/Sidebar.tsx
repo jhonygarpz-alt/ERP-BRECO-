@@ -3,10 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Boxes,
-  Users,
-  Truck,
-  PackageSearch,
-  IdCard,
   Route,
   Receipt,
   CalendarClock,
@@ -27,13 +23,6 @@ import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { useTheme } from '../../lib/ThemeContext';
 import { BrandName } from '../ui/BrandName';
-
-const catalogLinks = [
-  { to: '/catalogos/clientes', label: 'Clientes', icon: Users, gradient: ['#2dd4bf', '#0d9488'] },
-  { to: '/catalogos/unidades', label: 'Unidades', icon: Truck, gradient: ['#fb7185', '#dc2626'] },
-  { to: '/catalogos/cajas', label: 'Cajas', icon: PackageSearch, gradient: ['#fbbf24', '#d97706'] },
-  { to: '/catalogos/operadores', label: 'Operadores', icon: IdCard, gradient: ['#c084fc', '#7e22ce'] },
-];
 
 function IconBadge({ icon: Icon, gradient }: { icon: LucideIcon; gradient: [string, string] }) {
   return (
@@ -124,7 +113,6 @@ export function Sidebar() {
   const location = useLocation();
   const { empresa } = useData();
   const { hasPermission } = useAuth();
-  const [catalogsOpen, setCatalogsOpen] = useState(location.pathname.startsWith('/catalogos'));
   const [traficoOpen, setTraficoOpen] = useState(traficoRoutes.some((r) => location.pathname.startsWith(r)));
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('breco-sidebar-collapsed') === '1');
 
@@ -194,36 +182,7 @@ export function Sidebar() {
 
         {puedeCatalogos && (
           <NavGroup>
-            <button
-              onClick={() => (collapsed ? abrirGrupo(setCatalogsOpen) : setCatalogsOpen((v) => !v))}
-              title={collapsed ? 'Catalogos' : undefined}
-              className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-2.5 text-[15px] transition ${collapsed ? 'justify-center px-0' : ''} ${
-                location.pathname.startsWith('/catalogos')
-                  ? 'font-semibold text-ink-100'
-                  : 'font-medium text-ink-300 hover:bg-bg-700/70 hover:text-ink-100'
-              }`}
-            >
-              <IconBadge icon={Boxes} gradient={['#a78bfa', '#6d28d9']} />
-              {!collapsed && (
-                <>
-                  <span className="flex-1 text-left">Catalogos</span>
-                  <ChevronDown
-                    size={16}
-                    className={`text-ink-500 transition-transform ${catalogsOpen ? 'rotate-180' : ''}`}
-                  />
-                </>
-              )}
-            </button>
-            {!collapsed && catalogsOpen && (
-              <div className="relative ml-5 space-y-1.5 border-l border-line-700 py-1 pl-4">
-                {catalogLinks.map((item) => (
-                  <div key={item.to} className="relative">
-                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-line-600" />
-                    <NavRow to={item.to} label={item.label} icon={item.icon} gradient={item.gradient as [string, string]} />
-                  </div>
-                ))}
-              </div>
-            )}
+            <NavRow to="/catalogos" label="Catalogos" icon={Boxes} gradient={['#a78bfa', '#6d28d9']} collapsed={collapsed} />
           </NavGroup>
         )}
 

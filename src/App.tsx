@@ -10,6 +10,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RestablecerPasswordPage } from './pages/RestablecerPasswordPage';
 import { Dashboard } from './pages/Dashboard';
 import { EmpresasSection } from './pages/superadmin/EmpresasSection';
+import { CatalogosHubPage } from './pages/catalogos/CatalogosHubPage';
 import { ClientesPage } from './pages/catalogos/ClientesPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { CajasPage } from './pages/catalogos/CajasPage';
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
 
                 <Route element={<RequirePermission modulo="Catalogos" />}>
+                  <Route path="/catalogos" element={<CatalogosHubPage />} />
                   <Route path="/catalogos/clientes" element={<ClientesPage />} />
                   <Route path="/catalogos/unidades" element={<UnidadesPage />} />
                   <Route path="/catalogos/cajas" element={<CajasPage />} />
