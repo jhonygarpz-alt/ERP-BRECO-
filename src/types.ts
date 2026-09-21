@@ -1,14 +1,63 @@
 export type Estatus = 'activo' | 'inactivo';
 
+export interface ClienteContacto {
+  nombre: string;
+  puesto: string;
+  telefono: string;
+  celular: string;
+  correo: string;
+  principal: boolean;
+}
+
+export type TipoCliente = 'Nacional' | 'Extranjero';
+export type MonedaCliente = 'MXN' | 'USD';
+export type IvaCliente = 'IVA 16%' | 'IVA 0%' | 'Exento';
+
 export interface Cliente {
   id: string;
+  /** Numero de cliente consecutivo (ej. "000047"); lo autoasigna la base de datos si se deja vacio. */
+  numeroCliente: string;
+  /** Nombre Fiscal */
   nombre: string;
+  nombreCorto: string;
+  fechaAlta: string;
   rfc: string;
-  contacto: string;
-  telefono: string;
-  email: string;
-  direccion: string;
+  curp: string;
+  tipo: TipoCliente;
+  moneda: MonedaCliente;
+  iva: IvaCliente;
+  grupo: string;
+  sucursal: string;
   estatus: Estatus;
+  operadorLogistico: boolean;
+  aplicarDetalleViajeXml: boolean;
+  // Domicilio
+  pais: string;
+  cp: string;
+  estado: string;
+  municipio: string;
+  colonia: string;
+  localidad: string;
+  calle: string;
+  numeroExterior: string;
+  numeroInterior: string;
+  telefonos: string;
+  celular: string;
+  correo: string;
+  // Contactos
+  contactos: ClienteContacto[];
+  // Pagos / creditos
+  formaPago: string;
+  diasCredito: number;
+  limiteCreditoMxn: number;
+  limiteCreditoUsd: number;
+  limitarViajes: boolean;
+  limiteFacturasVencidas: number | null;
+  // Informacion adicional del pago
+  bancoOrdenante: string;
+  bancoOrdenanteExtranjero: boolean;
+  bancoRfc: string;
+  bancoNoCuenta: string;
 }
 
 export type TipoUnidad = 'Tractocamion' | 'Rabon' | 'Torton' | 'Camioneta';

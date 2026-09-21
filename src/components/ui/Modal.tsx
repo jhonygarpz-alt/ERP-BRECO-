@@ -6,7 +6,7 @@ interface ModalProps {
   subtitle?: string;
   onClose: () => void;
   children: ReactNode;
-  wide?: boolean;
+  wide?: boolean | 'xl';
 }
 
 export function Modal({ title, subtitle, onClose, children, wide }: ModalProps) {
@@ -21,7 +21,7 @@ export function Modal({ title, subtitle, onClose, children, wide }: ModalProps) 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-8 backdrop-blur-sm">
       <div
-        className={`w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} rounded-2xl border border-line-700 bg-bg-800 shadow-2xl shadow-black/50`}
+        className={`w-full ${wide === 'xl' ? 'max-w-5xl' : wide ? 'max-w-2xl' : 'max-w-lg'} rounded-2xl border border-line-700 bg-bg-800 shadow-2xl shadow-black/50`}
       >
         <div className="flex items-start justify-between border-b border-line-700 px-6 py-4">
           <div>
