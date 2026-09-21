@@ -87,6 +87,22 @@ export interface Destinatario {
 export type TipoUnidad = 'Tractocamion' | 'Rabon' | 'Torton' | 'Camioneta';
 export type EstatusUnidad = 'Disponible' | 'En viaje' | 'Taller' | 'Fuera de servicio';
 
+/** Un renglon de la tabla "Documentos de la unidad" (solo metadatos, sin archivo adjunto). */
+export interface UnidadDocumentoVencimiento {
+  numeroDocumento: string;
+  documento: string;
+  fechaVencimiento: string;
+}
+
+/** Un archivo cargado en "Archivos adicionales" (guardado en Supabase Storage). */
+export interface UnidadArchivo {
+  id: string;
+  descripcion: string;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn: string;
+}
+
 export interface Unidad {
   id: string;
   economico: string;
@@ -98,6 +114,43 @@ export interface Unidad {
   estatus: EstatusUnidad;
   operadorAsignadoId?: string;
   clienteAsignadoId?: string;
+  // Informacion general
+  activa: boolean;
+  rentada: boolean;
+  esPermisionario: boolean;
+  descripcion: string;
+  sucursal: string;
+  identidadSatelital: string;
+  identificadorConvoy: string;
+  numeroSerie: string;
+  color: string;
+  grupoUnidades: string;
+  fotoDataUrl: string;
+  // Especificaciones de la unidad
+  largoMetros: number;
+  anchoMetros: number;
+  altoMetros: number;
+  capacidadKg: number;
+  numeroEjes: number;
+  pesoTaraTon: number;
+  tipoTransmision: string;
+  tipoMotor: string;
+  // Consumo de combustible
+  tipoCombustible: string;
+  tarjetaCombustible1: string;
+  tarjetaCombustible2: string;
+  tarjetaCombustible3: string;
+  capacidadTanqueLts: number;
+  rendimientoCargadoKmLt: number;
+  rendimientoVacioKmLt: number;
+  // Documentos de la unidad / Archivos adicionales
+  documentosVencimiento: UnidadDocumentoVencimiento[];
+  archivosAdicionales: UnidadArchivo[];
+  // Seguros
+  aseguradora: string;
+  noPoliza: string;
+  vigenciaDesde: string;
+  vigenciaHasta: string;
 }
 
 export type TipoCaja = 'Seca' | 'Refrigerada' | 'Plataforma' | 'Contenedor';
