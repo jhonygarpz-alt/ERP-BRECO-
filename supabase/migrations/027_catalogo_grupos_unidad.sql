@@ -6,7 +6,7 @@ create table if not exists public.grupos_unidad (
   id text primary key,
   codigo text not null default '',
   nombre text not null default '',
-  color text not null default 'FFFFFF',
+  color text not null default 'gray',
   empresa_id text not null references public.empresas (id) on delete cascade
 );
 
@@ -73,11 +73,15 @@ declare
 begin
   for emp in select id from public.empresas loop
     if not exists (select 1 from public.grupos_unidad where empresa_id = emp.id) then
-      insert into public.grupos_unidad (id, codigo, nombre, empresa_id) values
-        (emp.id || '-gru-1', '1', 'GENERAL', emp.id),
-        (emp.id || '-gru-2', '2', 'TRACTOS', emp.id),
-        (emp.id || '-gru-3', '3', 'REMOLQUES', emp.id),
-        (emp.id || '-gru-4', '4', 'DOLLY', emp.id);
+      insert into public.grupos_unidad (id, codigo, nombre, color, empresa_id) values
+        (emp.id || '-gru-1', '1', 'GENERAL', 'gray', emp.id),
+        (emp.id || '-gru-2', '2', 'TRACTOS', 'blue', emp.id),
+        (emp.id || '-gru-3', '3', 'REMOLQUES', 'amber', emp.id),
+        (emp.id || '-gru-4', '4', 'DOLLY', 'purple', emp.id);
     end if;
   end loop;
 end $$;
+
+-- Corrige filas que hayan quedado con el valor hex antiguo (version previa
+-- de esta migracion, antes de adoptar la paleta de tonos del sistema).
+update public.grupos_unidad set color = 'gray' where color = 'FFFFFF' or color = '';

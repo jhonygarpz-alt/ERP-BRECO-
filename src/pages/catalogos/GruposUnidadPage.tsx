@@ -7,16 +7,15 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/form';
+import { StatusBadge, TONE_DOT, TONES, type Tone } from '../../components/ui/Badge';
+
+const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 
 const emptyForm: Omit<GrupoUnidad, 'id'> = {
   codigo: '',
   nombre: '',
-  color: 'FFFFFF',
+  color: 'gray',
 };
-
-function normalizarHex(valor: string): string {
-  return valor.trim().replace(/^#/, '').toUpperCase();
-}
 
 export function GruposUnidadPage() {
   const { gruposUnidad } = useData();
@@ -78,11 +77,10 @@ export function GruposUnidadPage() {
       return;
     }
     setError('');
-    const datos = { ...form, color: normalizarHex(form.color) || 'FFFFFF' };
     if (editing) {
-      gruposUnidad.update(editing.id, datos);
+      gruposUnidad.update(editing.id, form);
     } else {
-      gruposUnidad.add({ id: uid('gru'), ...datos });
+      gruposUnidad.add({ id: uid('gru'), ...form });
     }
     setModalOpen(false);
   }
@@ -93,15 +91,7 @@ export function GruposUnidadPage() {
 
   const columns: Column<GrupoUnidad>[] = [
     { header: 'Codigo', render: (g) => g.codigo },
-    {
-      header: 'Grupo de Unidades',
-      render: (g) => (
-        <span className="flex items-center gap-2">
-          <span className="h-4 w-4 flex-shrink-0 rounded-full border border-line-700" style={{ backgroundColor: `#${g.color}` }} />
-          {g.nombre}
-        </span>
-      ),
-    },
+    { header: 'Grupo de Unidades', render: (g) => <StatusBadge status={g.nombre} tone={g.color as Tone} /> },
   ];
 
   return (
@@ -138,20 +128,22 @@ export function GruposUnidadPage() {
               <Input required autoFocus value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
             </Field>
 
-            <Field label="Color">
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-8 w-8 flex-shrink-0 rounded-lg border border-line-700"
-                  style={{ backgroundColor: `#${normalizarHex(form.color) || 'FFFFFF'}` }}
-                />
-                <Input
-                  value={form.color}
-                  onChange={(e) => setForm({ ...form, color: e.target.value })}
-                  placeholder="FFFFFF"
-                  maxLength={7}
-                />
+            <div>
+              <span className="mb-2 block text-xs font-medium uppercase tracking-wide text-ink-500">Color</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {COLORES_DISPONIBLES.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    title={c}
+                    onClick={() => setForm({ ...form, color: c })}
+                    className={`h-7 w-7 rounded-full ${TONE_DOT[c]} ${
+                      form.color === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
+                    }`}
+                  />
+                ))}
               </div>
-            </Field>
+            </div>
 
             <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
               {error && <p className="flex-1 text-sm text-breco-500">{error}</p>}
