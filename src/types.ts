@@ -22,7 +22,6 @@ export interface Cliente {
   nombreCorto: string;
   fechaAlta: string;
   rfc: string;
-  curp: string;
   tipo: TipoCliente;
   moneda: MonedaCliente;
   iva: IvaCliente;

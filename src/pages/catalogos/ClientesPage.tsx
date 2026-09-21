@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
+import { supabase } from '../../lib/supabaseClient';
 import { uid } from '../../lib/storage';
 import type { Cliente, ClienteContacto } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -10,12 +11,15 @@ import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
+// Mismos nombres oficiales que usa el Catalogo Nacional de Codigos Postales
+// (Correos de Mexico), para que el autocompletado por C.P. siempre calce con
+// una opcion de este selector.
 const ESTADOS_MEXICO = [
   'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua',
-  'Ciudad de Mexico', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco',
-  'Mexico', 'Michoacan', 'Morelos', 'Nayarit', 'Nuevo Leon', 'Oaxaca', 'Puebla', 'Queretaro',
-  'Quintana Roo', 'San Luis Potosi', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala',
-  'Veracruz', 'Yucatan', 'Zacatecas',
+  'Ciudad de México', 'Coahuila de Zaragoza', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo',
+  'Jalisco', 'México', 'Michoacán de Ocampo', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla',
+  'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala',
+  'Veracruz de Ignacio de la Llave', 'Yucatán', 'Zacatecas',
 ];
 
 const emptyContacto: ClienteContacto = { nombre: '', puesto: '', telefono: '', celular: '', correo: '', principal: false };
@@ -26,7 +30,6 @@ const emptyForm: Omit<Cliente, 'id'> = {
   nombreCorto: '',
   fechaAlta: new Date().toISOString().slice(0, 10),
   rfc: '',
-  curp: '',
   tipo: 'Nacional',
   moneda: 'MXN',
   iva: 'IVA 16%',
@@ -76,6 +79,34 @@ export function ClientesPage() {
   const [form, setForm] = useState(emptyForm);
   const [contactoForm, setContactoForm] = useState<ClienteContacto | null>(null);
   const [contactoEditIndex, setContactoEditIndex] = useState<number | null>(null);
+  const [coloniasSugeridas, setColoniasSugeridas] = useState<{ colonia: string; municipio: string; estado: string }[]>([]);
+
+  // Predictivo de colonias por codigo postal, usando el Catalogo Nacional de
+  // Codigos Postales (Correos de Mexico) cargado en Supabase.
+  useEffect(() => {
+    const cp = form.cp.trim();
+    if (!/^\d{5}$/.test(cp)) {
+      setColoniasSugeridas([]);
+      return;
+    }
+    let cancelado = false;
+    const timeout = setTimeout(async () => {
+      const { data } = await supabase
+        .from('codigos_postales_mx')
+        .select('colonia, municipio, estado')
+        .eq('codigo_postal', cp);
+      if (cancelado) return;
+      const filas = data ?? [];
+      setColoniasSugeridas(filas);
+      if (filas.length > 0) {
+        setForm((f) => (f.cp.trim() === cp ? { ...f, estado: filas[0].estado, municipio: filas[0].municipio } : f));
+      }
+    }, 350);
+    return () => {
+      cancelado = true;
+      clearTimeout(timeout);
+    };
+  }, [form.cp]);
 
   const filtered = useMemo(
     () =>
@@ -205,9 +236,6 @@ export function ClientesPage() {
                 <Field label="RFC">
                   <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
                 </Field>
-                <Field label="CURP">
-                  <Input value={form.curp} onChange={(e) => setForm({ ...form, curp: e.target.value.toUpperCase() })} />
-                </Field>
                 <Field label="Tipo Cliente">
                   <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as Cliente['tipo'] })}>
                     <option value="Nacional">Nacional</option>
@@ -269,7 +297,11 @@ export function ClientesPage() {
                   <Input required value={form.pais} onChange={(e) => setForm({ ...form, pais: e.target.value })} />
                 </Field>
                 <Field label="C.P.">
-                  <Input value={form.cp} onChange={(e) => setForm({ ...form, cp: e.target.value })} />
+                  <Input
+                    value={form.cp}
+                    maxLength={5}
+                    onChange={(e) => setForm({ ...form, cp: e.target.value.replace(/\D/g, '') })}
+                  />
                 </Field>
                 <Field label="Estado">
                   <Select required value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })}>
@@ -283,7 +315,16 @@ export function ClientesPage() {
                   <Input required value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} />
                 </Field>
                 <Field label="Colonia">
-                  <Input value={form.colonia} onChange={(e) => setForm({ ...form, colonia: e.target.value })} />
+                  {coloniasSugeridas.length > 0 ? (
+                    <Select value={form.colonia} onChange={(e) => setForm({ ...form, colonia: e.target.value })}>
+                      <option value="">Selecciona...</option>
+                      {coloniasSugeridas.map((c) => (
+                        <option key={c.colonia} value={c.colonia}>{c.colonia}</option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Input value={form.colonia} onChange={(e) => setForm({ ...form, colonia: e.target.value })} />
+                  )}
                 </Field>
                 <Field label="Localidad">
                   <Input value={form.localidad} onChange={(e) => setForm({ ...form, localidad: e.target.value })} />
