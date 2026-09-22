@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
 
 function money(n: number) {
@@ -8,6 +8,8 @@ function money(n: number) {
 
 export function ImprimirViajePage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const conImporteReal = searchParams.get('modo') !== 'cero';
   const { viajes, clientes, unidades, operadores, cajas, empresa } = useData();
 
   const viaje = viajes.items.find((v) => v.id === id);
@@ -17,7 +19,7 @@ export function ImprimirViajePage() {
   const remolque1 = cajas.items.find((c) => c.id === viaje?.remolque1Id);
   const dolly = cajas.items.find((c) => c.id === viaje?.dollyId);
   const remolque2 = cajas.items.find((c) => c.id === viaje?.remolque2Id);
-  const totalConceptos = viaje?.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0) ?? 0;
+  const totalConceptos = conImporteReal ? (viaje?.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0) ?? 0) : 0;
 
   useEffect(() => {
     if (!viaje) return;
@@ -51,9 +53,15 @@ export function ImprimirViajePage() {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #111', paddingBottom: 12, marginBottom: 16 }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.value.nombre || 'Sistema de Trafico'}</h1>
-          <p style={{ margin: 0, color: '#555' }}>Viaje {viaje.folio}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {empresa.value.logoDataUrl && (
+            <img src={empresa.value.logoDataUrl} alt="" style={{ height: 48, width: 'auto', objectFit: 'contain' }} />
+          )}
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.value.nombre || 'Sistema de Trafico'}</h1>
+            <p style={{ margin: 0, color: '#555' }}>Viaje {viaje.folio}</p>
+            {!conImporteReal && <p style={{ margin: 0, color: '#555', fontStyle: 'italic' }}>Copia sin importes</p>}
+          </div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <p style={{ margin: 0 }}>
@@ -177,7 +185,7 @@ export function ImprimirViajePage() {
                 <tr key={c.id}>
                   <td style={tdStyle}>{c.concepto}</td>
                   <td style={tdStyle}>{c.unidadMedida}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right' }}>{money(c.importe)}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right' }}>{money(conImporteReal ? c.importe : 0)}</td>
                 </tr>
               ))}
             </tbody>

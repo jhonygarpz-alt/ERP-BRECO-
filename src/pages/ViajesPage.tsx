@@ -65,6 +65,7 @@ export function ViajesPage() {
   const [editing, setEditing] = useState<Viaje | null>(null);
   const [soloLectura, setSoloLectura] = useState(false);
   const [viajeSeleccionadoId, setViajeSeleccionadoId] = useState<string | null>(null);
+  const [imprimirFormatoOpen, setImprimirFormatoOpen] = useState(false);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [todasLasFechas, setTodasLasFechas] = useState(false);
   const [nuevoEstatusOpen, setNuevoEstatusOpen] = useState(false);
@@ -279,7 +280,13 @@ export function ViajesPage() {
 
   function imprimirViajeSeleccionado() {
     if (!viajeSeleccionado) return;
-    window.open(`#/viajes/imprimir/${viajeSeleccionado.id}`, '_blank');
+    setImprimirFormatoOpen(true);
+  }
+
+  function imprimirConFormato(modo: 'real' | 'cero') {
+    if (!viajeSeleccionado) return;
+    window.open(`#/viajes/imprimir/${viajeSeleccionado.id}?modo=${modo}`, '_blank');
+    setImprimirFormatoOpen(false);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -1545,6 +1552,34 @@ export function ViajesPage() {
       )}
 
       {importarOpen && <ImportarProgramaModal onClose={() => setImportarOpen(false)} />}
+
+      {imprimirFormatoOpen && viajeSeleccionado && (
+        <Modal title="Imprimir Viaje" subtitle="Elige el formato de impresion" onClose={() => setImprimirFormatoOpen(false)}>
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => imprimirConFormato('real')}
+              className="block w-full rounded-xl border border-line-700 bg-bg-900 p-4 text-left transition hover:border-breco-500"
+            >
+              <p className="font-medium text-ink-100">Impresion de Viaje con Importe Real</p>
+              <p className="text-sm text-ink-500">Incluye los conceptos de facturacion con sus importes reales. Para uso interno/oficina.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => imprimirConFormato('cero')}
+              className="block w-full rounded-xl border border-line-700 bg-bg-900 p-4 text-left transition hover:border-breco-500"
+            >
+              <p className="font-medium text-ink-100">Impresion de Viaje con Valor $0</p>
+              <p className="text-sm text-ink-500">Muestra los mismos conceptos pero con importe en $0.00. Para entregar al operador.</p>
+            </button>
+          </div>
+          <div className="flex justify-end pt-4">
+            <GhostButton type="button" onClick={() => setImprimirFormatoOpen(false)}>
+              Cancelar
+            </GhostButton>
+          </div>
+        </Modal>
+      )}
 
       {clientePickerOpen && (
         <ListaSeleccionModal<Cliente>
