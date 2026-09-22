@@ -95,6 +95,28 @@ export function RutasPage() {
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [trazarRutaOpen, setTrazarRutaOpen] = useState(false);
 
+  // ---- Alta rapida (sin salir del catalogo de Rutas) ----
+  const emptyNuevoCliente = { nombre: '', rfc: '', tipo: 'Nacional' as Cliente['tipo'], moneda: 'MXN' as Cliente['moneda'] };
+  const [nuevoClienteOpen, setNuevoClienteOpen] = useState(false);
+  const [nuevoClienteForm, setNuevoClienteForm] = useState(emptyNuevoCliente);
+  const [nuevoClienteError, setNuevoClienteError] = useState('');
+
+  const emptyNuevoDestinatario = { nombre: '', rfc: '' };
+  const [nuevoDestinatarioOpen, setNuevoDestinatarioOpen] = useState(false);
+  const [nuevoDestinatarioDestino, setNuevoDestinatarioDestino] = useState<'origen' | 'destino'>('origen');
+  const [nuevoDestinatarioForm, setNuevoDestinatarioForm] = useState(emptyNuevoDestinatario);
+  const [nuevoDestinatarioError, setNuevoDestinatarioError] = useState('');
+
+  const emptyNuevoTipoViaje = { tipoViaje: '' };
+  const [nuevoTipoViajeOpen, setNuevoTipoViajeOpen] = useState(false);
+  const [nuevoTipoViajeForm, setNuevoTipoViajeForm] = useState(emptyNuevoTipoViaje);
+  const [nuevoTipoViajeError, setNuevoTipoViajeError] = useState('');
+
+  const emptyNuevaClasificacion = { clasificacion: '' };
+  const [nuevaClasificacionOpen, setNuevaClasificacionOpen] = useState(false);
+  const [nuevaClasificacionForm, setNuevaClasificacionForm] = useState(emptyNuevaClasificacion);
+  const [nuevaClasificacionError, setNuevaClasificacionError] = useState('');
+
   const [trayectoModalOpen, setTrayectoModalOpen] = useState(false);
   const [trayectoEditandoId, setTrayectoEditandoId] = useState<string | null>(null);
   const [trayectoForm, setTrayectoForm] = useState<Omit<RutaTrayecto, 'id'>>(emptyTrayecto);
@@ -174,6 +196,153 @@ export function RutasPage() {
 
   function handleDelete(r: Ruta) {
     if (confirm(`Eliminar la ruta "${r.descripcion}"?`)) rutas.remove(r.id);
+  }
+
+  // ---- Alta rapida de cliente ----
+  function abrirNuevoCliente() {
+    setNuevoClienteForm(emptyNuevoCliente);
+    setNuevoClienteError('');
+    setClientePickerOpen(false);
+    setNuevoClienteOpen(true);
+  }
+
+  function guardarNuevoCliente() {
+    const nombre = nuevoClienteForm.nombre.trim();
+    const rfc = nuevoClienteForm.rfc.trim().toUpperCase();
+    if (!nombre) {
+      setNuevoClienteError('Falta el Nombre Fiscal.');
+      return;
+    }
+    if (rfc && clientes.items.some((c) => c.rfc.trim().toUpperCase() === rfc)) {
+      setNuevoClienteError(`Ya existe un cliente con el RFC ${rfc}.`);
+      return;
+    }
+    const nuevoId = uid('cli');
+    clientes.add({
+      id: nuevoId,
+      numeroCliente: '',
+      nombre,
+      nombreCorto: '',
+      fechaAlta: new Date().toISOString().slice(0, 10),
+      rfc,
+      tipo: nuevoClienteForm.tipo,
+      moneda: nuevoClienteForm.moneda,
+      iva: 'IVA 16%',
+      grupo: '',
+      sucursal: 'Matriz',
+      estatus: 'activo',
+      operadorLogistico: false,
+      aplicarDetalleViajeXml: false,
+      pais: 'Mexico',
+      cp: '',
+      estado: '',
+      municipio: '',
+      colonia: '',
+      localidad: '',
+      calle: '',
+      numeroExterior: '',
+      numeroInterior: '',
+      telefonos: '',
+      celular: '',
+      correo: '',
+      contactos: [],
+      formaPago: 'Efectivo',
+      diasCredito: 0,
+      limiteCreditoMxn: 0,
+      limiteCreditoUsd: 0,
+      limitarViajes: false,
+      limiteFacturasVencidas: null,
+      bancoOrdenante: '',
+      bancoOrdenanteExtranjero: false,
+      bancoRfc: '',
+      bancoNoCuenta: '',
+    });
+    setForm((f) => ({ ...f, clienteId: nuevoId }));
+    setNuevoClienteOpen(false);
+  }
+
+  // ---- Alta rapida de destinatario (Origen / Destino) ----
+  function abrirNuevoDestinatario(destino: 'origen' | 'destino') {
+    setNuevoDestinatarioDestino(destino);
+    setNuevoDestinatarioForm(emptyNuevoDestinatario);
+    setNuevoDestinatarioError('');
+    setOrigenPickerOpen(false);
+    setDestinoPickerOpen(false);
+    setNuevoDestinatarioOpen(true);
+  }
+
+  function guardarNuevoDestinatario() {
+    const nombre = nuevoDestinatarioForm.nombre.trim();
+    if (!nombre) {
+      setNuevoDestinatarioError('Falta el Nombre.');
+      return;
+    }
+    const nuevoId = uid('dest');
+    destinatarios.add({
+      id: nuevoId,
+      numero: '',
+      rfc: nuevoDestinatarioForm.rfc.trim().toUpperCase(),
+      noEquivalencia: '',
+      nombre,
+      estatus: 'activo',
+      esPatio: false,
+      clienteId: undefined,
+      pais: 'Mexico',
+      estado: '',
+      municipio: '',
+      cp: '',
+      localidad: '',
+      colonia: '',
+      calle: '',
+      numeroExterior: '',
+      numeroInterior: '',
+      telefono: '',
+      contacto: '',
+      correo: '',
+    });
+    const campo = nuevoDestinatarioDestino === 'origen' ? 'origenId' : 'destinoId';
+    setForm((f) => ({ ...f, [campo]: nuevoId }));
+    setNuevoDestinatarioOpen(false);
+  }
+
+  // ---- Alta rapida de Tipo de Viaje ----
+  function abrirNuevoTipoViaje() {
+    setNuevoTipoViajeForm(emptyNuevoTipoViaje);
+    setNuevoTipoViajeError('');
+    setTipoViajePickerOpen(false);
+    setNuevoTipoViajeOpen(true);
+  }
+
+  function guardarNuevoTipoViaje() {
+    const tipoViaje = nuevoTipoViajeForm.tipoViaje.trim();
+    if (!tipoViaje) {
+      setNuevoTipoViajeError('Falta el Tipo de Viaje.');
+      return;
+    }
+    const nuevoId = uid('tpv');
+    tiposViaje.add({ id: nuevoId, codigo: '', tipoViaje, activo: true });
+    setForm((f) => ({ ...f, tipoViajeId: nuevoId }));
+    setNuevoTipoViajeOpen(false);
+  }
+
+  // ---- Alta rapida de Clasificacion ----
+  function abrirNuevaClasificacion() {
+    setNuevaClasificacionForm(emptyNuevaClasificacion);
+    setNuevaClasificacionError('');
+    setClasificacionPickerOpen(false);
+    setNuevaClasificacionOpen(true);
+  }
+
+  function guardarNuevaClasificacion() {
+    const clasificacion = nuevaClasificacionForm.clasificacion.trim();
+    if (!clasificacion) {
+      setNuevaClasificacionError('Falta la Clasificacion.');
+      return;
+    }
+    const nuevoId = uid('clv');
+    clasificacionesViaje.add({ id: nuevoId, codigo: '', clasificacion, activo: true });
+    setForm((f) => ({ ...f, clasificacionId: nuevoId }));
+    setNuevaClasificacionOpen(false);
   }
 
   // ---- Trayectos ----
@@ -808,6 +977,7 @@ export function RutasPage() {
             setClientePickerOpen(false);
           }}
           onClose={() => setClientePickerOpen(false)}
+          accionExtra={{ label: 'Agregar Cliente', onClick: abrirNuevoCliente }}
         />
       )}
 
@@ -827,6 +997,7 @@ export function RutasPage() {
             setOrigenPickerOpen(false);
           }}
           onClose={() => setOrigenPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Origen', onClick: () => abrirNuevoDestinatario('origen') }}
         />
       )}
 
@@ -846,6 +1017,7 @@ export function RutasPage() {
             setDestinoPickerOpen(false);
           }}
           onClose={() => setDestinoPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Destino', onClick: () => abrirNuevoDestinatario('destino') }}
         />
       )}
 
@@ -865,6 +1037,7 @@ export function RutasPage() {
             setTipoViajePickerOpen(false);
           }}
           onClose={() => setTipoViajePickerOpen(false)}
+          accionExtra={{ label: 'Agregar Tipo de Viaje', onClick: abrirNuevoTipoViaje }}
         />
       )}
 
@@ -884,6 +1057,7 @@ export function RutasPage() {
             setClasificacionPickerOpen(false);
           }}
           onClose={() => setClasificacionPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Clasificacion', onClick: abrirNuevaClasificacion }}
         />
       )}
 
@@ -980,6 +1154,141 @@ export function RutasPage() {
           }}
           onClose={() => setTrazarTrayectoOpen(false)}
         />
+      )}
+
+      {nuevoClienteOpen && (
+        <Modal title="Agregando Cliente" onClose={() => setNuevoClienteOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Nombre Fiscal">
+              <Input
+                required
+                autoFocus
+                value={nuevoClienteForm.nombre}
+                onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, nombre: e.target.value })}
+              />
+            </Field>
+            <Field label="RFC">
+              <Input
+                value={nuevoClienteForm.rfc}
+                onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, rfc: e.target.value.toUpperCase() })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Tipo Cliente">
+                <Select
+                  value={nuevoClienteForm.tipo}
+                  onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, tipo: e.target.value as Cliente['tipo'] })}
+                >
+                  <option value="Nacional">Nacional</option>
+                  <option value="Extranjero">Extranjero</option>
+                </Select>
+              </Field>
+              <Field label="Moneda">
+                <Select
+                  value={nuevoClienteForm.moneda}
+                  onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, moneda: e.target.value as Cliente['moneda'] })}
+                >
+                  <option value="MXN">Pesos</option>
+                  <option value="USD">Dolares</option>
+                </Select>
+              </Field>
+            </div>
+            <p className="text-xs text-ink-500">El resto de los datos del cliente se completan despues en el catalogo de Clientes.</p>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevoClienteError && <p className="flex-1 text-sm text-breco-500">{nuevoClienteError}</p>}
+              <GhostButton type="button" onClick={() => setNuevoClienteOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevoCliente}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {nuevoDestinatarioOpen && (
+        <Modal
+          title={nuevoDestinatarioDestino === 'origen' ? 'Agregando Origen' : 'Agregando Destino'}
+          onClose={() => setNuevoDestinatarioOpen(false)}
+        >
+          <div className="space-y-4">
+            <Field label="Nombre">
+              <Input
+                required
+                autoFocus
+                value={nuevoDestinatarioForm.nombre}
+                onChange={(e) => setNuevoDestinatarioForm({ ...nuevoDestinatarioForm, nombre: e.target.value })}
+              />
+            </Field>
+            <Field label="RFC">
+              <Input
+                value={nuevoDestinatarioForm.rfc}
+                onChange={(e) => setNuevoDestinatarioForm({ ...nuevoDestinatarioForm, rfc: e.target.value.toUpperCase() })}
+              />
+            </Field>
+            <p className="text-xs text-ink-500">
+              El domicilio y demas datos se completan despues en el catalogo de Destinatarios.
+            </p>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevoDestinatarioError && <p className="flex-1 text-sm text-breco-500">{nuevoDestinatarioError}</p>}
+              <GhostButton type="button" onClick={() => setNuevoDestinatarioOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevoDestinatario}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {nuevoTipoViajeOpen && (
+        <Modal title="Agregando Tipo de Viaje" onClose={() => setNuevoTipoViajeOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Tipo de Viaje">
+              <Input
+                required
+                autoFocus
+                value={nuevoTipoViajeForm.tipoViaje}
+                onChange={(e) => setNuevoTipoViajeForm({ tipoViaje: e.target.value })}
+              />
+            </Field>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevoTipoViajeError && <p className="flex-1 text-sm text-breco-500">{nuevoTipoViajeError}</p>}
+              <GhostButton type="button" onClick={() => setNuevoTipoViajeOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevoTipoViaje}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {nuevaClasificacionOpen && (
+        <Modal title="Agregando Clasificacion de Viaje" onClose={() => setNuevaClasificacionOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Clasificacion">
+              <Input
+                required
+                autoFocus
+                value={nuevaClasificacionForm.clasificacion}
+                onChange={(e) => setNuevaClasificacionForm({ clasificacion: e.target.value })}
+              />
+            </Field>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevaClasificacionError && <p className="flex-1 text-sm text-breco-500">{nuevaClasificacionError}</p>}
+              <GhostButton type="button" onClick={() => setNuevaClasificacionOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevaClasificacion}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
