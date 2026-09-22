@@ -36,8 +36,15 @@ export function ComboBoxCodigo<T>({
 
   const sugerencias = useMemo(() => {
     const termino = texto.trim().toLowerCase();
-    if (!termino) return [];
-    return items.filter((item) => obtenerCodigo(item).toLowerCase().includes(termino)).slice(0, 8);
+    // Sin nada escrito se muestran los primeros registros (para poder
+    // "navegar" el catalogo aunque no se recuerde el codigo exacto), y al
+    // escribir se busca tanto en el codigo como en la etiqueta (nombre,
+    // marca/modelo, etc.) para que un termino parcial tambien encuentre
+    // coincidencias.
+    if (!termino) return items.slice(0, 8);
+    return items
+      .filter((item) => `${obtenerCodigo(item)} ${obtenerEtiqueta(item)}`.toLowerCase().includes(termino))
+      .slice(0, 8);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, texto]);
 

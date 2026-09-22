@@ -13,6 +13,7 @@ import { ComboBoxCodigo } from '../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
+import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 
 const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
@@ -152,10 +153,19 @@ export function ViajesPage() {
   const [nuevaUnidadError, setNuevaUnidadError] = useState('');
 
   // ---- Alta rapida de ruta ----
-  const emptyNuevaRuta = { descripcion: '' };
+  const emptyNuevaRuta = {
+    descripcion: '',
+    clienteId: '' as string,
+    origenDireccion: '',
+    destinoDireccion: '',
+    kilometros: 0,
+    horas: 0,
+    trazoRuta: '',
+  };
   const [nuevaRutaOpen, setNuevaRutaOpen] = useState(false);
   const [nuevaRutaForm, setNuevaRutaForm] = useState(emptyNuevaRuta);
   const [nuevaRutaError, setNuevaRutaError] = useState('');
+  const [nuevaRutaTrazarOpen, setNuevaRutaTrazarOpen] = useState(false);
 
   // ---- Convoy / trayectos ----
   const [trayectoModalOpen, setTrayectoModalOpen] = useState(false);
@@ -595,34 +605,34 @@ export function ViajesPage() {
       setNuevaRutaError('Falta la descripcion de la ruta.');
       return;
     }
-    const nuevoId = uid('rt');
-    rutas.add({
-      id: nuevoId,
+    const nuevaRuta: Ruta = {
+      id: uid('rt'),
       codigo: '',
       activo: true,
       facturable: true,
       internacional: false,
       tipoOperacion: 'Importacion',
-      clienteId: undefined,
+      clienteId: nuevaRutaForm.clienteId || undefined,
       descripcion,
       origenId: undefined,
       destinoId: undefined,
       tipoUnidad: '',
       tipoViajeId: undefined,
       clasificacionId: undefined,
-      origenDireccion: '',
-      destinoDireccion: '',
-      horas: 0,
+      origenDireccion: nuevaRutaForm.origenDireccion,
+      destinoDireccion: nuevaRutaForm.destinoDireccion,
+      horas: nuevaRutaForm.horas,
       eta: '',
-      kilometros: 0,
+      kilometros: nuevaRutaForm.kilometros,
       tipoTrayecto: 'Permanente',
       trayectoLiquidable: true,
-      trazoRuta: '',
+      trazoRuta: nuevaRutaForm.trazoRuta,
       trayectos: [],
       conceptosFacturacion: [],
       materialesCarga: [],
-    });
-    setForm((f) => ({ ...f, rutaCodigo: '', rutaDescripcion: descripcion }));
+    };
+    rutas.add(nuevaRuta);
+    seleccionarRuta(nuevaRuta);
     setNuevaRutaOpen(false);
   }
 
@@ -1748,14 +1758,59 @@ export function ViajesPage() {
       {nuevaRutaOpen && (
         <Modal title="Agregando Ruta" onClose={() => setNuevaRutaOpen(false)}>
           <div className="space-y-4">
-            <Field label="Ruta">
+            <Field label="Descripcion">
               <Input
                 required
                 autoFocus
                 value={nuevaRutaForm.descripcion}
-                onChange={(e) => setNuevaRutaForm({ descripcion: e.target.value })}
+                onChange={(e) => setNuevaRutaForm({ ...nuevaRutaForm, descripcion: e.target.value })}
               />
             </Field>
+            <Field label="Cliente (opcional)">
+              <ComboBoxCodigo<Cliente>
+                items={clientes.items}
+                valor={clientes.items.find((c) => c.id === nuevaRutaForm.clienteId)?.numeroCliente ?? ''}
+                obtenerCodigo={(c) => c.numeroCliente}
+                obtenerEtiqueta={(c) => c.nombre}
+                onSeleccionar={(c) => setNuevaRutaForm({ ...nuevaRutaForm, clienteId: c.id })}
+                onLimpiar={() => setNuevaRutaForm({ ...nuevaRutaForm, clienteId: '' })}
+                placeholder="Nro. de cliente"
+              />
+            </Field>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Origen">
+                <Input
+                  value={nuevaRutaForm.origenDireccion}
+                  onChange={(e) => setNuevaRutaForm({ ...nuevaRutaForm, origenDireccion: e.target.value })}
+                  placeholder="Direccion, ciudad, planta..."
+                />
+              </Field>
+              <Field label="Destino">
+                <Input
+                  value={nuevaRutaForm.destinoDireccion}
+                  onChange={(e) => setNuevaRutaForm({ ...nuevaRutaForm, destinoDireccion: e.target.value })}
+                  placeholder="Direccion, ciudad, planta..."
+                />
+              </Field>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-line-800 bg-bg-900 p-3">
+              <div className="text-xs text-ink-400">
+                {nuevaRutaForm.kilometros > 0 ? (
+                  <span>
+                    {nuevaRutaForm.kilometros} km · {nuevaRutaForm.horas} hrs (estimado)
+                  </span>
+                ) : (
+                  <span>Traza la ruta en el mapa para calcular kilometros y tiempo.</span>
+                )}
+              </div>
+              <GhostButton type="button" onClick={() => setNuevaRutaTrazarOpen(true)}>
+                Trazar Ruta
+              </GhostButton>
+            </div>
+            <p className="text-xs text-ink-500">
+              El resto de los datos (tipo de viaje, clasificacion, trayectos, conceptos de facturacion, mercancias) se completan
+              despues en el catalogo de Rutas.
+            </p>
             <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
               {nuevaRutaError && <p className="flex-1 text-sm text-breco-500">{nuevaRutaError}</p>}
               <GhostButton type="button" onClick={() => setNuevaRutaOpen(false)}>
@@ -1767,6 +1822,25 @@ export function ViajesPage() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {nuevaRutaTrazarOpen && (
+        <TrazarRutaModal
+          origenInicial={nuevaRutaForm.origenDireccion}
+          destinoInicial={nuevaRutaForm.destinoDireccion}
+          onConfirmar={(datos) => {
+            setNuevaRutaForm({
+              ...nuevaRutaForm,
+              origenDireccion: datos.origenDireccion,
+              destinoDireccion: datos.destinoDireccion,
+              kilometros: datos.kilometros,
+              horas: datos.horas,
+              trazoRuta: datos.trazoRuta,
+            });
+            setNuevaRutaTrazarOpen(false);
+          }}
+          onClose={() => setNuevaRutaTrazarOpen(false)}
+        />
       )}
 
       {trayectoModalOpen && (
