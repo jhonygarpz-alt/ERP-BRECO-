@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, ScanLine, Trash2 } fro
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
-import { CONFIG_AUTOTRANSPORTE_SAT } from '../lib/catalogosSat';
 import type { Caja, Cliente, ConceptoFacturacion, Ruta, Unidad, Viaje, ViajeMaterial, ViajeTrayecto } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
@@ -663,13 +662,6 @@ export function ViajesPage() {
   const dolly = cajas.items.find((c) => c.id === form.dollyId);
   const remolque2 = cajas.items.find((c) => c.id === form.remolque2Id);
 
-  const tipoUnidadDescripcion = useMemo(() => {
-    const unidadId = form.trayectos[0]?.unidadId || form.unidadId;
-    const unidad = unidades.items.find((u) => u.id === unidadId);
-    if (!unidad) return '';
-    return CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === unidad.tipo)?.descripcion ?? unidad.tipo;
-  }, [form.trayectos, form.unidadId, unidades.items]);
-
   const columns: Column<Viaje>[] = [
     {
       header: 'Folio / Fecha',
@@ -682,7 +674,7 @@ export function ViajesPage() {
         </div>
       ),
     },
-    { header: 'Load Number', render: (v) => v.loadNumber || '—' },
+    { header: 'Numero de Viaje del Cliente', render: (v) => v.loadNumber || '—' },
     { header: 'Unidad', render: (v) => unidadNombre(v.unidadId) },
     { header: 'Cliente', render: (v) => clienteNombre(v.clienteId) },
     { header: 'Ruta', render: (v) => `${v.origen} -> ${v.destino}` },
@@ -797,7 +789,7 @@ export function ViajesPage() {
               <Field label="Sucursal">
                 <Input value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })} />
               </Field>
-              <Field label="Load Number">
+              <Field label="Numero de Viaje del Cliente">
                 <Input value={form.loadNumber} onChange={(e) => setForm({ ...form, loadNumber: e.target.value })} />
               </Field>
               <Field label="Fecha">
@@ -867,8 +859,7 @@ export function ViajesPage() {
 
             {tab === 'general' && (
               <div className="space-y-4 rounded-b-xl rounded-tr-xl border border-line-800 bg-bg-900 p-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-3">
+                <div className="space-y-3">
                     <div className="flex items-end gap-2">
                       <div className="flex-1">
                         <Field label="Ruta">
@@ -906,18 +897,6 @@ export function ViajesPage() {
                           />
                         </Field>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3">
-                      <Field label="Item">
-                        <Input value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} />
-                      </Field>
-                      <Field label="Planta">
-                        <Input value={form.planta} onChange={(e) => setForm({ ...form, planta: e.target.value })} />
-                      </Field>
-                      <Field label="Convenio">
-                        <Input value={form.convenio} onChange={(e) => setForm({ ...form, convenio: e.target.value })} />
-                      </Field>
                     </div>
 
                     <div>
@@ -1052,19 +1031,6 @@ export function ViajesPage() {
                       </label>
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    <Field label="Tipo de Unidad">
-                      <Input readOnly value={tipoUnidadDescripcion} />
-                    </Field>
-                    <Field label="Candado Oficial">
-                      <Input value={form.candadoOficial} onChange={(e) => setForm({ ...form, candadoOficial: e.target.value })} />
-                    </Field>
-                    <Field label="Identificador">
-                      <Input value={form.identificador} onChange={(e) => setForm({ ...form, identificador: e.target.value })} />
-                    </Field>
-                  </div>
-                </div>
 
                 {/* ---- Convoy ---- */}
                 <div className="rounded-xl border border-line-800">
