@@ -39,6 +39,8 @@ import {
   reporteToRow,
   rolFromRow,
   rolToRow,
+  rutaFromRow,
+  rutaToRow,
   tipoViajeFromRow,
   tipoViajeToRow,
   unidadFromRow,
@@ -71,6 +73,7 @@ import type {
   Proveedor,
   ReporteExterno,
   Rol,
+  Ruta,
   TipoViaje,
   Unidad,
   Usuario,
@@ -91,6 +94,7 @@ interface DataContextValue {
   clasificacionesOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ClasificacionOperador>>;
   conceptosFacturacion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ConceptoFacturacion>>;
   gruposUnidad: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GrupoUnidad>>;
+  rutas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Ruta>>;
   tiposViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TipoViaje>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
@@ -158,6 +162,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     grupoUnidadFromRow,
     grupoUnidadToRow,
   );
+  const rutas = useSupabaseCollection<Record<string, unknown>, Ruta>('rutas', rutaFromRow, rutaToRow);
   const tiposViaje = useSupabaseCollection<Record<string, unknown>, TipoViaje>(
     'tipos_viaje',
     tipoViajeFromRow,
@@ -230,6 +235,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         clasificacionesOperador,
         conceptosFacturacion,
         gruposUnidad,
+        rutas,
         tiposViaje,
         viajes,
         viajeUbicaciones,

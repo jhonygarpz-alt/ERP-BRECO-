@@ -4,7 +4,7 @@ import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
 import { CONFIG_AUTOTRANSPORTE_SAT } from '../lib/catalogosSat';
-import type { Caja, Cliente, ConceptoFacturacion, Viaje, ViajeMaterial, ViajeTrayecto } from '../types';
+import type { Caja, Cliente, ConceptoFacturacion, Ruta, Unidad, Viaje, ViajeMaterial, ViajeTrayecto } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
@@ -109,7 +109,7 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
 };
 
 export function ViajesPage() {
-  const { viajes, clientes, unidades, operadores, cajas, estatusViajes, conceptosFacturacion, facturas } = useData();
+  const { viajes, clientes, unidades, operadores, cajas, rutas, estatusViajes, conceptosFacturacion, facturas } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -184,12 +184,33 @@ export function ViajesPage() {
   const [dollyPickerOpen, setDollyPickerOpen] = useState(false);
   const [remolque2PickerOpen, setRemolque2PickerOpen] = useState(false);
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
+  const [rutaPickerOpen, setRutaPickerOpen] = useState(false);
+  const [unidadPickerOpen, setUnidadPickerOpen] = useState(false);
 
   // ---- Alta rapida de cliente (sin salir de la asignacion del viaje) ----
   const emptyNuevoCliente = { nombre: '', rfc: '', tipo: 'Nacional' as Cliente['tipo'], moneda: 'MXN' as Cliente['moneda'] };
   const [nuevoClienteOpen, setNuevoClienteOpen] = useState(false);
   const [nuevoClienteForm, setNuevoClienteForm] = useState(emptyNuevoCliente);
   const [nuevoClienteError, setNuevoClienteError] = useState('');
+
+  // ---- Alta rapida de remolque/dolly ----
+  const emptyNuevaCaja = { economico: '', placas: '', marca: '', modelo: '' };
+  const [nuevaCajaOpen, setNuevaCajaOpen] = useState(false);
+  const [nuevaCajaDestino, setNuevaCajaDestino] = useState<'remolque1' | 'dolly' | 'remolque2'>('remolque1');
+  const [nuevaCajaForm, setNuevaCajaForm] = useState(emptyNuevaCaja);
+  const [nuevaCajaError, setNuevaCajaError] = useState('');
+
+  // ---- Alta rapida de unidad ----
+  const emptyNuevaUnidad = { economico: '', placas: '', marca: '', modelo: '' };
+  const [nuevaUnidadOpen, setNuevaUnidadOpen] = useState(false);
+  const [nuevaUnidadForm, setNuevaUnidadForm] = useState(emptyNuevaUnidad);
+  const [nuevaUnidadError, setNuevaUnidadError] = useState('');
+
+  // ---- Alta rapida de ruta ----
+  const emptyNuevaRuta = { descripcion: '' };
+  const [nuevaRutaOpen, setNuevaRutaOpen] = useState(false);
+  const [nuevaRutaForm, setNuevaRutaForm] = useState(emptyNuevaRuta);
+  const [nuevaRutaError, setNuevaRutaError] = useState('');
 
   // ---- Convoy / trayectos ----
   const [trayectoModalOpen, setTrayectoModalOpen] = useState(false);
@@ -458,6 +479,158 @@ export function ViajesPage() {
     setNuevoClienteOpen(false);
   }
 
+  // ---- Alta rapida de remolque/dolly ----
+  function abrirNuevaCaja(destino: 'remolque1' | 'dolly' | 'remolque2') {
+    setNuevaCajaDestino(destino);
+    setNuevaCajaForm(emptyNuevaCaja);
+    setNuevaCajaError('');
+    setRemolque1PickerOpen(false);
+    setDollyPickerOpen(false);
+    setRemolque2PickerOpen(false);
+    setNuevaCajaOpen(true);
+  }
+
+  function guardarNuevaCaja() {
+    const economico = nuevaCajaForm.economico.trim();
+    if (!economico) {
+      setNuevaCajaError('Falta el Codigo.');
+      return;
+    }
+    if (cajas.items.some((c) => c.economico.trim() === economico)) {
+      setNuevaCajaError(`Ya existe un remolque con el codigo ${economico}.`);
+      return;
+    }
+    const nuevoId = uid('caj');
+    cajas.add({
+      id: nuevoId,
+      economico,
+      placas: nuevaCajaForm.placas,
+      tipo: '',
+      capacidad: '',
+      estatus: 'Disponible',
+      marca: nuevaCajaForm.marca,
+      modelo: nuevaCajaForm.modelo,
+      anio: undefined,
+      activa: true,
+      rentada: false,
+      esPermisionario: false,
+      descripcion: '',
+      sucursal: 'Matriz',
+      identidadSatelital: '',
+      identificadorConvoy: '',
+      numeroSerie: '',
+      color: '',
+      grupoUnidades: nuevaCajaDestino === 'dolly' ? 'DOLLY' : '',
+      fotoDataUrl: '',
+      largoMetros: 0,
+      anchoMetros: 0,
+      altoMetros: 0,
+      capacidadKg: 0,
+      numeroEjes: 0,
+      pesoTaraTon: 0,
+      documentosVencimiento: [],
+      archivosAdicionales: [],
+      aseguradora: '',
+      noPoliza: '',
+      vigenciaDesde: '',
+      vigenciaHasta: '',
+    });
+    const campo = nuevaCajaDestino === 'remolque1' ? 'remolque1Id' : nuevaCajaDestino === 'dolly' ? 'dollyId' : 'remolque2Id';
+    setForm((f) => ({ ...f, [campo]: nuevoId }));
+    setNuevaCajaOpen(false);
+  }
+
+  // ---- Alta rapida de unidad ----
+  function abrirNuevaUnidad() {
+    setNuevaUnidadForm(emptyNuevaUnidad);
+    setNuevaUnidadError('');
+    setUnidadPickerOpen(false);
+    setNuevaUnidadOpen(true);
+  }
+
+  function guardarNuevaUnidad() {
+    const economico = nuevaUnidadForm.economico.trim();
+    if (!economico) {
+      setNuevaUnidadError('Falta el Codigo.');
+      return;
+    }
+    if (unidades.items.some((u) => u.economico.trim() === economico)) {
+      setNuevaUnidadError(`Ya existe una unidad con el codigo ${economico}.`);
+      return;
+    }
+    const nuevoId = uid('uni');
+    unidades.add({
+      id: nuevoId,
+      economico,
+      placas: nuevaUnidadForm.placas,
+      tipo: '',
+      marca: nuevaUnidadForm.marca,
+      modelo: nuevaUnidadForm.modelo,
+      anio: new Date().getFullYear(),
+      estatus: 'Disponible',
+      operadorAsignadoId: '',
+      clienteAsignadoId: '',
+      activa: true,
+      rentada: false,
+      esPermisionario: false,
+      descripcion: '',
+      sucursal: 'Matriz',
+      identidadSatelital: '',
+      identificadorConvoy: '',
+      numeroSerie: '',
+      color: '',
+      grupoUnidades: '',
+      fotoDataUrl: '',
+      largoMetros: 0,
+      anchoMetros: 0,
+      altoMetros: 0,
+      capacidadKg: 0,
+      numeroEjes: 0,
+      pesoTaraTon: 0,
+      tipoTransmision: '',
+      tipoMotor: '',
+      tipoCombustible: '',
+      tarjetaCombustible1: '',
+      tarjetaCombustible2: '',
+      tarjetaCombustible3: '',
+      capacidadTanqueLts: 0,
+      rendimientoCargadoKmLt: 0,
+      rendimientoVacioKmLt: 0,
+      documentosVencimiento: [],
+      archivosAdicionales: [],
+      aseguradora: '',
+      noPoliza: '',
+      vigenciaDesde: '',
+      vigenciaHasta: '',
+    });
+    setTrayectoForm((f) => ({ ...f, unidadId: nuevoId }));
+    setNuevaUnidadOpen(false);
+  }
+
+  // ---- Alta rapida de ruta ----
+  function abrirNuevaRuta() {
+    setNuevaRutaForm(emptyNuevaRuta);
+    setNuevaRutaError('');
+    setRutaPickerOpen(false);
+    setNuevaRutaOpen(true);
+  }
+
+  function guardarNuevaRuta() {
+    const descripcion = nuevaRutaForm.descripcion.trim();
+    if (!descripcion) {
+      setNuevaRutaError('Falta la descripcion de la ruta.');
+      return;
+    }
+    if (rutas.items.some((r) => r.descripcion.toLowerCase() === descripcion.toLowerCase())) {
+      setNuevaRutaError(`Ya existe una ruta llamada "${descripcion}".`);
+      return;
+    }
+    const nuevoId = uid('rt');
+    rutas.add({ id: nuevoId, codigo: '', descripcion, activo: true });
+    setForm((f) => ({ ...f, rutaCodigo: '', rutaDescripcion: descripcion }));
+    setNuevaRutaOpen(false);
+  }
+
   const totalConceptos = useMemo(
     () => form.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0),
     [form.conceptosFacturacionViaje],
@@ -688,12 +861,11 @@ export function ViajesPage() {
                       <div className="flex-1">
                         <Field label="Ruta">
                           <div className="flex gap-2">
-                            <Input className="w-20" value={form.rutaCodigo} onChange={(e) => setForm({ ...form, rutaCodigo: e.target.value })} />
-                            <Input
-                              className="flex-1"
-                              value={form.rutaDescripcion}
-                              onChange={(e) => setForm({ ...form, rutaDescripcion: e.target.value })}
-                            />
+                            <Input className="w-20" readOnly value={form.rutaCodigo} />
+                            <GhostButton type="button" onClick={() => setRutaPickerOpen(true)}>
+                              <MoreHorizontal size={16} />
+                            </GhostButton>
+                            <Input className="flex-1" readOnly value={form.rutaDescripcion} />
                           </div>
                         </Field>
                       </div>
@@ -1353,6 +1525,7 @@ export function ViajesPage() {
             setRemolque1PickerOpen(false);
           }}
           onClose={() => setRemolque1PickerOpen(false)}
+          accionExtra={{ label: 'Agregar Remolque', onClick: () => abrirNuevaCaja('remolque1') }}
         />
       )}
 
@@ -1375,6 +1548,7 @@ export function ViajesPage() {
             setDollyPickerOpen(false);
           }}
           onClose={() => setDollyPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Dolly', onClick: () => abrirNuevaCaja('dolly') }}
         />
       )}
 
@@ -1397,6 +1571,7 @@ export function ViajesPage() {
             setRemolque2PickerOpen(false);
           }}
           onClose={() => setRemolque2PickerOpen(false)}
+          accionExtra={{ label: 'Agregar Remolque', onClick: () => abrirNuevaCaja('remolque2') }}
         />
       )}
 
@@ -1416,6 +1591,149 @@ export function ViajesPage() {
         />
       )}
 
+      {rutaPickerOpen && (
+        <ListaSeleccionModal<Ruta>
+          title="Buscar Ruta"
+          items={rutas.items.filter((r) => r.activo)}
+          filtro={(r, t) => `${r.codigo} ${r.descripcion}`.toLowerCase().includes(t)}
+          renderRow={(r) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{r.codigo}</td>
+              <td className="px-3 py-2 text-ink-200">{r.descripcion}</td>
+            </>
+          )}
+          onSelect={(r) => {
+            setForm((f) => ({ ...f, rutaCodigo: r.codigo, rutaDescripcion: r.descripcion }));
+            setRutaPickerOpen(false);
+          }}
+          onClose={() => setRutaPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Ruta', onClick: abrirNuevaRuta }}
+        />
+      )}
+
+      {unidadPickerOpen && (
+        <ListaSeleccionModal<Unidad>
+          title="Buscar Unidad"
+          items={unidades.items}
+          filtro={(u, t) => `${u.economico} ${u.placas} ${u.marca ?? ''}`.toLowerCase().includes(t)}
+          renderRow={(u) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{u.economico}</td>
+              <td className="px-3 py-2 text-ink-200">
+                {u.marca} {u.modelo}
+              </td>
+              <td className="px-3 py-2 text-ink-500">{u.placas}</td>
+            </>
+          )}
+          onSelect={(u) => {
+            setTrayectoForm((f) => ({ ...f, unidadId: u.id }));
+            setUnidadPickerOpen(false);
+          }}
+          onClose={() => setUnidadPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Unidad', onClick: abrirNuevaUnidad }}
+        />
+      )}
+
+      {nuevaCajaOpen && (
+        <Modal title={nuevaCajaDestino === 'dolly' ? 'Agregando Dolly' : 'Agregando Remolque'} onClose={() => setNuevaCajaOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Codigo">
+              <Input
+                required
+                autoFocus
+                value={nuevaCajaForm.economico}
+                onChange={(e) => setNuevaCajaForm({ ...nuevaCajaForm, economico: e.target.value })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Marca">
+                <Input value={nuevaCajaForm.marca} onChange={(e) => setNuevaCajaForm({ ...nuevaCajaForm, marca: e.target.value })} />
+              </Field>
+              <Field label="Modelo">
+                <Input value={nuevaCajaForm.modelo} onChange={(e) => setNuevaCajaForm({ ...nuevaCajaForm, modelo: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="Placas">
+              <Input value={nuevaCajaForm.placas} onChange={(e) => setNuevaCajaForm({ ...nuevaCajaForm, placas: e.target.value })} />
+            </Field>
+            <p className="text-xs text-ink-500">
+              El resto de los datos (especificaciones, documentos, seguros) se pueden completar despues desde el catalogo de Remolques.
+            </p>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevaCajaError && <p className="flex-1 text-sm text-breco-500">{nuevaCajaError}</p>}
+              <GhostButton type="button" onClick={() => setNuevaCajaOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevaCaja}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {nuevaUnidadOpen && (
+        <Modal title="Agregando Unidad" onClose={() => setNuevaUnidadOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Codigo">
+              <Input
+                required
+                autoFocus
+                value={nuevaUnidadForm.economico}
+                onChange={(e) => setNuevaUnidadForm({ ...nuevaUnidadForm, economico: e.target.value })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Marca">
+                <Input value={nuevaUnidadForm.marca} onChange={(e) => setNuevaUnidadForm({ ...nuevaUnidadForm, marca: e.target.value })} />
+              </Field>
+              <Field label="Modelo">
+                <Input value={nuevaUnidadForm.modelo} onChange={(e) => setNuevaUnidadForm({ ...nuevaUnidadForm, modelo: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="Placas">
+              <Input value={nuevaUnidadForm.placas} onChange={(e) => setNuevaUnidadForm({ ...nuevaUnidadForm, placas: e.target.value })} />
+            </Field>
+            <p className="text-xs text-ink-500">
+              El resto de los datos (especificaciones, documentos, seguros) se pueden completar despues desde el catalogo de Unidades.
+            </p>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevaUnidadError && <p className="flex-1 text-sm text-breco-500">{nuevaUnidadError}</p>}
+              <GhostButton type="button" onClick={() => setNuevaUnidadOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevaUnidad}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {nuevaRutaOpen && (
+        <Modal title="Agregando Ruta" onClose={() => setNuevaRutaOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Ruta">
+              <Input
+                required
+                autoFocus
+                value={nuevaRutaForm.descripcion}
+                onChange={(e) => setNuevaRutaForm({ descripcion: e.target.value })}
+              />
+            </Field>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevaRutaError && <p className="flex-1 text-sm text-breco-500">{nuevaRutaError}</p>}
+              <GhostButton type="button" onClick={() => setNuevaRutaOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevaRuta}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {trayectoModalOpen && (
         <Modal title={trayectoEditandoId ? 'Editando Trayecto' : 'Asignar Operador/Camion'} onClose={() => setTrayectoModalOpen(false)}>
           <div className="space-y-3">
@@ -1430,14 +1748,17 @@ export function ViajesPage() {
               </Select>
             </Field>
             <Field label="Camion">
-              <Select value={trayectoForm.unidadId} onChange={(e) => setTrayectoForm({ ...trayectoForm, unidadId: e.target.value })}>
-                <option value="">Selecciona...</option>
-                {unidades.items.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.economico}
-                  </option>
-                ))}
-              </Select>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  className="flex-1"
+                  value={unidades.items.find((u) => u.id === trayectoForm.unidadId)?.economico ?? ''}
+                  placeholder="Sin asignar"
+                />
+                <GhostButton type="button" onClick={() => setUnidadPickerOpen(true)}>
+                  <MoreHorizontal size={16} />
+                </GhostButton>
+              </div>
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Origen">

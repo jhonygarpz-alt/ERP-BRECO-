@@ -660,3 +660,10 @@ export interface ConceptoFacturacion {
   /** Clave del catalogo SAT c_ObjetoImp. */
   objetoImpuesto: string;
 }
+
+export interface Ruta {
+  id: string;
+  codigo: string;
+  descripcion: string;
+  activo: boolean;
+}

@@ -18,6 +18,7 @@ import type {
   Proveedor,
   ReporteExterno,
   Rol,
+  Ruta,
   SemaforoEntrega,
   TipoNotaEntregaTurno,
   TipoViaje,
@@ -882,6 +883,18 @@ export function conceptoFacturacionToRow(c: ConceptoFacturacion) {
     no_identificacion: c.noIdentificacion,
     objeto_impuesto: c.objetoImpuesto,
   };
+}
+
+export function rutaFromRow(row: Record<string, unknown>): Ruta {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    descripcion: row.descripcion as string,
+    activo: row.activo as boolean,
+  };
+}
+export function rutaToRow(r: Ruta) {
+  return { id: r.id, codigo: r.codigo || null, descripcion: r.descripcion, activo: r.activo };
 }
 
 export function grupoUnidadFromRow(row: Record<string, unknown>): GrupoUnidad {

@@ -23,6 +23,7 @@ import { GruposUnidadPage } from './pages/catalogos/GruposUnidadPage';
 import { TiposViajePage } from './pages/catalogos/TiposViajePage';
 import { ClasificacionesOperadorPage } from './pages/catalogos/ClasificacionesOperadorPage';
 import { ConceptosFacturacionPage } from './pages/catalogos/ConceptosFacturacionPage';
+import { RutasPage } from './pages/catalogos/RutasPage';
 import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
@@ -67,6 +68,7 @@ function App() {
                   <Route path="/catalogos/tipos-viaje" element={<TiposViajePage />} />
                   <Route path="/catalogos/clasificaciones-operador" element={<ClasificacionesOperadorPage />} />
                   <Route path="/catalogos/conceptos-facturacion" element={<ConceptosFacturacionPage />} />
+                  <Route path="/catalogos/rutas" element={<RutasPage />} />
                   <Route path="/catalogos/unidades" element={<UnidadesPage />} />
                   <Route path="/catalogos/remolques" element={<RemolquesPage />} />
                   <Route path="/catalogos/operadores" element={<OperadoresPage />} />

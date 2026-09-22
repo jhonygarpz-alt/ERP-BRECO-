@@ -14,6 +14,7 @@ import {
   Layers,
   Network,
   Receipt,
+  Map,
   type LucideIcon,
 } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -41,6 +42,7 @@ const catalogos: CatalogoTile[] = [
   { to: '/catalogos/tipos-viaje', label: 'Tipos de Viaje', icon: Truck, gradient: ['#38bdf8', '#0369a1'] },
   { to: '/catalogos/clasificaciones-operador', label: 'Clasificaciones de Operador', icon: Network, gradient: ['#f59e0b', '#92400e'] },
   { to: '/catalogos/conceptos-facturacion', label: 'Conceptos de Facturacion', icon: Receipt, gradient: ['#34d399', '#047857'] },
+  { to: '/catalogos/rutas', label: 'Rutas', icon: Map, gradient: ['#fb7185', '#be123c'] },
 ];
 
 function Tile({ tile }: { tile: CatalogoTile }) {
