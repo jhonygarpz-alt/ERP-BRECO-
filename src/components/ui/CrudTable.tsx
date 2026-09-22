@@ -17,6 +17,9 @@ interface CrudTableProps<T> {
   emptyMessage?: string;
   canEdit?: boolean;
   canDelete?: boolean;
+  /** Si se da, cada fila es clickeable y la que coincida con esta clave se resalta. */
+  selectedKey?: string | null;
+  onRowClick?: (row: T) => void;
 }
 
 export function CrudTable<T>({
@@ -28,6 +31,8 @@ export function CrudTable<T>({
   emptyMessage = 'Sin registros todavia.',
   canEdit = true,
   canDelete = true,
+  selectedKey,
+  onRowClick,
 }: CrudTableProps<T>) {
   const showActions = canEdit || canDelete;
 
@@ -56,7 +61,10 @@ export function CrudTable<T>({
             {rows.map((row) => (
               <tr
                 key={keyFn(row)}
-                className="border-b border-line-800/70 last:border-0 hover:bg-bg-700/40"
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={`border-b border-line-800/70 last:border-0 hover:bg-bg-700/40 ${onRowClick ? 'cursor-pointer' : ''} ${
+                  selectedKey && selectedKey === keyFn(row) ? 'bg-breco-500/10' : ''
+                }`}
               >
                 {columns.map((col) => (
                   <td key={col.header} className={`px-4 py-3 text-ink-300 ${col.className ?? ''}`}>
@@ -64,7 +72,7 @@ export function CrudTable<T>({
                   </td>
                 ))}
                 {showActions && (
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       {canEdit && (
                         <IconButton onClick={() => onEdit(row)} title="Editar">

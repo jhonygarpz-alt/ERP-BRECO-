@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, ScanLine, Trash2 } from 'lucide-react';
+import { Ban, ChevronLeft, ChevronRight, Copy, Eye, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
@@ -63,6 +63,8 @@ export function ViajesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [importarOpen, setImportarOpen] = useState(false);
   const [editing, setEditing] = useState<Viaje | null>(null);
+  const [soloLectura, setSoloLectura] = useState(false);
+  const [viajeSeleccionadoId, setViajeSeleccionadoId] = useState<string | null>(null);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [todasLasFechas, setTodasLasFechas] = useState(false);
   const [nuevoEstatusOpen, setNuevoEstatusOpen] = useState(false);
@@ -209,6 +211,7 @@ export function ViajesPage() {
     setForm(emptyForm());
     setTab('general');
     setTrayectoSeleccionadoId(null);
+    setSoloLectura(false);
     setModalOpen(true);
   }
 
@@ -217,11 +220,74 @@ export function ViajesPage() {
     setForm(v);
     setTab('general');
     setTrayectoSeleccionadoId(null);
+    setSoloLectura(false);
     setModalOpen(true);
+  }
+
+  function seleccionarFilaViaje(v: Viaje) {
+    setViajeSeleccionadoId((id) => (id === v.id ? null : v.id));
+  }
+
+  const viajeSeleccionado = filtered.find((v) => v.id === viajeSeleccionadoId) ?? null;
+
+  function abrirConsultarViajeSeleccionado() {
+    if (!viajeSeleccionado) return;
+    setEditing(viajeSeleccionado);
+    setForm(viajeSeleccionado);
+    setTab('general');
+    setTrayectoSeleccionadoId(null);
+    setSoloLectura(true);
+    setModalOpen(true);
+  }
+
+  function editarViajeSeleccionado() {
+    if (!viajeSeleccionado) return;
+    openEdit(viajeSeleccionado);
+  }
+
+  function clonarViajeSeleccionado() {
+    if (!viajeSeleccionado) return;
+    const { id: _idOriginal, ...resto } = viajeSeleccionado;
+    setEditing(null);
+    setForm({
+      ...resto,
+      folio: nextFolio(viajes.items),
+      loadNumber: '',
+      estatus: 'Programado',
+      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusHora: new Date().toTimeString().slice(0, 5),
+      trayectos: resto.trayectos.map((t) => ({ ...t, id: uid('tr') })),
+      materialesCarga: resto.materialesCarga.map((m) => ({ ...m, id: uid('mat') })),
+      conceptosFacturacionViaje: resto.conceptosFacturacionViaje.map((c) => ({ ...c, id: uid('cfv') })),
+    });
+    setTab('general');
+    setTrayectoSeleccionadoId(null);
+    setSoloLectura(false);
+    setModalOpen(true);
+  }
+
+  function cancelarViajeSeleccionado() {
+    if (!viajeSeleccionado) return;
+    if (!confirm(`Cancelar el viaje "${viajeSeleccionado.folio}"? Su estatus quedara como Cancelado.`)) return;
+    viajes.update(viajeSeleccionado.id, {
+      estatus: 'Cancelado',
+      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusHora: new Date().toTimeString().slice(0, 5),
+    });
+    setViajeSeleccionadoId(null);
+  }
+
+  function imprimirViajeSeleccionado() {
+    if (!viajeSeleccionado) return;
+    window.open(`#/viajes/imprimir/${viajeSeleccionado.id}`, '_blank');
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (soloLectura) {
+      setModalOpen(false);
+      return;
+    }
     const primerTrayecto = form.trayectos[0];
     const remolquePrincipal = cajas.items.find((c) => c.id === form.remolque1Id);
     const payload: Omit<Viaje, 'id'> = {
@@ -767,6 +833,27 @@ export function ViajesPage() {
         </label>
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-line-800 bg-bg-900 p-2">
+        <span className="px-2 text-xs uppercase tracking-wide text-ink-500">
+          {viajeSeleccionado ? `Viaje ${viajeSeleccionado.folio}` : 'Selecciona un viaje de la tabla'}
+        </span>
+        <GhostButton type="button" disabled={!viajeSeleccionado} onClick={abrirConsultarViajeSeleccionado}>
+          <Eye size={16} /> Consultar Viaje
+        </GhostButton>
+        <GhostButton type="button" disabled={!viajeSeleccionado} onClick={imprimirViajeSeleccionado}>
+          <Printer size={16} /> Imprimir Viaje
+        </GhostButton>
+        <GhostButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={editarViajeSeleccionado}>
+          <Pencil size={16} /> Editar Viaje
+        </GhostButton>
+        <GhostButton type="button" disabled={!viajeSeleccionado || !puedeCrear} onClick={clonarViajeSeleccionado}>
+          <Copy size={16} /> Clonar Viaje
+        </GhostButton>
+        <GhostButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={cancelarViajeSeleccionado}>
+          <Ban size={16} /> Cancelar Viaje
+        </GhostButton>
+      </div>
+
       <CrudTable
         columns={columns}
         rows={filtered}
@@ -775,15 +862,18 @@ export function ViajesPage() {
         onDelete={handleDelete}
         canEdit={puedeEditar}
         canDelete={puedeEliminar}
+        selectedKey={viajeSeleccionadoId}
+        onRowClick={seleccionarFilaViaje}
       />
 
       {modalOpen && (
         <Modal
-          title={editing ? `Editando Viaje ${editing.folio}` : 'Agregando Viaje'}
+          title={soloLectura ? `Consultando Viaje ${editing?.folio ?? ''}` : editing ? `Editando Viaje ${editing.folio}` : 'Agregando Viaje'}
           onClose={() => setModalOpen(false)}
           wide="xl"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
+          <fieldset disabled={soloLectura} className="space-y-4">
             {/* ---- Encabezado ---- */}
             <div className="grid grid-cols-2 gap-3 rounded-xl border border-line-800 bg-bg-900 p-4 sm:grid-cols-5">
               <Field label="Sucursal">
@@ -1434,11 +1524,21 @@ export function ViajesPage() {
               </div>
             )}
 
+          </fieldset>
+
             <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
-              <GhostButton type="button" onClick={() => setModalOpen(false)}>
-                Cancelar
-              </GhostButton>
-              <PrimaryButton type="submit">{editing ? 'Guardar cambios' : 'Aceptar'}</PrimaryButton>
+              {soloLectura ? (
+                <GhostButton type="button" onClick={() => setModalOpen(false)}>
+                  Cerrar
+                </GhostButton>
+              ) : (
+                <>
+                  <GhostButton type="button" onClick={() => setModalOpen(false)}>
+                    Cancelar
+                  </GhostButton>
+                  <PrimaryButton type="submit">{editing ? 'Guardar cambios' : 'Aceptar'}</PrimaryButton>
+                </>
+              )}
             </div>
           </form>
         </Modal>

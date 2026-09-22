@@ -28,6 +28,7 @@ import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
+import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { EntregaTurnoPage } from './pages/EntregaTurnoPage';
@@ -101,6 +102,8 @@ function App() {
                   <Route path="/configuracion" element={<ConfiguracionPage />} />
                 </Route>
               </Route>
+
+              <Route path="/viajes/imprimir/:id" element={<ImprimirViajePage />} />
             </Route>
           </Routes>
         </HashRouter>
