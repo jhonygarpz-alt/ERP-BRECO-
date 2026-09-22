@@ -27,11 +27,12 @@ export function useClaveProdServSat(termino: string): ClaveProdServSugerida[] {
     }
     let cancelado = false;
     const timeout = setTimeout(async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('clave_prod_serv_sat')
         .select('clave, descripcion')
         .or(`clave.ilike.${limpio}%,descripcion.ilike.%${limpio}%`)
         .limit(LIMITE_RESULTADOS);
+      if (error) console.error('Error buscando clave_prod_serv_sat:', error);
       if (!cancelado) setResultados(data ?? []);
     }, 350);
     return () => {
@@ -55,11 +56,12 @@ export function useClaveUnidadSat(termino: string): ClaveUnidadSugerida[] {
     }
     let cancelado = false;
     const timeout = setTimeout(async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('clave_unidad_sat')
         .select('clave, nombre, simbolo')
         .or(`clave.ilike.${limpio}%,nombre.ilike.%${limpio}%`)
         .limit(LIMITE_RESULTADOS);
+      if (error) console.error('Error buscando clave_unidad_sat:', error);
       if (!cancelado) setResultados(data ?? []);
     }, 350);
     return () => {
