@@ -18,6 +18,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { ListaSeleccionModal } from '../../components/ui/ListaSeleccionModal';
+import { ComboBoxCodigo } from '../../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 import { TrazarRutaModal } from '../../components/viajes/TrazarRutaModal';
@@ -518,10 +519,20 @@ export function RutasPage() {
 
               <Field label="Cliente">
                 <div className="flex gap-2">
-                  <Input readOnly className="flex-1" value={clienteSeleccionado?.nombre ?? ''} placeholder="Sin cliente" />
+                  <ComboBoxCodigo<Cliente>
+                    className="w-24"
+                    items={clientes.items}
+                    valor={clienteSeleccionado?.numeroCliente ?? ''}
+                    obtenerCodigo={(c) => c.numeroCliente}
+                    obtenerEtiqueta={(c) => c.nombre}
+                    onSeleccionar={(c) => setForm((f) => ({ ...f, clienteId: c.id }))}
+                    onLimpiar={() => setForm((f) => ({ ...f, clienteId: undefined }))}
+                    placeholder="Nro."
+                  />
                   <GhostButton type="button" onClick={() => setClientePickerOpen(true)}>
                     <MoreHorizontal size={16} />
                   </GhostButton>
+                  <Input readOnly className="flex-1" value={clienteSeleccionado?.nombre ?? ''} placeholder="Sin cliente" />
                 </div>
               </Field>
 
@@ -532,18 +543,38 @@ export function RutasPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Origen">
                   <div className="flex gap-2">
-                    <Input readOnly className="flex-1" value={origenSeleccionado?.nombre ?? ''} placeholder="Sin asignar" />
+                    <ComboBoxCodigo<Destinatario>
+                      className="w-20"
+                      items={destinatarios.items}
+                      valor={origenSeleccionado?.numero ?? ''}
+                      obtenerCodigo={(d) => d.numero}
+                      obtenerEtiqueta={(d) => d.nombre}
+                      onSeleccionar={(d) => setForm((f) => ({ ...f, origenId: d.id }))}
+                      onLimpiar={() => setForm((f) => ({ ...f, origenId: undefined }))}
+                      placeholder="Nro."
+                    />
                     <GhostButton type="button" onClick={() => setOrigenPickerOpen(true)}>
                       <MoreHorizontal size={16} />
                     </GhostButton>
+                    <Input readOnly className="flex-1" value={origenSeleccionado?.nombre ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
                 <Field label="Destino">
                   <div className="flex gap-2">
-                    <Input readOnly className="flex-1" value={destinoSeleccionado?.nombre ?? ''} placeholder="Sin asignar" />
+                    <ComboBoxCodigo<Destinatario>
+                      className="w-20"
+                      items={destinatarios.items}
+                      valor={destinoSeleccionado?.numero ?? ''}
+                      obtenerCodigo={(d) => d.numero}
+                      obtenerEtiqueta={(d) => d.nombre}
+                      onSeleccionar={(d) => setForm((f) => ({ ...f, destinoId: d.id }))}
+                      onLimpiar={() => setForm((f) => ({ ...f, destinoId: undefined }))}
+                      placeholder="Nro."
+                    />
                     <GhostButton type="button" onClick={() => setDestinoPickerOpen(true)}>
                       <MoreHorizontal size={16} />
                     </GhostButton>
+                    <Input readOnly className="flex-1" value={destinoSeleccionado?.nombre ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
               </div>
@@ -562,18 +593,36 @@ export function RutasPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Tipo de Viaje">
                   <div className="flex gap-2">
-                    <Input readOnly className="flex-1" value={tipoViajeSeleccionado?.tipoViaje ?? ''} placeholder="Sin asignar" />
+                    <ComboBoxCodigo<TipoViaje>
+                      className="w-16"
+                      items={tiposViaje.items.filter((t) => t.activo)}
+                      valor={tipoViajeSeleccionado?.codigo ?? ''}
+                      obtenerCodigo={(t) => t.codigo}
+                      obtenerEtiqueta={(t) => t.tipoViaje}
+                      onSeleccionar={(t) => setForm((f) => ({ ...f, tipoViajeId: t.id }))}
+                      onLimpiar={() => setForm((f) => ({ ...f, tipoViajeId: undefined }))}
+                    />
                     <GhostButton type="button" onClick={() => setTipoViajePickerOpen(true)}>
                       <MoreHorizontal size={16} />
                     </GhostButton>
+                    <Input readOnly className="flex-1" value={tipoViajeSeleccionado?.tipoViaje ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
                 <Field label="Clasificacion">
                   <div className="flex gap-2">
-                    <Input readOnly className="flex-1" value={clasificacionSeleccionada?.clasificacion ?? ''} placeholder="Sin asignar" />
+                    <ComboBoxCodigo<ClasificacionViaje>
+                      className="w-16"
+                      items={clasificacionesViaje.items.filter((c) => c.activo)}
+                      valor={clasificacionSeleccionada?.codigo ?? ''}
+                      obtenerCodigo={(c) => c.codigo}
+                      obtenerEtiqueta={(c) => c.clasificacion}
+                      onSeleccionar={(c) => setForm((f) => ({ ...f, clasificacionId: c.id }))}
+                      onLimpiar={() => setForm((f) => ({ ...f, clasificacionId: undefined }))}
+                    />
                     <GhostButton type="button" onClick={() => setClasificacionPickerOpen(true)}>
                       <MoreHorizontal size={16} />
                     </GhostButton>
+                    <Input readOnly className="flex-1" value={clasificacionSeleccionada?.clasificacion ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
               </div>
@@ -722,7 +771,14 @@ export function RutasPage() {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-6">
                   <Field label="Concepto de Facturacion">
                     <div className="flex gap-2">
-                      <Input readOnly className="w-16" value={conceptoLineaForm.conceptoFacturacionId ? '...' : ''} />
+                      <ComboBoxCodigo<ConceptoFacturacion>
+                        className="w-16"
+                        items={conceptosFacturacion.items.filter((c) => c.activo)}
+                        valor={conceptosFacturacion.items.find((c) => c.id === conceptoLineaForm.conceptoFacturacionId)?.codigo ?? ''}
+                        obtenerCodigo={(c) => c.codigo}
+                        obtenerEtiqueta={(c) => c.concepto}
+                        onSeleccionar={seleccionarConcepto}
+                      />
                       <GhostButton type="button" onClick={() => setConceptoPickerOpen(true)}>
                         <MoreHorizontal size={16} />
                       </GhostButton>

@@ -9,6 +9,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
 import { ListaSeleccionModal } from '../components/ui/ListaSeleccionModal';
+import { ComboBoxCodigo } from '../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
@@ -314,6 +315,35 @@ export function ViajesPage() {
     if (!trayectoSeleccionadoId) return;
     setForm((f) => ({ ...f, trayectos: f.trayectos.filter((t) => t.id !== trayectoSeleccionadoId) }));
     setTrayectoSeleccionadoId(null);
+  }
+
+  // La Ruta funciona como plantilla: al elegirla se copian sus trayectos,
+  // conceptos de facturacion y mercancias precargados.
+  function seleccionarRuta(r: Ruta) {
+    const trayectosCopiados: ViajeTrayecto[] = r.trayectos.map((t) => ({
+      id: uid('tr'),
+      operadorId: '',
+      unidadId: '',
+      origen: t.origen,
+      destino: t.destino,
+      cvR1: '',
+      cvR2: '',
+    }));
+    const conceptosCopiados = r.conceptosFacturacion.map((c) => ({ ...c, id: uid('cfv') }));
+    const materialesCopiados = r.materialesCarga.map((m) => ({ ...m, id: uid('mat') }));
+    setForm((f) => ({
+      ...f,
+      rutaCodigo: r.codigo,
+      rutaDescripcion: r.descripcion,
+      kilometros: r.kilometros || f.kilometros,
+      clienteId: f.clienteId || r.clienteId || '',
+      trayectos: trayectosCopiados.length > 0 ? trayectosCopiados : f.trayectos,
+      conceptosFacturacionViaje: conceptosCopiados.length > 0 ? conceptosCopiados : f.conceptosFacturacionViaje,
+      materialesCarga: materialesCopiados.length > 0 ? materialesCopiados : f.materialesCarga,
+      pesoCargaTotal:
+        materialesCopiados.length > 0 ? materialesCopiados.reduce((acc, m) => acc + (m.peso || 0), 0) : f.pesoCargaTotal,
+    }));
+    setRutaPickerOpen(false);
   }
 
   // ---- Mercancias ----
@@ -783,7 +813,14 @@ export function ViajesPage() {
               <div className="flex flex-1 gap-2">
                 <div className="w-28">
                   <Field label="Nro Cliente">
-                    <Input value={clienteSeleccionado?.numeroCliente ?? ''} readOnly />
+                    <ComboBoxCodigo<Cliente>
+                      items={clientes.items}
+                      valor={clienteSeleccionado?.numeroCliente ?? ''}
+                      obtenerCodigo={(c) => c.numeroCliente}
+                      obtenerEtiqueta={(c) => c.nombre}
+                      onSeleccionar={(c) => setForm((f) => ({ ...f, clienteId: c.id }))}
+                      onLimpiar={() => setForm((f) => ({ ...f, clienteId: '' }))}
+                    />
                   </Field>
                 </div>
                 <div className="flex-1">
@@ -826,7 +863,15 @@ export function ViajesPage() {
                       <div className="flex-1">
                         <Field label="Ruta">
                           <div className="flex gap-2">
-                            <Input className="w-20" readOnly value={form.rutaCodigo} />
+                            <ComboBoxCodigo<Ruta>
+                              className="w-20"
+                              items={rutas.items.filter((r) => r.activo)}
+                              valor={form.rutaCodigo}
+                              obtenerCodigo={(r) => r.codigo}
+                              obtenerEtiqueta={(r) => r.descripcion}
+                              onSeleccionar={seleccionarRuta}
+                              onLimpiar={() => setForm((f) => ({ ...f, rutaCodigo: '', rutaDescripcion: '' }))}
+                            />
                             <GhostButton type="button" onClick={() => setRutaPickerOpen(true)}>
                               <MoreHorizontal size={16} />
                             </GhostButton>
@@ -1020,7 +1065,14 @@ export function ViajesPage() {
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <Field label="Remolque">
                         <div className="flex gap-2">
-                          <Input readOnly value={remolque1?.economico ?? ''} />
+                          <ComboBoxCodigo<Caja>
+                            items={cajas.items.filter((c) => c.grupoUnidades.toUpperCase() !== 'DOLLY')}
+                            valor={remolque1?.economico ?? ''}
+                            obtenerCodigo={(c) => c.economico}
+                            obtenerEtiqueta={(c) => `${c.marca ?? ''} ${c.modelo ?? ''}`}
+                            onSeleccionar={(c) => setForm((f) => ({ ...f, remolque1Id: c.id }))}
+                            onLimpiar={() => setForm((f) => ({ ...f, remolque1Id: undefined }))}
+                          />
                           <GhostButton type="button" onClick={() => setRemolque1PickerOpen(true)}>
                             <MoreHorizontal size={16} />
                           </GhostButton>
@@ -1034,7 +1086,14 @@ export function ViajesPage() {
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <Field label="Dolly">
                         <div className="flex gap-2">
-                          <Input readOnly value={dolly?.economico ?? ''} />
+                          <ComboBoxCodigo<Caja>
+                            items={cajas.items.filter((c) => c.grupoUnidades.toUpperCase() === 'DOLLY')}
+                            valor={dolly?.economico ?? ''}
+                            obtenerCodigo={(c) => c.economico}
+                            obtenerEtiqueta={(c) => `${c.marca ?? ''} ${c.modelo ?? ''}`}
+                            onSeleccionar={(c) => setForm((f) => ({ ...f, dollyId: c.id }))}
+                            onLimpiar={() => setForm((f) => ({ ...f, dollyId: undefined }))}
+                          />
                           <GhostButton type="button" onClick={() => setDollyPickerOpen(true)}>
                             <MoreHorizontal size={16} />
                           </GhostButton>
@@ -1048,7 +1107,14 @@ export function ViajesPage() {
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <Field label="Remolque">
                         <div className="flex gap-2">
-                          <Input readOnly value={remolque2?.economico ?? ''} />
+                          <ComboBoxCodigo<Caja>
+                            items={cajas.items.filter((c) => c.grupoUnidades.toUpperCase() !== 'DOLLY')}
+                            valor={remolque2?.economico ?? ''}
+                            obtenerCodigo={(c) => c.economico}
+                            obtenerEtiqueta={(c) => `${c.marca ?? ''} ${c.modelo ?? ''}`}
+                            onSeleccionar={(c) => setForm((f) => ({ ...f, remolque2Id: c.id }))}
+                            onLimpiar={() => setForm((f) => ({ ...f, remolque2Id: undefined }))}
+                          />
                           <GhostButton type="button" onClick={() => setRemolque2PickerOpen(true)}>
                             <MoreHorizontal size={16} />
                           </GhostButton>
@@ -1267,7 +1333,14 @@ export function ViajesPage() {
                   <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-6">
                     <Field label="Concepto de Facturacion">
                       <div className="flex gap-2">
-                        <Input readOnly className="w-16" value={conceptoLineaForm.conceptoFacturacionId ? '...' : ''} />
+                        <ComboBoxCodigo<ConceptoFacturacion>
+                          className="w-16"
+                          items={conceptosFacturacion.items.filter((c) => c.activo)}
+                          valor={conceptosFacturacion.items.find((c) => c.id === conceptoLineaForm.conceptoFacturacionId)?.codigo ?? ''}
+                          obtenerCodigo={(c) => c.codigo}
+                          obtenerEtiqueta={(c) => c.concepto}
+                          onSeleccionar={seleccionarConcepto}
+                        />
                         <GhostButton type="button" onClick={() => setConceptoPickerOpen(true)}>
                           <MoreHorizontal size={16} />
                         </GhostButton>
@@ -1567,36 +1640,7 @@ export function ViajesPage() {
               <td className="px-3 py-2 text-ink-200">{r.descripcion}</td>
             </>
           )}
-          onSelect={(r) => {
-            // La Ruta funciona como plantilla: al elegirla se copian sus
-            // trayectos, conceptos de facturacion y mercancias precargados.
-            const trayectosCopiados: ViajeTrayecto[] = r.trayectos.map((t) => ({
-              id: uid('tr'),
-              operadorId: '',
-              unidadId: '',
-              origen: t.origen,
-              destino: t.destino,
-              cvR1: '',
-              cvR2: '',
-            }));
-            const conceptosCopiados = r.conceptosFacturacion.map((c) => ({ ...c, id: uid('cfv') }));
-            const materialesCopiados = r.materialesCarga.map((m) => ({ ...m, id: uid('mat') }));
-            setForm((f) => ({
-              ...f,
-              rutaCodigo: r.codigo,
-              rutaDescripcion: r.descripcion,
-              kilometros: r.kilometros || f.kilometros,
-              clienteId: f.clienteId || r.clienteId || '',
-              trayectos: trayectosCopiados.length > 0 ? trayectosCopiados : f.trayectos,
-              conceptosFacturacionViaje: conceptosCopiados.length > 0 ? conceptosCopiados : f.conceptosFacturacionViaje,
-              materialesCarga: materialesCopiados.length > 0 ? materialesCopiados : f.materialesCarga,
-              pesoCargaTotal:
-                materialesCopiados.length > 0
-                  ? materialesCopiados.reduce((acc, m) => acc + (m.peso || 0), 0)
-                  : f.pesoCargaTotal,
-            }));
-            setRutaPickerOpen(false);
-          }}
+          onSelect={seleccionarRuta}
           onClose={() => setRutaPickerOpen(false)}
           accionExtra={{ label: 'Agregar Ruta', onClick: abrirNuevaRuta }}
         />
@@ -1740,10 +1784,14 @@ export function ViajesPage() {
             </Field>
             <Field label="Camion">
               <div className="flex gap-2">
-                <Input
-                  readOnly
+                <ComboBoxCodigo<Unidad>
                   className="flex-1"
-                  value={unidades.items.find((u) => u.id === trayectoForm.unidadId)?.economico ?? ''}
+                  items={unidades.items}
+                  valor={unidades.items.find((u) => u.id === trayectoForm.unidadId)?.economico ?? ''}
+                  obtenerCodigo={(u) => u.economico}
+                  obtenerEtiqueta={(u) => `${u.marca ?? ''} ${u.modelo ?? ''}`}
+                  onSeleccionar={(u) => setTrayectoForm((f) => ({ ...f, unidadId: u.id }))}
+                  onLimpiar={() => setTrayectoForm((f) => ({ ...f, unidadId: '' }))}
                   placeholder="Sin asignar"
                 />
                 <GhostButton type="button" onClick={() => setUnidadPickerOpen(true)}>
