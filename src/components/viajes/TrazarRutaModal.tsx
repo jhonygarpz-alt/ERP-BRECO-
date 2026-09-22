@@ -2,8 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Loader2, MapPin } from 'lucide-react';
-import { buscarSugerenciasDireccion, calcularRuta, geocodificarDireccion, type PuntoGeocodificado, type RutaCalculada } from '../../lib/rutaMapa';
+import {
+  buscarSugerenciasDireccion,
+  calcularRuta,
+  geocodificarDireccion,
+  type PuntoGeocodificado,
+  type RutaCalculada,
+  type SugerenciaDireccion,
+} from '../../lib/rutaMapa';
 import { mensajeDeError } from '../../lib/errors';
+import { googleMapsDisponible } from '../../lib/googlePlaces';
 import { Modal } from '../ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, inputClass } from '../ui/form';
 
@@ -13,7 +21,7 @@ import { Field, GhostButton, Input, PrimaryButton, inputClass } from '../ui/form
 // el texto cambia porque el propio usuario eligio una sugerencia (ya no hace
 // falta volver a buscar esa misma direccion).
 function useSugerenciasDireccion(texto: string) {
-  const [sugerencias, setSugerencias] = useState<PuntoGeocodificado[]>([]);
+  const [sugerencias, setSugerencias] = useState<SugerenciaDireccion[]>([]);
   const [buscando, setBuscando] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saltarRef = useRef(false);
@@ -70,8 +78,8 @@ function CampoDireccion({
   label: string;
   valor: string;
   onCambiar: (texto: string) => void;
-  onSeleccionar: (punto: PuntoGeocodificado) => void;
-  sugerencias: PuntoGeocodificado[];
+  onSeleccionar: (sugerencia: SugerenciaDireccion) => void;
+  sugerencias: SugerenciaDireccion[];
   buscando: boolean;
   abierto: boolean;
   onAbrir: () => void;
@@ -100,13 +108,13 @@ function CampoDireccion({
           )}
           {sugerencias.map((s, i) => (
             <li
-              key={`${s.lat}-${s.lon}-${i}`}
+              key={i}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onSeleccionar(s)}
               className="flex cursor-pointer items-start gap-2 px-3 py-2 text-sm text-ink-200 hover:bg-bg-700"
             >
               <MapPin size={14} className="mt-0.5 shrink-0 text-breco-500" />
-              <span>{s.displayName}</span>
+              <span>{s.texto}</span>
             </li>
           ))}
         </ul>
@@ -160,20 +168,33 @@ export function TrazarRutaModal({
     };
   }, []);
 
-  function seleccionarOrigen(punto: PuntoGeocodificado) {
+  // Con Nominatim las coordenadas ya vienen en la sugerencia; con Google
+  // Places hace falta una segunda consulta ("Place Details") para obtenerlas,
+  // asi que resolver() es async en ambos casos. Si esa consulta llega a
+  // fallar, origenPunto/destinoPunto quedan en null y "Trazar Ruta" vuelve a
+  // geocodificar el texto como respaldo.
+  async function seleccionarOrigen(sugerencia: SugerenciaDireccion) {
     origenSug.saltarSiguienteBusqueda();
-    setOrigenTexto(punto.displayName);
-    setOrigenPunto(punto);
+    setOrigenTexto(sugerencia.texto);
     setOrigenAbierto(false);
     origenSug.limpiar();
+    try {
+      setOrigenPunto(await sugerencia.resolver());
+    } catch {
+      setOrigenPunto(null);
+    }
   }
 
-  function seleccionarDestino(punto: PuntoGeocodificado) {
+  async function seleccionarDestino(sugerencia: SugerenciaDireccion) {
     destinoSug.saltarSiguienteBusqueda();
-    setDestinoTexto(punto.displayName);
-    setDestinoPunto(punto);
+    setDestinoTexto(sugerencia.texto);
     setDestinoAbierto(false);
     destinoSug.limpiar();
+    try {
+      setDestinoPunto(await sugerencia.resolver());
+    } catch {
+      setDestinoPunto(null);
+    }
   }
 
   async function trazar() {
@@ -230,7 +251,16 @@ export function TrazarRutaModal({
   }
 
   return (
-    <Modal title="Trazar Ruta" subtitle="Geocodificacion y ruteo con OpenStreetMap (gratuito) · direcciones de Mexico" onClose={onClose} wide="xl">
+    <Modal
+      title="Trazar Ruta"
+      subtitle={
+        googleMapsDisponible()
+          ? 'Busqueda con Google Places (reconoce nombres de negocios) · ruteo con OpenStreetMap'
+          : 'Geocodificacion y ruteo con OpenStreetMap (gratuito) · direcciones de Mexico'
+      }
+      onClose={onClose}
+      wide="xl"
+    >
       <div className="space-y-3">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <CampoDireccion
