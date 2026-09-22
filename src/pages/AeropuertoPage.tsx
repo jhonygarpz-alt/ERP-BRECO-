@@ -11,12 +11,14 @@ import {
   X,
   Trash2,
   Plus,
+  LogOut,
+  Flag,
 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
 import type { Tone } from '../components/ui/Badge';
-import type { Viaje } from '../types';
+import type { EstatusViajeCustom, Viaje } from '../types';
 import { StatCard } from '../components/ui/StatCard';
 import { GhostButton, Input, inputClass } from '../components/ui/form';
 
@@ -106,7 +108,44 @@ function Reloj() {
   );
 }
 
-function AvanceModal({ viaje, onClose }: { viaje: Viaje; onClose: () => void }) {
+/** Linea de tiempo horizontal Origen -> Destino con un camion animado que
+ * marca el avance real (mismo porcentaje que BarraAvance/avanceTransito). */
+function LineaTiempoRuta({ origen, destino, fraccion }: { origen: string; destino: string; fraccion: number | null }) {
+  const pct = fraccion === null ? 0 : Math.min(Math.max(fraccion, 0), 1) * 100;
+  const demorado = fraccion !== null && fraccion > 1;
+  return (
+    <div className="mb-5">
+      <div className="mb-3 flex items-center justify-between text-xs text-ink-500">
+        <span>
+          Origen: <span className="font-medium text-ink-200">{origen || 'N/D'}</span>
+        </span>
+        <span>
+          Destino: <span className="font-medium text-ink-200">{destino || 'N/D'}</span>
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-emerald-500" />
+        <div className="relative h-0.5 flex-1">
+          <div className="absolute inset-x-0 top-0 border-t-2 border-dashed border-line-700" />
+          <div
+            className={`absolute left-0 top-0 h-0.5 rounded-full ${demorado ? 'bg-red-500' : 'bg-emerald-500'}`}
+            style={{ width: `${pct}%` }}
+          />
+          <div className="absolute top-1/2 transition-[left] duration-1000 ease-linear" style={{ left: `${pct}%`, transform: 'translate(-50%, -50%)' }}>
+            <div className={`flex h-7 w-7 items-center justify-center rounded-full ring-4 ${demorado ? 'bg-red-500 ring-red-500/20' : 'bg-blue-500 ring-blue-500/20'}`}>
+              <Truck size={14} className="text-white [animation:camion-manejando_0.6s_ease-in-out_infinite]" />
+            </div>
+          </div>
+        </div>
+        <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full border-2 border-line-600 bg-bg-800" />
+      </div>
+      {fraccion === null && <p className="mt-3 text-center text-xs text-ink-600">Aun no se registra la salida a ruta.</p>}
+      {demorado && <p className="mt-3 text-center text-xs text-red-400">Excedio el tiempo de transito autorizado.</p>}
+    </div>
+  );
+}
+
+function AvanceModal({ viaje, ahora, onClose }: { viaje: Viaje; ahora: Date; onClose: () => void }) {
   const { viajeUbicaciones, viajes } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -148,6 +187,8 @@ function AvanceModal({ viaje, onClose }: { viaje: Viaje; onClose: () => void }) 
         </div>
 
         <div className="px-6 py-5">
+          <LineaTiempoRuta origen={viaje.origen} destino={viaje.destino} fraccion={avanceTransito(viaje, ahora)} />
+
           {inicio && limite ? (
             <p className="mb-4 text-xs text-ink-500">
               Salio a ruta el {inicio.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })} &middot; limite
@@ -239,7 +280,10 @@ function Tablero({
   puedeEditar,
   colorEstatus,
   unidadNombre,
-  onTerminar,
+  estatusOpciones,
+  onCambiarEstatus,
+  onDarSalida,
+  onDarLlegada,
   onCambiarHora,
   onVerAvance,
 }: {
@@ -249,7 +293,10 @@ function Tablero({
   puedeEditar: boolean;
   colorEstatus: (nombre: string) => Tone | null;
   unidadNombre: (id: string) => string;
-  onTerminar: (v: Viaje) => void;
+  estatusOpciones: EstatusViajeCustom[];
+  onCambiarEstatus: (v: Viaje, estatus: string) => void;
+  onDarSalida: (v: Viaje) => void;
+  onDarLlegada: (v: Viaje) => void;
   onCambiarHora: (v: Viaje, hora: string) => void;
   onVerAvance: (v: Viaje) => void;
 }) {
@@ -309,7 +356,24 @@ function Tablero({
                   <td className="px-4 py-2.5 uppercase">{v.origen || 'N/D'}</td>
                   <td className="px-4 py-2.5 uppercase">{v.destino || 'N/D'}</td>
                   <td className="px-4 py-2.5 font-semibold text-ink-100">{unidadNombre(v.unidadId)}</td>
-                  <td className={`px-4 py-2.5 font-bold ${TONE_TEXT[etiqueta.tono]}`}>{etiqueta.texto}</td>
+                  <td className="px-4 py-2.5">
+                    {puedeEditar ? (
+                      <select
+                        value={v.estatus}
+                        onChange={(e) => onCambiarEstatus(v, e.target.value)}
+                        className={`rounded border border-line-700 bg-bg-800 px-1.5 py-1 text-xs font-bold outline-none focus:border-breco-500 ${TONE_TEXT[etiqueta.tono]}`}
+                      >
+                        {!estatusOpciones.some((es) => es.nombre === v.estatus) && <option value={v.estatus}>{v.estatus}</option>}
+                        {estatusOpciones.map((es) => (
+                          <option key={es.id} value={es.nombre}>
+                            {es.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`font-bold ${TONE_TEXT[etiqueta.tono]}`}>{etiqueta.texto}</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
                       <div className="w-16">{fraccion !== null && <BarraAvance fraccion={fraccion} />}</div>
@@ -325,11 +389,30 @@ function Tablero({
                   </td>
                   {puedeEditar && (
                     <td className="px-4 py-2.5">
-                      {!terminado && (
-                        <GhostButton type="button" onClick={() => onTerminar(v)} className="py-1 text-xs">
-                          Terminar
-                        </GhostButton>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {!v.horaSalida && !terminado && (
+                          <button
+                            type="button"
+                            onClick={() => onDarSalida(v)}
+                            title="Dar salida a ruta"
+                            className="flex items-center gap-1 rounded-lg bg-blue-500/15 px-2.5 py-1.5 text-xs font-semibold text-blue-400 transition hover:bg-blue-500/25"
+                          >
+                            <LogOut size={13} />
+                            Dar Salida
+                          </button>
+                        )}
+                        {!terminado && (
+                          <button
+                            type="button"
+                            onClick={() => onDarLlegada(v)}
+                            title="Dar llegada"
+                            className="flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-1.5 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-500/25"
+                          >
+                            <Flag size={13} />
+                            Dar Llegada
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -374,8 +457,23 @@ export function AeropuertoPage() {
     return limite !== null && ahora.getTime() > limite.getTime();
   }).length;
 
-  function terminarViaje(v: Viaje) {
-    viajes.update(v.id, { estatus: 'Entregado' });
+  function darSalida(v: Viaje) {
+    viajes.update(v.id, {
+      horaSalida: v.horaSalida || new Date().toTimeString().slice(0, 5),
+      estatus: 'En transito',
+    });
+  }
+
+  function darLlegada(v: Viaje) {
+    viajes.update(v.id, {
+      estatus: 'Entregado',
+      fechaEntrega: new Date().toISOString().slice(0, 10),
+      horaEntregaReal: new Date().toTimeString().slice(0, 5),
+    });
+  }
+
+  function cambiarEstatusManual(v: Viaje, estatus: string) {
+    viajes.update(v.id, { estatus });
   }
 
   function cambiarHora(v: Viaje, hora: string) {
@@ -433,13 +531,16 @@ export function AeropuertoPage() {
           puedeEditar={puedeEditar}
           colorEstatus={colorEstatus}
           unidadNombre={unidadNombre}
-          onTerminar={terminarViaje}
+          estatusOpciones={estatusViajes.items}
+          onCambiarEstatus={cambiarEstatusManual}
+          onDarSalida={darSalida}
+          onDarLlegada={darLlegada}
           onCambiarHora={cambiarHora}
           onVerAvance={setViajeAvance}
         />
       </div>
 
-      {viajeAvance && <AvanceModal viaje={viajeAvance} onClose={() => setViajeAvance(null)} />}
+      {viajeAvance && <AvanceModal viaje={viajeAvance} ahora={ahora} onClose={() => setViajeAvance(null)} />}
     </div>
   );
 }

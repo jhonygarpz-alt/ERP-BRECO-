@@ -134,3 +134,17 @@ h1, h2, h3 {
 .scrollbar-none {
   scrollbar-width: none;
 }
+
+/* Camion de la linea de tiempo de avance (Pantalla Aeropuerto): un ligero
+   "manejar" en su lugar (rebote + cabeceo) para que se vea con movimiento
+   real y no como una imagen estatica, sin fingir velocidad de avance --
+   la posicion a lo largo de la ruta la sigue marcando el porcentaje real. */
+@keyframes camion-manejando {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+}
