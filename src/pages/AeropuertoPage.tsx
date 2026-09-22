@@ -60,9 +60,9 @@ function limiteTransito(v: Viaje): Date | null {
  * operacion. "DEMORADO" ya no se adivina: se calcula contra las 24 horas
  * maximas de transito autorizadas desde la hora real de salida a ruta.
  */
-function etiquetaTablero(v: Viaje, esSalida: boolean, ahora: Date, colorPersonalizado: Tone | null): EtiquetaEstatus {
+function etiquetaTablero(v: Viaje, ahora: Date, colorPersonalizado: Tone | null): EtiquetaEstatus {
   if (v.estatus === 'Cancelado') return { texto: 'CANCELADO', tono: 'red' };
-  if (v.estatus === 'Entregado') return { texto: esSalida ? 'SALIO' : 'ARRIBO', tono: 'green' };
+  if (v.estatus === 'Entregado') return { texto: 'ENTREGADO', tono: 'green' };
 
   const limite = limiteTransito(v);
   if (limite && ahora.getTime() > limite.getTime()) return { texto: 'DEMORADO', tono: 'red' };
@@ -235,7 +235,6 @@ function AvanceModal({ viaje, onClose }: { viaje: Viaje; onClose: () => void }) 
 function Tablero({
   titulo,
   filas,
-  esSalida,
   ahora,
   puedeEditar,
   colorEstatus,
@@ -246,7 +245,6 @@ function Tablero({
 }: {
   titulo: string;
   filas: Viaje[];
-  esSalida: boolean;
   ahora: Date;
   puedeEditar: boolean;
   colorEstatus: (nombre: string) => Tone | null;
@@ -259,11 +257,8 @@ function Tablero({
     <div className="flex-1 overflow-hidden rounded-2xl border border-amber-500/20 bg-[#0b0e14]">
       <div className="flex items-center justify-between border-b border-amber-500/20 bg-amber-500/5 px-5 py-4">
         <div className="flex items-center gap-3">
-          <Truck size={26} className={`text-amber-400 ${esSalida ? '' : '-scale-x-100'}`} />
-          <div>
-            <div className="text-xl font-black tracking-wide text-amber-400">{titulo}</div>
-            <div className="text-[11px] uppercase tracking-widest text-ink-500">{esSalida ? 'Salidas' : 'Llegadas'}</div>
-          </div>
+          <Truck size={26} className="text-amber-400" />
+          <div className="text-xl font-black tracking-wide text-amber-400">{titulo}</div>
         </div>
         <Reloj />
       </div>
@@ -285,12 +280,12 @@ function Tablero({
             {filas.length === 0 && (
               <tr>
                 <td colSpan={puedeEditar ? 8 : 7} className="px-4 py-8 text-center text-ink-600">
-                  Sin viajes {esSalida ? 'de exportacion' : 'de importacion'} para esta fecha.
+                  Sin viajes para esta fecha.
                 </td>
               </tr>
             )}
             {filas.map((v) => {
-              const etiqueta = etiquetaTablero(v, esSalida, ahora, colorEstatus(v.estatus));
+              const etiqueta = etiquetaTablero(v, ahora, colorEstatus(v.estatus));
               const terminado = v.estatus === 'Entregado' || v.estatus === 'Cancelado';
               const fraccion = avanceTransito(v, ahora);
               return (
@@ -366,13 +361,8 @@ export function AeropuertoPage() {
 
   const viajesDelDia = useMemo(() => viajes.items.filter((v) => v.fecha === fecha), [viajes.items, fecha]);
 
-  const salidas = useMemo(
-    () => viajesDelDia.filter((v) => v.exportacion).sort((a, b) => (a.horaSalida || '99:99').localeCompare(b.horaSalida || '99:99')),
-    [viajesDelDia],
-  );
-
-  const llegadas = useMemo(
-    () => viajesDelDia.filter((v) => v.importacion).sort((a, b) => (a.horaSalida || '99:99').localeCompare(b.horaSalida || '99:99')),
+  const viajesOrdenados = useMemo(
+    () => viajesDelDia.slice().sort((a, b) => (a.horaSalida || '99:99').localeCompare(b.horaSalida || '99:99')),
     [viajesDelDia],
   );
 
@@ -437,21 +427,8 @@ export function AeropuertoPage() {
 
       <div className="flex flex-col gap-4">
         <Tablero
-          titulo="EXPOS"
-          filas={salidas}
-          esSalida
-          ahora={ahora}
-          puedeEditar={puedeEditar}
-          colorEstatus={colorEstatus}
-          unidadNombre={unidadNombre}
-          onTerminar={terminarViaje}
-          onCambiarHora={cambiarHora}
-          onVerAvance={setViajeAvance}
-        />
-        <Tablero
-          titulo="IMPOS"
-          filas={llegadas}
-          esSalida={false}
+          titulo="VIAJES EN RUTA"
+          filas={viajesOrdenados}
           ahora={ahora}
           puedeEditar={puedeEditar}
           colorEstatus={colorEstatus}
