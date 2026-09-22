@@ -3,6 +3,7 @@ import type {
   ClasificacionOperador,
   ClasificacionViaje,
   Cliente,
+  ConceptoFacturacion,
   CuentaBancaria,
   Destinatario,
   Empresa,
@@ -780,6 +781,49 @@ export function clasificacionOperadorFromRow(row: Record<string, unknown>): Clas
 }
 export function clasificacionOperadorToRow(c: ClasificacionOperador) {
   return { id: c.id, codigo: c.codigo || null, clasificacion: c.clasificacion, activo: c.activo };
+}
+
+export function conceptoFacturacionFromRow(row: Record<string, unknown>): ConceptoFacturacion {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    concepto: row.concepto as string,
+    activo: row.activo as boolean,
+    traslados: (row.traslados as ConceptoFacturacion['traslados'] | null) ?? [],
+    retenciones: (row.retenciones as ConceptoFacturacion['retenciones'] | null) ?? [],
+    incluirCalculoIngresosLiquidacion: row.incluir_calculo_ingresos_liquidacion as boolean,
+    incluirCalculoLiquidacionPorcentajeFlete: row.incluir_calculo_liquidacion_pct_flete as boolean,
+    incluirReporteControlMovimientosInterterminal: row.incluir_reporte_cm_interterminal as boolean,
+    incluirReporteControlMovimientosTransporteGasolina: row.incluir_reporte_cm_transporte_gasolina as boolean,
+    claveProdServ: row.clave_prod_serv as string,
+    claveProdServDescripcion: row.clave_prod_serv_descripcion as string,
+    claveUnidad: row.clave_unidad as string,
+    claveUnidadNombre: row.clave_unidad_nombre as string,
+    unidadMedida: row.unidad_medida as string,
+    noIdentificacion: row.no_identificacion as string,
+    objetoImpuesto: row.objeto_impuesto as string,
+  };
+}
+export function conceptoFacturacionToRow(c: ConceptoFacturacion) {
+  return {
+    id: c.id,
+    codigo: c.codigo || null,
+    concepto: c.concepto,
+    activo: c.activo,
+    traslados: c.traslados,
+    retenciones: c.retenciones,
+    incluir_calculo_ingresos_liquidacion: c.incluirCalculoIngresosLiquidacion,
+    incluir_calculo_liquidacion_pct_flete: c.incluirCalculoLiquidacionPorcentajeFlete,
+    incluir_reporte_cm_interterminal: c.incluirReporteControlMovimientosInterterminal,
+    incluir_reporte_cm_transporte_gasolina: c.incluirReporteControlMovimientosTransporteGasolina,
+    clave_prod_serv: c.claveProdServ,
+    clave_prod_serv_descripcion: c.claveProdServDescripcion,
+    clave_unidad: c.claveUnidad,
+    clave_unidad_nombre: c.claveUnidadNombre,
+    unidad_medida: c.unidadMedida,
+    no_identificacion: c.noIdentificacion,
+    objeto_impuesto: c.objetoImpuesto,
+  };
 }
 
 export function grupoUnidadFromRow(row: Record<string, unknown>): GrupoUnidad {

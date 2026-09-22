@@ -565,3 +565,33 @@ export interface ClasificacionOperador {
   clasificacion: string;
   activo: boolean;
 }
+
+/** Una fila de la tabla Traslado o Retencion dentro de un Concepto de Facturacion (ej. "IVA 16%"). */
+export interface ImpuestoConcepto {
+  impuesto: string;
+  aplica: boolean;
+  predeterminado: boolean;
+}
+
+export interface ConceptoFacturacion {
+  id: string;
+  codigo: string;
+  concepto: string;
+  activo: boolean;
+  traslados: ImpuestoConcepto[];
+  retenciones: ImpuestoConcepto[];
+  incluirCalculoIngresosLiquidacion: boolean;
+  incluirCalculoLiquidacionPorcentajeFlete: boolean;
+  incluirReporteControlMovimientosInterterminal: boolean;
+  incluirReporteControlMovimientosTransporteGasolina: boolean;
+  /** Clave del catalogo SAT c_ClaveProdServ (CFDI). */
+  claveProdServ: string;
+  claveProdServDescripcion: string;
+  /** Clave del catalogo SAT c_ClaveUnidad (CFDI). */
+  claveUnidad: string;
+  claveUnidadNombre: string;
+  unidadMedida: string;
+  noIdentificacion: string;
+  /** Clave del catalogo SAT c_ObjetoImp. */
+  objetoImpuesto: string;
+}

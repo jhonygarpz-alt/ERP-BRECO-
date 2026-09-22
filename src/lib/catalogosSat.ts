@@ -83,3 +83,11 @@ export const SUBTIPO_REMOLQUE_SAT: ClaveSat[] = [
   { clave: 'CTR031', descripcion: 'Volteo' },
   { clave: 'CTR032', descripcion: 'Volteo Desmontable' },
 ];
+
+/** c_ObjetoImp -- si el concepto es objeto de impuesto (usado en Conceptos de Facturacion). */
+export const OBJETO_IMPUESTO_SAT: ClaveSat[] = [
+  { clave: '01', descripcion: 'No objeto de impuesto.' },
+  { clave: '02', descripcion: 'Si objeto de impuesto.' },
+  { clave: '03', descripcion: 'Si objeto del impuesto y no obligado al desglose.' },
+  { clave: '04', descripcion: 'Si objeto del impuesto y no causa impuesto.' },
+];
