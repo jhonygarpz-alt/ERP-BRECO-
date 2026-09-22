@@ -23,14 +23,23 @@ export function useSupabaseCollection<Row extends Record<string, unknown>, Item 
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from(table).select('*');
-    if (error) {
-      console.error(`Error cargando ${table}:`, error.message);
+    try {
+      const { data, error } = await supabase.from(table).select('*');
+      if (error) {
+        console.error(`Error cargando ${table}:`, error.message);
+        setLoading(false);
+        return;
+      }
+      setItems((data as Row[]).map(fromRow));
       setLoading(false);
-      return;
+    } catch (err) {
+      // Sin este catch, una falla de red al hacer el fetch (no un error que
+      // Supabase reporte, sino que la promesa rechace) deja setLoading(false)
+      // sin ejecutarse nunca y la pantalla queda en "Cargando..." para
+      // siempre, ya que estado='cargando' en AuthContext depende de esto.
+      console.error(`Error de red cargando ${table}:`, err);
+      setLoading(false);
     }
-    setItems((data as Row[]).map(fromRow));
-    setLoading(false);
   }, [table, fromRow]);
 
   useEffect(() => {

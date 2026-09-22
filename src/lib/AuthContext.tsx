@@ -22,10 +22,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [cargandoSesion, setCargandoSesion] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUserId(data.session?.user.id ?? null);
-      setCargandoSesion(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setUserId(data.session?.user.id ?? null);
+        setCargandoSesion(false);
+      })
+      .catch((err) => {
+        // Si Supabase Auth no responde (red inestable, servicio caido un
+        // instante, etc.) sin este catch la pantalla se queda en
+        // "Cargando..." para siempre porque setCargandoSesion(false) nunca
+        // se llama. Mejor mostrar el login y dejar que el usuario reintente.
+        console.error('No se pudo obtener la sesion:', err);
+        setCargandoSesion(false);
+      });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user.id ?? null);
       setCargandoSesion(false);
