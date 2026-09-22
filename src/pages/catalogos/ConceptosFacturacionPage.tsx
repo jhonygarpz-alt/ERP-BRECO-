@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { MoreHorizontal } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
@@ -287,25 +288,39 @@ export function ConceptosFacturacionPage() {
 
             <div>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-breco-500">Seccion Claves CFDI</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4">
                 <Field label="Clave Productos y Servicios">
-                  <div className="flex gap-2">
-                    <Input className="w-24 flex-shrink-0" value={form.claveProdServ} readOnly placeholder="Clave" />
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="flex flex-shrink-0 gap-2">
+                      <Input className="w-28" value={form.claveProdServ} readOnly placeholder="Clave" />
+                      <GhostButton
+                        type="button"
+                        title="Buscar en el catalogo SAT"
+                        onClick={() => setBuscarProdServOpen(true)}
+                      >
+                        <MoreHorizontal size={16} />
+                      </GhostButton>
+                    </div>
                     <Input className="flex-1" value={form.claveProdServDescripcion} readOnly placeholder="Descripcion" />
-                    <GhostButton type="button" onClick={() => setBuscarProdServOpen(true)}>
-                      ...
-                    </GhostButton>
                   </div>
                 </Field>
                 <Field label="Clave Unidad">
-                  <div className="flex gap-2">
-                    <Input className="w-24 flex-shrink-0" value={form.claveUnidad} readOnly placeholder="Clave" />
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="flex flex-shrink-0 gap-2">
+                      <Input className="w-28" value={form.claveUnidad} readOnly placeholder="Clave" />
+                      <GhostButton
+                        type="button"
+                        title="Buscar en el catalogo SAT"
+                        onClick={() => setBuscarUnidadOpen(true)}
+                      >
+                        <MoreHorizontal size={16} />
+                      </GhostButton>
+                    </div>
                     <Input className="flex-1" value={form.claveUnidadNombre} readOnly placeholder="Nombre" />
-                    <GhostButton type="button" onClick={() => setBuscarUnidadOpen(true)}>
-                      ...
-                    </GhostButton>
                   </div>
                 </Field>
+              </div>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Unidad Medida">
                   <Input value={form.unidadMedida} onChange={(e) => setForm({ ...form, unidadMedida: e.target.value })} />
                 </Field>
