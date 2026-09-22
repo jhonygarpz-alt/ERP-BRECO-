@@ -14,6 +14,7 @@ import {
   Settings,
   ClipboardList,
   ListChecks,
+  PieChart,
   PlaneTakeoff,
   Sun,
   Moon,
@@ -107,7 +108,7 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-const traficoRoutes = ['/viajes', '/viajes-del-dia', '/aeropuerto', '/programa', '/entrega-turno'];
+const traficoRoutes = ['/viajes', '/viajes-del-dia', '/aeropuerto', '/programa', '/entrega-turno', '/trafico/reportes'];
 
 export function Sidebar() {
   const location = useLocation();
@@ -142,6 +143,7 @@ export function Sidebar() {
       icon: ClipboardList,
       gradient: ['#f472b6', '#be185d'],
     },
+    puedeViajes && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart, gradient: ['#a78bfa', '#6d28d9'] },
   ].filter(Boolean) as { to: string; label: string; icon: LucideIcon; gradient: [string, string] }[];
 
   function abrirGrupo(setter: (v: boolean) => void) {

@@ -36,6 +36,13 @@ import { ViajesDelDiaPage } from './pages/ViajesDelDiaPage';
 import { AeropuertoPage } from './pages/AeropuertoPage';
 import { ReportesPage } from './pages/ReportesPage';
 import { ReportesOperativosPage } from './pages/ReportesOperativosPage';
+import { ReportesTraficoHubPage } from './pages/reportes-trafico/ReportesTraficoHubPage';
+import { ListadoViajesReportPage } from './pages/reportes-trafico/ListadoViajesReportPage';
+import { ViajesPendientesFacturarReportPage } from './pages/reportes-trafico/ViajesPendientesFacturarReportPage';
+import { IngresosPorOperadorReportPage } from './pages/reportes-trafico/IngresosPorOperadorReportPage';
+import { ViajesPorUnidadReportPage } from './pages/reportes-trafico/ViajesPorUnidadReportPage';
+import { EstatusViajesReportPage } from './pages/reportes-trafico/EstatusViajesReportPage';
+import { ImprimirReporteTraficoPage } from './pages/reportes-trafico/ImprimirReporteTraficoPage';
 import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
 function App() {
@@ -79,6 +86,12 @@ function App() {
                   <Route path="/viajes" element={<ViajesPage />} />
                   <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
                   <Route path="/aeropuerto" element={<AeropuertoPage />} />
+                  <Route path="/trafico/reportes" element={<ReportesTraficoHubPage />} />
+                  <Route path="/trafico/reportes/listado-viajes" element={<ListadoViajesReportPage />} />
+                  <Route path="/trafico/reportes/pendientes-facturar" element={<ViajesPendientesFacturarReportPage />} />
+                  <Route path="/trafico/reportes/ingresos-operador" element={<IngresosPorOperadorReportPage />} />
+                  <Route path="/trafico/reportes/viajes-unidad" element={<ViajesPorUnidadReportPage />} />
+                  <Route path="/trafico/reportes/estatus-viajes" element={<EstatusViajesReportPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Facturacion" />}>
@@ -104,6 +117,7 @@ function App() {
               </Route>
 
               <Route path="/viajes/imprimir/:id" element={<ImprimirViajePage />} />
+              <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
             </Route>
           </Routes>
         </HashRouter>
