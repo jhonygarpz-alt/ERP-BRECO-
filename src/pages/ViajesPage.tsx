@@ -42,6 +42,7 @@ function ListaSeleccionModal<T>({
   renderRow,
   onSelect,
   onClose,
+  accionExtra,
 }: {
   title: string;
   items: T[];
@@ -49,6 +50,7 @@ function ListaSeleccionModal<T>({
   renderRow: (item: T) => ReactNode;
   onSelect: (item: T) => void;
   onClose: () => void;
+  accionExtra?: { label: string; onClick: () => void };
 }) {
   const [termino, setTermino] = useState('');
   const filtrados = useMemo(() => items.filter((i) => filtro(i, termino.trim().toLowerCase())), [items, filtro, termino]);
@@ -56,7 +58,15 @@ function ListaSeleccionModal<T>({
   return (
     <Modal title={title} onClose={onClose}>
       <div className="space-y-3">
-        <Input autoFocus placeholder="Buscar..." value={termino} onChange={(e) => setTermino(e.target.value)} />
+        <div className="flex gap-2">
+          <Input autoFocus className="flex-1" placeholder="Buscar..." value={termino} onChange={(e) => setTermino(e.target.value)} />
+          {accionExtra && (
+            <GhostButton type="button" onClick={accionExtra.onClick}>
+              <Plus size={14} />
+              {accionExtra.label}
+            </GhostButton>
+          )}
+        </div>
         <div className="max-h-96 overflow-auto rounded-xl border border-line-800">
           {filtrados.length === 0 ? (
             <p className="p-4 text-center text-sm text-ink-600">Sin resultados.</p>
@@ -174,6 +184,12 @@ export function ViajesPage() {
   const [dollyPickerOpen, setDollyPickerOpen] = useState(false);
   const [remolque2PickerOpen, setRemolque2PickerOpen] = useState(false);
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
+
+  // ---- Alta rapida de cliente (sin salir de la asignacion del viaje) ----
+  const emptyNuevoCliente = { nombre: '', rfc: '', tipo: 'Nacional' as Cliente['tipo'], moneda: 'MXN' as Cliente['moneda'] };
+  const [nuevoClienteOpen, setNuevoClienteOpen] = useState(false);
+  const [nuevoClienteForm, setNuevoClienteForm] = useState(emptyNuevoCliente);
+  const [nuevoClienteError, setNuevoClienteError] = useState('');
 
   // ---- Convoy / trayectos ----
   const [trayectoModalOpen, setTrayectoModalOpen] = useState(false);
@@ -377,6 +393,69 @@ export function ViajesPage() {
 
   function eliminarConceptoLinea(id: string) {
     setForm((f) => ({ ...f, conceptosFacturacionViaje: f.conceptosFacturacionViaje.filter((c) => c.id !== id) }));
+  }
+
+  // ---- Alta rapida de cliente ----
+  function abrirNuevoCliente() {
+    setNuevoClienteForm(emptyNuevoCliente);
+    setNuevoClienteError('');
+    setClientePickerOpen(false);
+    setNuevoClienteOpen(true);
+  }
+
+  function guardarNuevoCliente() {
+    const nombre = nuevoClienteForm.nombre.trim();
+    const rfc = nuevoClienteForm.rfc.trim().toUpperCase();
+    if (!nombre) {
+      setNuevoClienteError('Falta el Nombre Fiscal.');
+      return;
+    }
+    if (rfc && clientes.items.some((c) => c.rfc.trim().toUpperCase() === rfc)) {
+      setNuevoClienteError(`Ya existe un cliente con el RFC ${rfc}.`);
+      return;
+    }
+    const nuevoId = uid('cli');
+    clientes.add({
+      id: nuevoId,
+      numeroCliente: '',
+      nombre,
+      nombreCorto: '',
+      fechaAlta: new Date().toISOString().slice(0, 10),
+      rfc,
+      tipo: nuevoClienteForm.tipo,
+      moneda: nuevoClienteForm.moneda,
+      iva: 'IVA 16%',
+      grupo: '',
+      sucursal: 'Matriz',
+      estatus: 'activo',
+      operadorLogistico: false,
+      aplicarDetalleViajeXml: false,
+      pais: 'Mexico',
+      cp: '',
+      estado: '',
+      municipio: '',
+      colonia: '',
+      localidad: '',
+      calle: '',
+      numeroExterior: '',
+      numeroInterior: '',
+      telefonos: '',
+      celular: '',
+      correo: '',
+      contactos: [],
+      formaPago: 'Efectivo',
+      diasCredito: 0,
+      limiteCreditoMxn: 0,
+      limiteCreditoUsd: 0,
+      limitarViajes: false,
+      limiteFacturasVencidas: null,
+      bancoOrdenante: '',
+      bancoOrdenanteExtranjero: false,
+      bancoRfc: '',
+      bancoNoCuenta: '',
+    });
+    setForm((f) => ({ ...f, clienteId: nuevoId }));
+    setNuevoClienteOpen(false);
   }
 
   const totalConceptos = useMemo(
@@ -1198,7 +1277,61 @@ export function ViajesPage() {
             setClientePickerOpen(false);
           }}
           onClose={() => setClientePickerOpen(false)}
+          accionExtra={{ label: 'Agregar Cliente', onClick: abrirNuevoCliente }}
         />
+      )}
+
+      {nuevoClienteOpen && (
+        <Modal title="Agregando Cliente" onClose={() => setNuevoClienteOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Nombre Fiscal">
+              <Input
+                required
+                autoFocus
+                value={nuevoClienteForm.nombre}
+                onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, nombre: e.target.value })}
+              />
+            </Field>
+            <Field label="RFC">
+              <Input
+                value={nuevoClienteForm.rfc}
+                onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, rfc: e.target.value.toUpperCase() })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Tipo Cliente">
+                <Select
+                  value={nuevoClienteForm.tipo}
+                  onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, tipo: e.target.value as Cliente['tipo'] })}
+                >
+                  <option value="Nacional">Nacional</option>
+                  <option value="Extranjero">Extranjero</option>
+                </Select>
+              </Field>
+              <Field label="Moneda">
+                <Select
+                  value={nuevoClienteForm.moneda}
+                  onChange={(e) => setNuevoClienteForm({ ...nuevoClienteForm, moneda: e.target.value as Cliente['moneda'] })}
+                >
+                  <option value="MXN">Pesos</option>
+                  <option value="USD">Dolares</option>
+                </Select>
+              </Field>
+            </div>
+            <p className="text-xs text-ink-500">
+              El resto de los datos del cliente (domicilio, contactos, credito, etc.) se pueden completar despues desde el catalogo de Clientes.
+            </p>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevoClienteError && <p className="flex-1 text-sm text-breco-500">{nuevoClienteError}</p>}
+              <GhostButton type="button" onClick={() => setNuevoClienteOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevoCliente}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {remolque1PickerOpen && (
