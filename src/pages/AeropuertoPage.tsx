@@ -361,17 +361,17 @@ function Tablero({
   onVerAvance: (v: Viaje) => void;
 }) {
   return (
-    <div className="flex-1 overflow-hidden rounded-2xl border border-amber-500/20 bg-[#0b0e14]">
-      <div className="flex items-center justify-between border-b border-amber-500/20 bg-amber-500/5 px-5 py-4">
+    <div className="flex-1 overflow-hidden rounded-2xl border border-line-800 bg-bg-900 shadow-sm">
+      <div className="flex items-center justify-between border-b border-line-800 bg-bg-800 px-5 py-4">
         <div className="flex items-center gap-3">
-          <Truck size={26} className="text-amber-400" />
-          <div className="text-xl font-black tracking-wide text-amber-400">{titulo}</div>
+          <Truck size={26} className="text-breco-500" />
+          <div className="text-xl font-black tracking-wide text-ink-100">{titulo}</div>
         </div>
         <Reloj />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-left font-mono text-sm">
-          <thead className="text-[11px] uppercase tracking-widest text-amber-500/70">
+          <thead className="text-[11px] uppercase tracking-widest text-ink-500">
             <tr className="border-b border-line-800">
               <th className="px-4 py-2.5">Hora salida</th>
               <th className="px-4 py-2.5">Viaje</th>
@@ -398,7 +398,7 @@ function Tablero({
               const terminado = est === 'entregado' || est === 'cancelado';
               const fraccion = avanceTransito(v, ahora, horasViaje);
               return (
-                <tr key={v.id} className="border-b border-line-800/70 text-ink-200">
+                <tr key={v.id} className="border-b border-line-800/70 text-ink-300">
                   <td className="px-4 py-2.5">
                     {puedeEditar ? (
                       <input

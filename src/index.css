@@ -41,11 +41,11 @@
      tema claro/oscuro elegido para el resto de la app (mismo patron que
      paneles tipo Apple/Cisco, donde la navegacion mantiene su identidad
      aunque el contenido cambie de tema). */
-  --color-sb-bg: #0f1420;
-  --color-sb-bg-active: #1a2233;
-  --color-sb-border: #1e2635;
-  --color-sb-text: #e7eaf0;
-  --color-sb-text-muted: #8b93a7;
+  --color-sb-bg: #001b3d;
+  --color-sb-bg-active: #0a2c54;
+  --color-sb-border: #0d2b4d;
+  --color-sb-text: #eef3fb;
+  --color-sb-text-muted: #93a8c9;
 }
 
 /*
