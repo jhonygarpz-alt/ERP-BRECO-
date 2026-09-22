@@ -714,6 +714,10 @@ export interface Ruta {
 // propia sin tener que dar de alta un catalogo aparte.
 export type TipoGastoViaje = string;
 
+export type TipoCombustible = 'Diesel' | 'Gasolina';
+
+export type EstatusGastoViaje = 'Activo' | 'Cancelado';
+
 /** Un gasto capturado contra un viaje (peajes, combustible, viaticos/anticipos, u otro). */
 export interface GastoViaje {
   id: string;
@@ -729,6 +733,12 @@ export interface GastoViaje {
   /** "Generar pasivo en cuentas por pagar": marca el gasto para que Cuentas por Pagar lo tome en cuenta. */
   generaPasivo: boolean;
   notas: string;
+  estatus: EstatusGastoViaje;
+  // Solo aplican cuando tipo === 'Combustible': permiten calcular el monto
+  // automaticamente (litros x precio por litro) en vez de capturarlo a mano.
+  combustibleTipo?: TipoCombustible;
+  litros?: number;
+  precioLitro?: number;
   /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
   creadoEn?: string;
 }

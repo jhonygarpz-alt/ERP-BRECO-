@@ -30,6 +30,7 @@ import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { GastosViajePage } from './pages/GastosViajePage';
 import { ImprimirViajePage } from './pages/ImprimirViajePage';
+import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { EntregaTurnoPage } from './pages/EntregaTurnoPage';
@@ -119,6 +120,7 @@ function App() {
               </Route>
 
               <Route path="/viajes/imprimir/:id" element={<ImprimirViajePage />} />
+              <Route path="/gastos-viaje/imprimir/:id" element={<ImprimirGastoViajePage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
             </Route>
           </Routes>

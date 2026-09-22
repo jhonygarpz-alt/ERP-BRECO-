@@ -1075,6 +1075,10 @@ export function gastoViajeFromRow(row: Record<string, unknown>): GastoViaje {
     monto: Number(row.monto) || 0,
     generaPasivo: row.genera_pasivo as boolean,
     notas: row.notas as string,
+    estatus: (row.estatus as GastoViaje['estatus']) || 'Activo',
+    combustibleTipo: (row.combustible_tipo as GastoViaje['combustibleTipo']) || undefined,
+    litros: row.litros !== null && row.litros !== undefined ? Number(row.litros) : undefined,
+    precioLitro: row.precio_litro !== null && row.precio_litro !== undefined ? Number(row.precio_litro) : undefined,
     creadoEn: row.creado_en as string | undefined,
   };
 }
@@ -1092,6 +1096,10 @@ export function gastoViajeToRow(g: GastoViaje) {
     monto: g.monto,
     genera_pasivo: g.generaPasivo,
     notas: g.notas,
+    estatus: g.estatus,
+    combustible_tipo: g.combustibleTipo || null,
+    litros: g.litros ?? null,
+    precio_litro: g.precioLitro ?? null,
   };
 }
 
