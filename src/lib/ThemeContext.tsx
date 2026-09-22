@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
-export type Accent = 'red' | 'blue' | 'green' | 'purple';
+export type Accent = 'blue' | 'red' | 'green' | 'purple';
 
 interface ThemeContextValue {
   theme: Theme;
@@ -21,7 +21,7 @@ function leerThemeInicial(): Theme {
 
 function leerAccentInicial(): Accent {
   const guardado = localStorage.getItem(ACCENT_KEY);
-  return guardado === 'blue' || guardado === 'green' || guardado === 'purple' ? guardado : 'red';
+  return guardado === 'red' || guardado === 'green' || guardado === 'purple' ? guardado : 'blue';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

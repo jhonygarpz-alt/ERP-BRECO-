@@ -25,31 +25,17 @@ import { useAuth } from '../../lib/AuthContext';
 import { useTheme } from '../../lib/ThemeContext';
 import { BrandName } from '../ui/BrandName';
 
-function IconBadge({ icon: Icon, gradient }: { icon: LucideIcon; gradient: [string, string] }) {
-  return (
-    <div
-      className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
-      style={{ background: `linear-gradient(150deg, ${gradient[0]}, ${gradient[1]})` }}
-    >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/30 via-white/0 to-black/10" />
-      <Icon size={19} strokeWidth={2.1} className="relative text-white drop-shadow-sm" />
-    </div>
-  );
-}
-
 function NavRow({
   to,
   end,
   label,
-  icon,
-  gradient,
+  icon: Icon,
   collapsed,
 }: {
   to: string;
   end?: boolean;
   label: string;
   icon: LucideIcon;
-  gradient: [string, string];
   collapsed?: boolean;
 }) {
   return (
@@ -58,21 +44,21 @@ function NavRow({
       end={end}
       title={collapsed ? label : undefined}
       className={({ isActive }) =>
-        `flex items-center gap-3.5 rounded-2xl border px-3 py-2.5 text-[15px] transition ${collapsed ? 'justify-center px-0' : ''} ${
+        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
           isActive
-            ? 'border-breco-500/50 bg-breco-500/10 font-semibold text-white shadow-[0_0_0_1px_rgba(225,29,46,0.25),0_0_20px_rgba(225,29,46,0.25)]'
-            : 'border-transparent font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
+            ? 'bg-breco-500 font-semibold text-white shadow-md shadow-breco-glow'
+            : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
         }`
       }
     >
-      <IconBadge icon={icon} gradient={gradient} />
+      <Icon size={18} strokeWidth={2} className="flex-shrink-0" />
       {!collapsed && label}
     </NavLink>
   );
 }
 
 function NavGroup({ children }: { children: ReactNode }) {
-  return <div className="space-y-1.5">{children}</div>;
+  return <div className="space-y-1">{children}</div>;
 }
 
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
@@ -133,18 +119,13 @@ export function Sidebar() {
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
   const traficoLinks = [
-    puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route, gradient: ['#2dd4bf', '#0891b2'] },
-    puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks, gradient: ['#22d3ee', '#0e7490'] },
-    puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff, gradient: ['#fbbf24', '#b45309'] },
-    puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock, gradient: ['#38bdf8', '#1d4ed8'] },
-    puedeEntregaTurno && {
-      to: '/entrega-turno',
-      label: 'Entrega de Turno',
-      icon: ClipboardList,
-      gradient: ['#f472b6', '#be185d'],
-    },
-    puedeViajes && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart, gradient: ['#a78bfa', '#6d28d9'] },
-  ].filter(Boolean) as { to: string; label: string; icon: LucideIcon; gradient: [string, string] }[];
+    puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
+    puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
+    puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
+    puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
+    puedeEntregaTurno && { to: '/entrega-turno', label: 'Entrega de Turno', icon: ClipboardList },
+    puedeViajes && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart },
+  ].filter(Boolean) as { to: string; label: string; icon: LucideIcon }[];
 
   function abrirGrupo(setter: (v: boolean) => void) {
     if (collapsed) setCollapsed(false);
@@ -159,17 +140,17 @@ export function Sidebar() {
     >
       <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-5 ${collapsed ? 'justify-center px-3' : ''}`}>
         {empresa.value.logoDataUrl ? (
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-sb-bg-active">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sb-bg-active">
             <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-breco-500 text-lg font-black italic text-white shadow-lg shadow-breco-glow">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-base font-black italic text-white shadow-md shadow-breco-glow">
             B
           </div>
         )}
         {!collapsed && (
           <div className="min-w-0 leading-tight">
-            <div className="truncate text-[15px] tracking-tight text-sb-text">
+            <div className="truncate text-[15px] font-semibold tracking-tight text-sb-text">
               <BrandName nombre={empresa.value.nombre} />
             </div>
             <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
@@ -177,14 +158,14 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden scrollbar-none px-3 py-4">
+      <nav className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden scrollbar-none px-3 py-4">
         <NavGroup>
-          <NavRow to="/" end label="Resumen" icon={LayoutDashboard} gradient={['#60a5fa', '#2563eb']} collapsed={collapsed} />
+          <NavRow to="/" end label="Resumen" icon={LayoutDashboard} collapsed={collapsed} />
         </NavGroup>
 
         {puedeCatalogos && (
           <NavGroup>
-            <NavRow to="/catalogos" label="Catalogos" icon={Boxes} gradient={['#a78bfa', '#6d28d9']} collapsed={collapsed} />
+            <NavRow to="/catalogos" label="Catalogos" icon={Boxes} collapsed={collapsed} />
           </NavGroup>
         )}
 
@@ -193,13 +174,13 @@ export function Sidebar() {
             <button
               onClick={() => (collapsed ? abrirGrupo(setTraficoOpen) : setTraficoOpen((v) => !v))}
               title={collapsed ? 'Trafico' : undefined}
-              className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-2.5 text-[15px] transition ${collapsed ? 'justify-center px-0' : ''} ${
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
                 traficoRoutes.some((r) => location.pathname.startsWith(r))
                   ? 'font-semibold text-sb-text'
                   : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
               }`}
             >
-              <IconBadge icon={Route} gradient={['#2dd4bf', '#0891b2']} />
+              <Route size={18} strokeWidth={2} className="flex-shrink-0" />
               {!collapsed && (
                 <>
                   <span className="flex-1 text-left">Trafico</span>
@@ -211,11 +192,11 @@ export function Sidebar() {
               )}
             </button>
             {!collapsed && traficoOpen && (
-              <div className="relative ml-5 space-y-1.5 border-l border-sb-border py-1 pl-4">
+              <div className="relative ml-5 space-y-1 border-l border-sb-border py-1 pl-4">
                 {traficoLinks.map((item) => (
                   <div key={item.to} className="relative">
                     <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
-                    <NavRow to={item.to} label={item.label} icon={item.icon} gradient={item.gradient} />
+                    <NavRow to={item.to} label={item.label} icon={item.icon} />
                   </div>
                 ))}
               </div>
@@ -225,46 +206,20 @@ export function Sidebar() {
 
         {puedeFacturacion && (
           <NavGroup>
-            <NavRow
-              to="/facturacion"
-              label="Facturacion Diaria"
-              icon={Receipt}
-              gradient={['#fbbf24', '#b45309']}
-              collapsed={collapsed}
-            />
+            <NavRow to="/facturacion" label="Facturacion Diaria" icon={Receipt} collapsed={collapsed} />
           </NavGroup>
         )}
 
         {puedeReportes && (
           <NavGroup>
-            <NavRow
-              to="/reportes"
-              label="Reportes"
-              icon={FileSpreadsheet}
-              gradient={['#34d399', '#047857']}
-              collapsed={collapsed}
-            />
-            <NavRow
-              to="/reportes-operativos"
-              label="Reportes Operativos"
-              icon={BarChart3}
-              gradient={['#818cf8', '#4338ca']}
-              collapsed={collapsed}
-            />
+            <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} collapsed={collapsed} />
+            <NavRow to="/reportes-operativos" label="Reportes Operativos" icon={BarChart3} collapsed={collapsed} />
           </NavGroup>
         )}
       </nav>
 
       <div className="space-y-2 border-t border-sb-border px-3 py-3">
-        {puedeConfiguracion && (
-          <NavRow
-            to="/configuracion"
-            label="Configuracion"
-            icon={Settings}
-            gradient={['#94a3b8', '#475569']}
-            collapsed={collapsed}
-          />
-        )}
+        {puedeConfiguracion && <NavRow to="/configuracion" label="Configuracion" icon={Settings} collapsed={collapsed} />}
         <button
           onClick={toggleCollapsed}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-sb-border bg-sb-bg-active px-3 py-2 text-xs font-medium text-sb-text-muted hover:text-sb-text"

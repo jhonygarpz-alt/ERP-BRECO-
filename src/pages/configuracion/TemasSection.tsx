@@ -2,8 +2,8 @@ import { Check, Moon, Sun } from 'lucide-react';
 import { useTheme, type Accent } from '../../lib/ThemeContext';
 
 const ACENTOS: { key: Accent; nombre: string; color: string }[] = [
-  { key: 'red', nombre: 'Rojo', color: '#e11d2e' },
   { key: 'blue', nombre: 'Azul', color: '#0071e3' },
+  { key: 'red', nombre: 'Rojo', color: '#e11d2e' },
   { key: 'green', nombre: 'Verde', color: '#059669' },
   { key: 'purple', nombre: 'Morado', color: '#7c3aed' },
 ];

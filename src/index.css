@@ -29,10 +29,13 @@
   --color-ink-500: #8992a6;
   --color-ink-600: #6b7385;
 
-  --color-breco-500: #e11d2e;
-  --color-breco-600: #c8142a;
-  --color-breco-700: #9f0f22;
-  --color-breco-glow: rgba(225, 29, 46, 0.35);
+  /* Azul es el acento por defecto (confirmado por el usuario sobre la
+     referencia con sidebar oscuro + acento azul); rojo pasa a ser una
+     variante seleccionable mas, ver el bloque data-accent='red' abajo. */
+  --color-breco-500: #0071e3;
+  --color-breco-600: #0058b0;
+  --color-breco-700: #00458c;
+  --color-breco-glow: rgba(0, 113, 227, 0.35);
 
   /* Paleta fija del sidebar: siempre azul-marino oscuro, sin importar el
      tema claro/oscuro elegido para el resto de la app (mismo patron que
@@ -78,7 +81,7 @@
   --color-ink-500: #6b7280;
   --color-ink-600: #8991a1;
 
-  --color-breco-glow: rgba(225, 29, 46, 0.16);
+  --color-breco-glow: rgba(0, 113, 227, 0.16);
 
   /* Variantes "-400" de los colores de acento de Tailwind: se usan como
      color de TEXTO sobre fondos claros/tintados (badges, iconos de
@@ -108,11 +111,11 @@
  * default y no necesita regla propia. El brillo (glow) usa mas opacidad
  * en oscuro que en claro, igual que ya hacia el rojo original.
  */
-:root[data-accent='blue'] {
-  --color-breco-500: #0071e3;
-  --color-breco-600: #0058b0;
-  --color-breco-700: #00458c;
-  --color-breco-glow: rgba(0, 113, 227, 0.35);
+:root[data-accent='red'] {
+  --color-breco-500: #e11d2e;
+  --color-breco-600: #c8142a;
+  --color-breco-700: #9f0f22;
+  --color-breco-glow: rgba(225, 29, 46, 0.35);
 }
 :root[data-accent='green'] {
   --color-breco-500: #059669;
@@ -127,8 +130,8 @@
   --color-breco-glow: rgba(124, 58, 237, 0.35);
 }
 
-:root[data-theme='light'][data-accent='blue'] {
-  --color-breco-glow: rgba(0, 113, 227, 0.16);
+:root[data-theme='light'][data-accent='red'] {
+  --color-breco-glow: rgba(225, 29, 46, 0.16);
 }
 :root[data-theme='light'][data-accent='green'] {
   --color-breco-glow: rgba(5, 150, 105, 0.16);

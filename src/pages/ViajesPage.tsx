@@ -9,7 +9,7 @@ import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
 import { ListaSeleccionModal } from '../components/ui/ListaSeleccionModal';
 import { ComboBoxCodigo } from '../components/ui/ComboBoxCodigo';
-import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
+import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, ToolbarButton, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
@@ -795,10 +795,10 @@ export function ViajesPage() {
         onAdd={puedeCrear ? openNew : undefined}
         extra={
           puedeCrear && (
-            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+            <ToolbarButton type="button" onClick={() => setImportarOpen(true)}>
               <ScanLine size={16} />
               Importar Excel o captura
-            </GhostButton>
+            </ToolbarButton>
           )
         }
       />
@@ -807,7 +807,7 @@ export function ViajesPage() {
         <button
           onClick={() => setFecha((f) => shiftDate(f, -1))}
           disabled={todasLasFechas}
-          className="rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100 disabled:opacity-40"
+          className="rounded-lg border border-blue-400/50 bg-blue-400/5 p-2 text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10 disabled:cursor-not-allowed disabled:border-line-700 disabled:bg-transparent disabled:text-ink-600"
         >
           <ChevronLeft size={16} />
         </button>
@@ -816,22 +816,22 @@ export function ViajesPage() {
           value={fecha}
           disabled={todasLasFechas}
           onChange={(e) => setFecha(e.target.value)}
-          className={`${inputClass} w-44 disabled:opacity-40`}
+          className={`${inputClass} w-44 border-blue-400/50 focus:border-blue-400 disabled:opacity-40`}
         />
         <button
           onClick={() => setFecha((f) => shiftDate(f, 1))}
           disabled={todasLasFechas}
-          className="rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100 disabled:opacity-40"
+          className="rounded-lg border border-blue-400/50 bg-blue-400/5 p-2 text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10 disabled:cursor-not-allowed disabled:border-line-700 disabled:bg-transparent disabled:text-ink-600"
         >
           <ChevronRight size={16} />
         </button>
-        <GhostButton
+        <ToolbarButton
           type="button"
           disabled={todasLasFechas}
           onClick={() => setFecha(new Date().toISOString().slice(0, 10))}
         >
           Hoy
-        </GhostButton>
+        </ToolbarButton>
         <label className="ml-2 flex items-center gap-2 text-sm text-ink-400">
           <input
             type="checkbox"
@@ -847,21 +847,21 @@ export function ViajesPage() {
         <span className="px-2 text-xs uppercase tracking-wide text-ink-500">
           {viajeSeleccionado ? `Viaje ${viajeSeleccionado.folio}` : 'Selecciona un viaje de la tabla'}
         </span>
-        <GhostButton type="button" disabled={!viajeSeleccionado} onClick={abrirConsultarViajeSeleccionado}>
+        <ToolbarButton type="button" disabled={!viajeSeleccionado} onClick={abrirConsultarViajeSeleccionado}>
           <Eye size={16} /> Consultar Viaje
-        </GhostButton>
-        <GhostButton type="button" disabled={!viajeSeleccionado} onClick={imprimirViajeSeleccionado}>
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!viajeSeleccionado} onClick={imprimirViajeSeleccionado}>
           <Printer size={16} /> Imprimir Viaje
-        </GhostButton>
-        <GhostButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={editarViajeSeleccionado}>
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={editarViajeSeleccionado}>
           <Pencil size={16} /> Editar Viaje
-        </GhostButton>
-        <GhostButton type="button" disabled={!viajeSeleccionado || !puedeCrear} onClick={clonarViajeSeleccionado}>
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!viajeSeleccionado || !puedeCrear} onClick={clonarViajeSeleccionado}>
           <Copy size={16} /> Clonar Viaje
-        </GhostButton>
-        <GhostButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={cancelarViajeSeleccionado}>
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={cancelarViajeSeleccionado}>
           <Ban size={16} /> Cancelar Viaje
-        </GhostButton>
+        </ToolbarButton>
       </div>
 
       <CrudTable

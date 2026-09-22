@@ -20,7 +20,7 @@ import { uid } from '../lib/storage';
 import type { Tone } from '../components/ui/Badge';
 import type { EstatusViajeCustom, Ruta, Viaje } from '../types';
 import { StatCard } from '../components/ui/StatCard';
-import { GhostButton, Input, inputClass } from '../components/ui/form';
+import { GhostButton, Input, ToolbarButton, inputClass } from '../components/ui/form';
 
 // Solo se usa como respaldo cuando el viaje no tiene una Ruta capturada (o
 // esa Ruta no trae sus horas estimadas) -- siempre que se pueda, el limite
@@ -558,20 +558,25 @@ export function AeropuertoPage() {
           </span>
           <button
             onClick={() => setFecha((f) => shiftDate(f, -1))}
-            className="rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100"
+            className="rounded-lg border border-blue-400/50 bg-blue-400/5 p-2 text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10"
           >
             <ChevronLeft size={16} />
           </button>
-          <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={`${inputClass} w-44`} />
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
+            className={`${inputClass} w-44 border-blue-400/50 focus:border-blue-400`}
+          />
           <button
             onClick={() => setFecha((f) => shiftDate(f, 1))}
-            className="rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100"
+            className="rounded-lg border border-blue-400/50 bg-blue-400/5 p-2 text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10"
           >
             <ChevronRight size={16} />
           </button>
-          <GhostButton type="button" onClick={() => setFecha(new Date().toISOString().slice(0, 10))}>
+          <ToolbarButton type="button" onClick={() => setFecha(new Date().toISOString().slice(0, 10))}>
             Hoy
-          </GhostButton>
+          </ToolbarButton>
         </div>
       </div>
 
