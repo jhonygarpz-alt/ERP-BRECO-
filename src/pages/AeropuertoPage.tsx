@@ -18,16 +18,44 @@ import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
 import type { Tone } from '../components/ui/Badge';
-import type { EstatusViajeCustom, Viaje } from '../types';
+import type { EstatusViajeCustom, Ruta, Viaje } from '../types';
 import { StatCard } from '../components/ui/StatCard';
 import { GhostButton, Input, inputClass } from '../components/ui/form';
 
-const HORAS_MAX_TRANSITO = 24;
+// Solo se usa como respaldo cuando el viaje no tiene una Ruta capturada (o
+// esa Ruta no trae sus horas estimadas) -- siempre que se pueda, el limite
+// se calcula con las horas reales de esa Ruta, no con un numero fijo.
+const HORAS_MAX_TRANSITO_RESPALDO = 24;
 
 function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + dias);
   return d.toISOString().slice(0, 10);
+}
+
+// El catalogo de Estatus de Viaje es texto libre (EstatusViaje = string), asi
+// que dos capturas del mismo estatus pueden diferir en mayusculas/minusculas
+// ("En transito" vs "en transito"). Todas las comparaciones de esta pantalla
+// normalizan antes de comparar para no depender de que coincida el case
+// exacto.
+function normalizarEstatus(estatus: string): string {
+  return estatus.trim().toLowerCase();
+}
+
+function formatearDuracion(ms: number): string {
+  const totalMin = Math.max(0, Math.round(Math.abs(ms) / 60000));
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} h`;
+  return `${h} h ${m} min`;
+}
+
+/** Horas autorizadas de transito para este viaje: las de su Ruta (si tiene
+ * una capturada con horas > 0) o, si no, el respaldo fijo. */
+function horasAutorizadas(v: Viaje, rutas: Ruta[]): number {
+  const ruta = v.rutaCodigo ? rutas.find((r) => r.codigo === v.rutaCodigo) : undefined;
+  return ruta && ruta.horas > 0 ? ruta.horas : HORAS_MAX_TRANSITO_RESPALDO;
 }
 
 const TONE_TEXT: Record<Tone, string> = {
@@ -42,6 +70,7 @@ const TONE_TEXT: Record<Tone, string> = {
 interface EtiquetaEstatus {
   texto: string;
   tono: Tone;
+  detalle?: string;
 }
 
 /** Inicio real del transito: fecha + hora de salida a ruta. null si aun no se ha registrado. */
@@ -51,43 +80,50 @@ function inicioTransito(v: Viaje): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** Limite autorizado: 24 horas despues de la salida real. */
-function limiteTransito(v: Viaje): Date | null {
+/** Limite autorizado: hora de salida + las horas autorizadas para esta Ruta. */
+function limiteTransito(v: Viaje, horasAutorizadasViaje: number): Date | null {
   const inicio = inicioTransito(v);
-  return inicio ? new Date(inicio.getTime() + HORAS_MAX_TRANSITO * 60 * 60 * 1000) : null;
+  return inicio ? new Date(inicio.getTime() + horasAutorizadasViaje * 60 * 60 * 1000) : null;
 }
 
 /**
- * Traduce el estatus real del viaje al lenguaje de un tablero de
- * operacion. "DEMORADO" ya no se adivina: se calcula contra las 24 horas
- * maximas de transito autorizadas desde la hora real de salida a ruta.
+ * Traduce el estatus real del viaje al lenguaje de un tablero de operacion.
+ * En cuanto hay hora de salida registrada, "EN TIEMPO"/"DEMORADO" se
+ * calculan contra el limite real (salida + horas de ETA de la Ruta) y
+ * muestran cuanto falta o cuanto de retraso lleva.
  */
-function etiquetaTablero(v: Viaje, ahora: Date, colorPersonalizado: Tone | null): EtiquetaEstatus {
-  if (v.estatus === 'Cancelado') return { texto: 'CANCELADO', tono: 'red' };
-  if (v.estatus === 'Entregado') return { texto: 'ENTREGADO', tono: 'green' };
+function etiquetaTablero(v: Viaje, ahora: Date, colorPersonalizado: Tone | null, horasAutorizadasViaje: number): EtiquetaEstatus {
+  const est = normalizarEstatus(v.estatus);
+  if (est === 'cancelado') return { texto: 'CANCELADO', tono: 'red' };
+  if (est === 'entregado') return { texto: 'ENTREGADO', tono: 'green' };
 
-  const limite = limiteTransito(v);
-  if (limite && ahora.getTime() > limite.getTime()) return { texto: 'DEMORADO', tono: 'red' };
+  const limite = limiteTransito(v, horasAutorizadasViaje);
+  if (limite) {
+    const diff = ahora.getTime() - limite.getTime();
+    if (diff > 0) return { texto: 'DEMORADO', tono: 'red', detalle: `${formatearDuracion(diff)} de retraso` };
+    return { texto: 'EN TIEMPO', tono: 'green', detalle: `ETA en ${formatearDuracion(diff)}` };
+  }
 
-  if (v.estatus === 'En transito') return { texto: 'EN TRANSITO', tono: 'blue' };
-  if (v.estatus === 'Programado') return { texto: v.horaSalida ? 'A TIEMPO' : 'PROGRAMADO', tono: v.horaSalida ? 'green' : 'gray' };
+  if (est === 'en transito') return { texto: 'EN TRANSITO', tono: 'blue' };
+  if (est === 'programado') return { texto: 'PROGRAMADO', tono: 'gray' };
   return { texto: v.estatus.toUpperCase(), tono: colorPersonalizado ?? 'gray' };
 }
 
 /**
  * Fraccion 0-1 del avance del viaje. Si ya se entrego, el camion se va
  * directo al 100% (destino) sin importar cuanto tiempo real haya pasado --
- * antes se calculaba solo contra las 24 horas autorizadas, asi que un
- * viaje corto ya entregado se veia "atorado" cerca del origen porque
- * apenas habia transcurrido una fraccion chica de esas 24 horas.
+ * antes se calculaba solo contra un numero fijo de horas, asi que un viaje
+ * corto ya entregado se veia "atorado" cerca del origen porque apenas
+ * habia transcurrido una fraccion chica de esas horas.
  */
-function avanceTransito(v: Viaje, ahora: Date): number | null {
-  if (v.estatus === 'Entregado') return 1;
-  if (v.estatus === 'Cancelado') return null;
+function avanceTransito(v: Viaje, ahora: Date, horasAutorizadasViaje: number): number | null {
+  const est = normalizarEstatus(v.estatus);
+  if (est === 'entregado') return 1;
+  if (est === 'cancelado') return null;
   const inicio = inicioTransito(v);
   if (!inicio) return null;
   const transcurrido = ahora.getTime() - inicio.getTime();
-  return transcurrido / (HORAS_MAX_TRANSITO * 60 * 60 * 1000);
+  return transcurrido / (horasAutorizadasViaje * 60 * 60 * 1000);
 }
 
 function BarraAvance({ fraccion }: { fraccion: number }) {
@@ -156,7 +192,17 @@ function LineaTiempoRuta({ origen, destino, fraccion }: { origen: string; destin
   );
 }
 
-function AvanceModal({ viaje, ahora, onClose }: { viaje: Viaje; ahora: Date; onClose: () => void }) {
+function AvanceModal({
+  viaje,
+  ahora,
+  rutas,
+  onClose,
+}: {
+  viaje: Viaje;
+  ahora: Date;
+  rutas: Ruta[];
+  onClose: () => void;
+}) {
   const { viajeUbicaciones, viajes } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -170,8 +216,9 @@ function AvanceModal({ viaje, ahora, onClose }: { viaje: Viaje; ahora: Date; onC
     [viajeUbicaciones.items, viaje.id],
   );
 
+  const horasViaje = horasAutorizadas(viaje, rutas);
   const inicio = inicioTransito(viaje);
-  const limite = limiteTransito(viaje);
+  const limite = limiteTransito(viaje, horasViaje);
 
   async function agregar() {
     const valor = texto.trim();
@@ -198,12 +245,12 @@ function AvanceModal({ viaje, ahora, onClose }: { viaje: Viaje; ahora: Date; onC
         </div>
 
         <div className="px-6 py-5">
-          <LineaTiempoRuta origen={viaje.origen} destino={viaje.destino} fraccion={avanceTransito(viaje, ahora)} />
+          <LineaTiempoRuta origen={viaje.origen} destino={viaje.destino} fraccion={avanceTransito(viaje, ahora, horasViaje)} />
 
           {inicio && limite ? (
             <p className="mb-4 text-xs text-ink-500">
               Salio a ruta el {inicio.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })} &middot; limite
-              de {HORAS_MAX_TRANSITO} h: {limite.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}
+              de {horasViaje} h: {limite.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}
             </p>
           ) : (
             <p className="mb-4 text-xs text-amber-400">
@@ -254,7 +301,7 @@ function AvanceModal({ viaje, ahora, onClose }: { viaje: Viaje; ahora: Date; onC
               <span className="h-3 w-3 flex-shrink-0 rounded-full bg-emerald-500" />
               <div className="text-sm text-ink-300">
                 <span className="font-medium text-ink-100">Destino:</span> {viaje.destino || 'N/D'}
-                {viaje.estatus === 'Entregado' && <span className="ml-2 text-xs text-emerald-400">Entregado</span>}
+                {normalizarEstatus(viaje.estatus) === 'entregado' && <span className="ml-2 text-xs text-emerald-400">Entregado</span>}
               </div>
             </div>
           </div>
@@ -292,6 +339,7 @@ function Tablero({
   colorEstatus,
   unidadNombre,
   estatusOpciones,
+  rutas,
   onCambiarEstatus,
   onDarSalida,
   onDarLlegada,
@@ -305,6 +353,7 @@ function Tablero({
   colorEstatus: (nombre: string) => Tone | null;
   unidadNombre: (id: string) => string;
   estatusOpciones: EstatusViajeCustom[];
+  rutas: Ruta[];
   onCambiarEstatus: (v: Viaje, estatus: string) => void;
   onDarSalida: (v: Viaje) => void;
   onDarLlegada: (v: Viaje) => void;
@@ -343,9 +392,11 @@ function Tablero({
               </tr>
             )}
             {filas.map((v) => {
-              const etiqueta = etiquetaTablero(v, ahora, colorEstatus(v.estatus));
-              const terminado = v.estatus === 'Entregado' || v.estatus === 'Cancelado';
-              const fraccion = avanceTransito(v, ahora);
+              const horasViaje = horasAutorizadas(v, rutas);
+              const etiqueta = etiquetaTablero(v, ahora, colorEstatus(v.estatus), horasViaje);
+              const est = normalizarEstatus(v.estatus);
+              const terminado = est === 'entregado' || est === 'cancelado';
+              const fraccion = avanceTransito(v, ahora, horasViaje);
               return (
                 <tr key={v.id} className="border-b border-line-800/70 text-ink-200">
                   <td className="px-4 py-2.5">
@@ -384,6 +435,7 @@ function Tablero({
                     ) : (
                       <span className={`font-bold ${TONE_TEXT[etiqueta.tono]}`}>{etiqueta.texto}</span>
                     )}
+                    {etiqueta.detalle && <div className={`mt-1 text-[10px] font-normal normal-case ${TONE_TEXT[etiqueta.tono]}`}>{etiqueta.detalle}</div>}
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
@@ -437,7 +489,7 @@ function Tablero({
 }
 
 export function AeropuertoPage() {
-  const { viajes, unidades, estatusViajes } = useData();
+  const { viajes, unidades, estatusViajes, rutas } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Viajes', 'editar');
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
@@ -460,11 +512,12 @@ export function AeropuertoPage() {
     [viajesDelDia],
   );
 
-  const enCurso = viajesDelDia.filter((v) => v.estatus === 'En transito').length;
-  const completados = viajesDelDia.filter((v) => v.estatus === 'Entregado').length;
+  const enCurso = viajesDelDia.filter((v) => normalizarEstatus(v.estatus) === 'en transito').length;
+  const completados = viajesDelDia.filter((v) => normalizarEstatus(v.estatus) === 'entregado').length;
   const demorados = viajesDelDia.filter((v) => {
-    if (v.estatus === 'Entregado' || v.estatus === 'Cancelado') return false;
-    const limite = limiteTransito(v);
+    const est = normalizarEstatus(v.estatus);
+    if (est === 'entregado' || est === 'cancelado') return false;
+    const limite = limiteTransito(v, horasAutorizadas(v, rutas.items));
     return limite !== null && ahora.getTime() > limite.getTime();
   }).length;
 
@@ -523,8 +576,8 @@ export function AeropuertoPage() {
       </div>
 
       <p className="mb-4 text-xs text-ink-600">
-        Cada servicio tiene autorizadas {HORAS_MAX_TRANSITO} horas de transito desde su hora real de salida a ruta. Si se
-        excede sin haberse entregado, se marca DEMORADO.
+        Cada servicio tiene autorizadas las horas de ETA capturadas en su Ruta (o {HORAS_MAX_TRANSITO_RESPALDO} horas si la
+        ruta no trae ETA) desde su hora real de salida. Si se excede sin haberse entregado, se marca DEMORADO.
       </p>
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -543,6 +596,7 @@ export function AeropuertoPage() {
           colorEstatus={colorEstatus}
           unidadNombre={unidadNombre}
           estatusOpciones={estatusViajes.items}
+          rutas={rutas.items}
           onCambiarEstatus={cambiarEstatusManual}
           onDarSalida={darSalida}
           onDarLlegada={darLlegada}
@@ -551,7 +605,7 @@ export function AeropuertoPage() {
         />
       </div>
 
-      {viajeAvance && <AvanceModal viaje={viajeAvance} ahora={ahora} onClose={() => setViajeAvance(null)} />}
+      {viajeAvance && <AvanceModal viaje={viajeAvance} ahora={ahora} rutas={rutas.items} onClose={() => setViajeAvance(null)} />}
     </div>
   );
 }
