@@ -1,11 +1,119 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Loader2 } from 'lucide-react';
-import { calcularRuta, geocodificarDireccion, type RutaCalculada } from '../../lib/rutaMapa';
+import { Loader2, MapPin } from 'lucide-react';
+import { buscarSugerenciasDireccion, calcularRuta, geocodificarDireccion, type PuntoGeocodificado, type RutaCalculada } from '../../lib/rutaMapa';
 import { mensajeDeError } from '../../lib/errors';
 import { Modal } from '../ui/Modal';
-import { Field, GhostButton, Input, PrimaryButton } from '../ui/form';
+import { Field, GhostButton, Input, PrimaryButton, inputClass } from '../ui/form';
+
+// Autocompletado tipo "Google Maps": mientras el usuario escribe se buscan
+// sugerencias con debounce (nunca en cada tecla) para respetar el limite de
+// uso razonable de Nominatim. `saltarRef` evita relanzar la busqueda cuando
+// el texto cambia porque el propio usuario eligio una sugerencia (ya no hace
+// falta volver a buscar esa misma direccion).
+function useSugerenciasDireccion(texto: string) {
+  const [sugerencias, setSugerencias] = useState<PuntoGeocodificado[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saltarRef = useRef(false);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (saltarRef.current) {
+      saltarRef.current = false;
+      return;
+    }
+    const termino = texto.trim();
+    if (termino.length < 3) {
+      setSugerencias([]);
+      setBuscando(false);
+      return;
+    }
+    setBuscando(true);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const resultados = await buscarSugerenciasDireccion(termino);
+        setSugerencias(resultados);
+      } catch {
+        setSugerencias([]);
+      } finally {
+        setBuscando(false);
+      }
+    }, 450);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [texto]);
+
+  return {
+    sugerencias,
+    buscando,
+    limpiar: () => setSugerencias([]),
+    saltarSiguienteBusqueda: () => {
+      saltarRef.current = true;
+    },
+  };
+}
+
+function CampoDireccion({
+  label,
+  valor,
+  onCambiar,
+  onSeleccionar,
+  sugerencias,
+  buscando,
+  abierto,
+  onAbrir,
+  onCerrar,
+}: {
+  label: string;
+  valor: string;
+  onCambiar: (texto: string) => void;
+  onSeleccionar: (punto: PuntoGeocodificado) => void;
+  sugerencias: PuntoGeocodificado[];
+  buscando: boolean;
+  abierto: boolean;
+  onAbrir: () => void;
+  onCerrar: () => void;
+}) {
+  const mostrarLista = abierto && (buscando || sugerencias.length > 0);
+  return (
+    <div className="relative">
+      <Field label={label}>
+        <input
+          className={inputClass}
+          value={valor}
+          onChange={(e) => onCambiar(e.target.value)}
+          onFocus={onAbrir}
+          onBlur={onCerrar}
+          placeholder="Direccion, ciudad, planta..."
+          autoComplete="off"
+        />
+      </Field>
+      {mostrarLista && (
+        <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-line-700 bg-bg-800 shadow-xl">
+          {buscando && sugerencias.length === 0 && (
+            <li className="flex items-center gap-2 px-3 py-2 text-xs text-ink-500">
+              <Loader2 size={14} className="animate-spin" /> Buscando direcciones en Mexico...
+            </li>
+          )}
+          {sugerencias.map((s, i) => (
+            <li
+              key={`${s.lat}-${s.lon}-${i}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => onSeleccionar(s)}
+              className="flex cursor-pointer items-start gap-2 px-3 py-2 text-sm text-ink-200 hover:bg-bg-700"
+            >
+              <MapPin size={14} className="mt-0.5 shrink-0 text-breco-500" />
+              <span>{s.displayName}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export function TrazarRutaModal({
   origenInicial,
@@ -20,9 +128,16 @@ export function TrazarRutaModal({
 }) {
   const [origenTexto, setOrigenTexto] = useState(origenInicial);
   const [destinoTexto, setDestinoTexto] = useState(destinoInicial);
+  const [origenPunto, setOrigenPunto] = useState<PuntoGeocodificado | null>(null);
+  const [destinoPunto, setDestinoPunto] = useState<PuntoGeocodificado | null>(null);
+  const [origenAbierto, setOrigenAbierto] = useState(false);
+  const [destinoAbierto, setDestinoAbierto] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [resultado, setResultado] = useState<RutaCalculada | null>(null);
+
+  const origenSug = useSugerenciasDireccion(origenTexto);
+  const destinoSug = useSugerenciasDireccion(destinoTexto);
 
   const mapaRef = useRef<HTMLDivElement | null>(null);
   const mapaInstancia = useRef<L.Map | null>(null);
@@ -45,6 +160,22 @@ export function TrazarRutaModal({
     };
   }, []);
 
+  function seleccionarOrigen(punto: PuntoGeocodificado) {
+    origenSug.saltarSiguienteBusqueda();
+    setOrigenTexto(punto.displayName);
+    setOrigenPunto(punto);
+    setOrigenAbierto(false);
+    origenSug.limpiar();
+  }
+
+  function seleccionarDestino(punto: PuntoGeocodificado) {
+    destinoSug.saltarSiguienteBusqueda();
+    setDestinoTexto(punto.displayName);
+    setDestinoPunto(punto);
+    setDestinoAbierto(false);
+    destinoSug.limpiar();
+  }
+
   async function trazar() {
     if (!origenTexto.trim() || !destinoTexto.trim()) {
       setError('Escribe el origen y el destino.');
@@ -53,7 +184,10 @@ export function TrazarRutaModal({
     setCargando(true);
     setError('');
     try {
-      const [origen, destino] = await Promise.all([geocodificarDireccion(origenTexto), geocodificarDireccion(destinoTexto)]);
+      const [origen, destino] = await Promise.all([
+        origenPunto ?? geocodificarDireccion(origenTexto),
+        destinoPunto ?? geocodificarDireccion(destinoTexto),
+      ]);
       const ruta = await calcularRuta(origen, destino);
       setResultado(ruta);
 
@@ -90,15 +224,39 @@ export function TrazarRutaModal({
   }
 
   return (
-    <Modal title="Trazar Ruta" subtitle="Geocodificacion y ruteo con OpenStreetMap (gratuito)" onClose={onClose} wide="xl">
+    <Modal title="Trazar Ruta" subtitle="Geocodificacion y ruteo con OpenStreetMap (gratuito) · direcciones de Mexico" onClose={onClose} wide="xl">
       <div className="space-y-3">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Origen">
-            <Input value={origenTexto} onChange={(e) => setOrigenTexto(e.target.value)} placeholder="Direccion, ciudad, planta..." />
-          </Field>
-          <Field label="Destino">
-            <Input value={destinoTexto} onChange={(e) => setDestinoTexto(e.target.value)} placeholder="Direccion, ciudad, planta..." />
-          </Field>
+          <CampoDireccion
+            label="Origen"
+            valor={origenTexto}
+            onCambiar={(texto) => {
+              setOrigenTexto(texto);
+              setOrigenPunto(null);
+              setOrigenAbierto(true);
+            }}
+            onSeleccionar={seleccionarOrigen}
+            sugerencias={origenSug.sugerencias}
+            buscando={origenSug.buscando}
+            abierto={origenAbierto}
+            onAbrir={() => setOrigenAbierto(true)}
+            onCerrar={() => setOrigenAbierto(false)}
+          />
+          <CampoDireccion
+            label="Destino"
+            valor={destinoTexto}
+            onCambiar={(texto) => {
+              setDestinoTexto(texto);
+              setDestinoPunto(null);
+              setDestinoAbierto(true);
+            }}
+            onSeleccionar={seleccionarDestino}
+            sugerencias={destinoSug.sugerencias}
+            buscando={destinoSug.buscando}
+            abierto={destinoAbierto}
+            onAbrir={() => setDestinoAbierto(true)}
+            onCerrar={() => setDestinoAbierto(false)}
+          />
         </div>
 
         <div className="flex justify-end">

@@ -10,13 +10,31 @@ export interface PuntoGeocodificado {
   displayName: string;
 }
 
+// Todas las rutas del sistema son nacionales, asi que la busqueda de
+// direcciones se acota a Mexico (countrycodes=mx) para que no aparezcan
+// coincidencias homonimas en otros paises (ej. una calle "La Merced" en
+// otro continente) ni desvien el trazo cuando no se encuentra la direccion
+// exacta.
+const PAIS_BUSQUEDA = 'mx';
+
 export async function geocodificarDireccion(direccion: string): Promise<PuntoGeocodificado> {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(direccion)}`;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=${PAIS_BUSQUEDA}&q=${encodeURIComponent(direccion)}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error('No se pudo consultar el geocodificador.');
   const data = (await res.json()) as { lat: string; lon: string; display_name: string }[];
   if (data.length === 0) throw new Error(`No se encontro la direccion: "${direccion}"`);
   return { lat: Number(data[0].lat), lon: Number(data[0].lon), displayName: data[0].display_name };
+}
+
+// Sugerencias tipo "autocompletado" mientras el usuario escribe. Se invoca
+// con debounce desde el componente (nunca en cada tecla) para respetar el
+// limite de uso razonable de Nominatim (maximo 1 solicitud por segundo).
+export async function buscarSugerenciasDireccion(termino: string): Promise<PuntoGeocodificado[]> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=${PAIS_BUSQUEDA}&q=${encodeURIComponent(termino)}`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { lat: string; lon: string; display_name: string }[];
+  return data.map((d) => ({ lat: Number(d.lat), lon: Number(d.lon), displayName: d.display_name }));
 }
 
 export interface RutaCalculada {
