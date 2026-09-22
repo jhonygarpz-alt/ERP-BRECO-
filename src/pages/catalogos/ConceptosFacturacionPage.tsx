@@ -9,7 +9,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { BuscarClaveProdServModal, BuscarClaveUnidadModal } from '../../components/catalogos/BuscarClaveSatModal';
-import { Field, GhostButton, Input, PrimaryButton, Select } from '../../components/ui/form';
+import { Field, GhostButton, Input, PrimaryButton, Select, ToolbarButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
 const TRASLADOS_DISPONIBLES = ['IVA 0%', 'IVA 8%', 'IVA 11%', 'IVA 16%'];
@@ -293,13 +293,13 @@ export function ConceptosFacturacionPage() {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="flex flex-shrink-0 gap-2">
                       <Input className="w-28" value={form.claveProdServ} readOnly placeholder="Clave" />
-                      <GhostButton
+                      <ToolbarButton
                         type="button"
                         title="Buscar en el catalogo SAT"
                         onClick={() => setBuscarProdServOpen(true)}
                       >
                         <MoreHorizontal size={16} />
-                      </GhostButton>
+                      </ToolbarButton>
                     </div>
                     <Input className="flex-1" value={form.claveProdServDescripcion} readOnly placeholder="Descripcion" />
                   </div>
@@ -308,13 +308,13 @@ export function ConceptosFacturacionPage() {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="flex flex-shrink-0 gap-2">
                       <Input className="w-28" value={form.claveUnidad} readOnly placeholder="Clave" />
-                      <GhostButton
+                      <ToolbarButton
                         type="button"
                         title="Buscar en el catalogo SAT"
                         onClick={() => setBuscarUnidadOpen(true)}
                       >
                         <MoreHorizontal size={16} />
-                      </GhostButton>
+                      </ToolbarButton>
                     </div>
                     <Input className="flex-1" value={form.claveUnidadNombre} readOnly placeholder="Nombre" />
                   </div>

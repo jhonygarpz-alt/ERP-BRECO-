@@ -19,7 +19,7 @@ import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { ListaSeleccionModal } from '../../components/ui/ListaSeleccionModal';
 import { ComboBoxCodigo } from '../../components/ui/ComboBoxCodigo';
-import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
+import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, ToolbarButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 import { TrazarRutaModal } from '../../components/viajes/TrazarRutaModal';
 
@@ -529,9 +529,9 @@ export function RutasPage() {
                     onLimpiar={() => setForm((f) => ({ ...f, clienteId: undefined }))}
                     placeholder="Nro."
                   />
-                  <GhostButton type="button" onClick={() => setClientePickerOpen(true)}>
+                  <ToolbarButton type="button" onClick={() => setClientePickerOpen(true)}>
                     <MoreHorizontal size={16} />
-                  </GhostButton>
+                  </ToolbarButton>
                   <Input readOnly className="flex-1" value={clienteSeleccionado?.nombre ?? ''} placeholder="Sin cliente" />
                 </div>
               </Field>
@@ -553,9 +553,9 @@ export function RutasPage() {
                       onLimpiar={() => setForm((f) => ({ ...f, origenId: undefined }))}
                       placeholder="Nro."
                     />
-                    <GhostButton type="button" onClick={() => setOrigenPickerOpen(true)}>
+                    <ToolbarButton type="button" onClick={() => setOrigenPickerOpen(true)}>
                       <MoreHorizontal size={16} />
-                    </GhostButton>
+                    </ToolbarButton>
                     <Input readOnly className="flex-1" value={origenSeleccionado?.nombre ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
@@ -571,9 +571,9 @@ export function RutasPage() {
                       onLimpiar={() => setForm((f) => ({ ...f, destinoId: undefined }))}
                       placeholder="Nro."
                     />
-                    <GhostButton type="button" onClick={() => setDestinoPickerOpen(true)}>
+                    <ToolbarButton type="button" onClick={() => setDestinoPickerOpen(true)}>
                       <MoreHorizontal size={16} />
-                    </GhostButton>
+                    </ToolbarButton>
                     <Input readOnly className="flex-1" value={destinoSeleccionado?.nombre ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
@@ -602,9 +602,9 @@ export function RutasPage() {
                       onSeleccionar={(t) => setForm((f) => ({ ...f, tipoViajeId: t.id }))}
                       onLimpiar={() => setForm((f) => ({ ...f, tipoViajeId: undefined }))}
                     />
-                    <GhostButton type="button" onClick={() => setTipoViajePickerOpen(true)}>
+                    <ToolbarButton type="button" onClick={() => setTipoViajePickerOpen(true)}>
                       <MoreHorizontal size={16} />
-                    </GhostButton>
+                    </ToolbarButton>
                     <Input readOnly className="flex-1" value={tipoViajeSeleccionado?.tipoViaje ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
@@ -619,9 +619,9 @@ export function RutasPage() {
                       onSeleccionar={(c) => setForm((f) => ({ ...f, clasificacionId: c.id }))}
                       onLimpiar={() => setForm((f) => ({ ...f, clasificacionId: undefined }))}
                     />
-                    <GhostButton type="button" onClick={() => setClasificacionPickerOpen(true)}>
+                    <ToolbarButton type="button" onClick={() => setClasificacionPickerOpen(true)}>
                       <MoreHorizontal size={16} />
-                    </GhostButton>
+                    </ToolbarButton>
                     <Input readOnly className="flex-1" value={clasificacionSeleccionada?.clasificacion ?? ''} placeholder="Sin asignar" />
                   </div>
                 </Field>
@@ -779,9 +779,9 @@ export function RutasPage() {
                         obtenerEtiqueta={(c) => c.concepto}
                         onSeleccionar={seleccionarConcepto}
                       />
-                      <GhostButton type="button" onClick={() => setConceptoPickerOpen(true)}>
+                      <ToolbarButton type="button" onClick={() => setConceptoPickerOpen(true)}>
                         <MoreHorizontal size={16} />
-                      </GhostButton>
+                      </ToolbarButton>
                     </div>
                     {conceptoLineaForm.concepto && <p className="mt-1 text-xs text-ink-400">{conceptoLineaForm.concepto}</p>}
                   </Field>

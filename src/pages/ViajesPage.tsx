@@ -930,9 +930,9 @@ export function ViajesPage() {
                     <Input value={clienteSeleccionado?.nombre ?? ''} readOnly placeholder="Sin cliente asignado" />
                   </Field>
                 </div>
-                <GhostButton type="button" title="Buscar cliente" onClick={() => setClientePickerOpen(true)} className="mb-0.5">
+                <ToolbarButton type="button" title="Buscar cliente" onClick={() => setClientePickerOpen(true)} className="mb-0.5">
                   <MoreHorizontal size={16} />
-                </GhostButton>
+                </ToolbarButton>
               </div>
               <div className="w-40">
                 <Field label="Credito Disponible">
@@ -973,9 +973,9 @@ export function ViajesPage() {
                               onSeleccionar={seleccionarRuta}
                               onLimpiar={() => setForm((f) => ({ ...f, rutaCodigo: '', rutaDescripcion: '' }))}
                             />
-                            <GhostButton type="button" onClick={() => setRutaPickerOpen(true)}>
+                            <ToolbarButton type="button" onClick={() => setRutaPickerOpen(true)}>
                               <MoreHorizontal size={16} />
-                            </GhostButton>
+                            </ToolbarButton>
                             <Input className="flex-1" readOnly value={form.rutaDescripcion} />
                           </div>
                         </Field>
@@ -1149,9 +1149,9 @@ export function ViajesPage() {
                             onSeleccionar={(c) => setForm((f) => ({ ...f, remolque1Id: c.id }))}
                             onLimpiar={() => setForm((f) => ({ ...f, remolque1Id: undefined }))}
                           />
-                          <GhostButton type="button" onClick={() => setRemolque1PickerOpen(true)}>
+                          <ToolbarButton type="button" onClick={() => setRemolque1PickerOpen(true)}>
                             <MoreHorizontal size={16} />
-                          </GhostButton>
+                          </ToolbarButton>
                           <Input readOnly className="flex-1" value={remolque1 ? `${remolque1.marca ?? ''} ${remolque1.modelo ?? ''}` : ''} />
                         </div>
                       </Field>
@@ -1170,9 +1170,9 @@ export function ViajesPage() {
                             onSeleccionar={(c) => setForm((f) => ({ ...f, dollyId: c.id }))}
                             onLimpiar={() => setForm((f) => ({ ...f, dollyId: undefined }))}
                           />
-                          <GhostButton type="button" onClick={() => setDollyPickerOpen(true)}>
+                          <ToolbarButton type="button" onClick={() => setDollyPickerOpen(true)}>
                             <MoreHorizontal size={16} />
-                          </GhostButton>
+                          </ToolbarButton>
                           <Input readOnly className="flex-1" value={dolly ? `${dolly.marca ?? ''} ${dolly.modelo ?? ''}` : ''} />
                         </div>
                       </Field>
@@ -1191,9 +1191,9 @@ export function ViajesPage() {
                             onSeleccionar={(c) => setForm((f) => ({ ...f, remolque2Id: c.id }))}
                             onLimpiar={() => setForm((f) => ({ ...f, remolque2Id: undefined }))}
                           />
-                          <GhostButton type="button" onClick={() => setRemolque2PickerOpen(true)}>
+                          <ToolbarButton type="button" onClick={() => setRemolque2PickerOpen(true)}>
                             <MoreHorizontal size={16} />
-                          </GhostButton>
+                          </ToolbarButton>
                           <Input readOnly className="flex-1" value={remolque2 ? `${remolque2.marca ?? ''} ${remolque2.modelo ?? ''}` : ''} />
                         </div>
                       </Field>
@@ -1417,9 +1417,9 @@ export function ViajesPage() {
                           obtenerEtiqueta={(c) => c.concepto}
                           onSeleccionar={seleccionarConcepto}
                         />
-                        <GhostButton type="button" onClick={() => setConceptoPickerOpen(true)}>
+                        <ToolbarButton type="button" onClick={() => setConceptoPickerOpen(true)}>
                           <MoreHorizontal size={16} />
-                        </GhostButton>
+                        </ToolbarButton>
                       </div>
                       {conceptoLineaForm.concepto && <p className="mt-1 text-xs text-ink-400">{conceptoLineaForm.concepto}</p>}
                     </Field>
@@ -1972,9 +1972,9 @@ export function ViajesPage() {
                   onLimpiar={() => setTrayectoForm((f) => ({ ...f, unidadId: '' }))}
                   placeholder="Sin asignar"
                 />
-                <GhostButton type="button" onClick={() => setUnidadPickerOpen(true)}>
+                <ToolbarButton type="button" onClick={() => setUnidadPickerOpen(true)}>
                   <MoreHorizontal size={16} />
-                </GhostButton>
+                </ToolbarButton>
               </div>
             </Field>
             <div className="grid grid-cols-2 gap-3">
