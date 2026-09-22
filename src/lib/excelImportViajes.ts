@@ -308,7 +308,40 @@ export async function guardarViajesImportados(
     } else {
       contadorFolio += 1;
       const folio = `V-${String(contadorFolio).padStart(4, '0')}`;
-      nuevos.push({ id: crearId(), folio, horaSalida: '', horaLlegadaEstimada: '', ubicacionActual: '', ...f });
+      nuevos.push({
+        id: crearId(),
+        folio,
+        horaSalida: '',
+        horaLlegadaEstimada: '',
+        ubicacionActual: '',
+        sucursal: '',
+        loadNumber: '',
+        moneda: 'PESOS',
+        tipoCambio: 1,
+        rutaCodigo: '',
+        rutaDescripcion: '',
+        facturable: true,
+        kilometros: 0,
+        item: '',
+        planta: '',
+        convenio: '',
+        candadoOficial: '',
+        estatusFecha: f.fecha,
+        estatusHora: '',
+        fechaCarga: '',
+        horaCarga: '',
+        cargarEn: '',
+        identificador: '',
+        fechaEntrega: '',
+        horaEntregaReal: '',
+        descargarEn: '',
+        trayectos: [],
+        materialesCarga: [],
+        pesoCargaTotal: 0,
+        pesoCargaUnidad: 'KILOGRAMOS',
+        conceptosFacturacionViaje: [],
+        ...f,
+      });
     }
   }
 

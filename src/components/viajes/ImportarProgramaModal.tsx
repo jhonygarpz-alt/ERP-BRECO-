@@ -214,7 +214,38 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
       } else {
         contadorFolio += 1;
         const folio = `V-${String(contadorFolio).padStart(4, '0')}`;
-        viajes.add({ id: uid('via'), folio, fecha: hoy, ...payload });
+        viajes.add({
+          id: uid('via'),
+          folio,
+          fecha: hoy,
+          ...payload,
+          sucursal: '',
+          loadNumber: '',
+          moneda: 'PESOS',
+          tipoCambio: 1,
+          rutaCodigo: '',
+          rutaDescripcion: '',
+          facturable: true,
+          kilometros: 0,
+          item: '',
+          planta: '',
+          convenio: '',
+          candadoOficial: '',
+          estatusFecha: hoy,
+          estatusHora: '',
+          fechaCarga: '',
+          horaCarga: '',
+          cargarEn: '',
+          identificador: '',
+          fechaEntrega: '',
+          horaEntregaReal: '',
+          descargarEn: '',
+          trayectos: [],
+          materialesCarga: [],
+          pesoCargaTotal: 0,
+          pesoCargaUnidad: 'KILOGRAMOS',
+          conceptosFacturacionViaje: [],
+        });
       }
     }
     onClose();

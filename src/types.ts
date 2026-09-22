@@ -345,6 +345,39 @@ export interface EntregaTurnoNota {
   orden: number;
 }
 
+/** Un tramo del convoy de un viaje (Asignar Operador/Camion / Mas Trayectos). */
+export interface ViajeTrayecto {
+  id: string;
+  operadorId: string;
+  unidadId: string;
+  origen: string;
+  destino: string;
+  cvR1: string;
+  cvR2: string;
+}
+
+/** Un renglon de la pestana "Mercancias" (Descripciones / Materiales Carga). */
+export interface ViajeMaterial {
+  id: string;
+  cantidad: number;
+  unidadEmpaque: string;
+  descripcion: string;
+  peso: number;
+  unidadPeso: string;
+}
+
+/** Un renglon de la pestana "Conceptos Facturacion" (cobro del viaje). */
+export interface ViajeConceptoFacturacionLinea {
+  id: string;
+  conceptoFacturacionId: string;
+  concepto: string;
+  unidadMedida: string;
+  importe: number;
+  traslada: string;
+  retiene: string;
+  importeIsr: number;
+}
+
 export interface Viaje {
   id: string;
   folio: string;
@@ -367,6 +400,38 @@ export interface Viaje {
   ubicacionActual: string;
   /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
   creadoEn?: string;
+  // ---- Pestana General (agregados al calcar "Agregando Viaje") ----
+  sucursal: string;
+  loadNumber: string;
+  moneda: string;
+  tipoCambio: number;
+  rutaCodigo: string;
+  rutaDescripcion: string;
+  facturable: boolean;
+  kilometros: number;
+  item: string;
+  planta: string;
+  convenio: string;
+  candadoOficial: string;
+  estatusFecha: string;
+  estatusHora: string;
+  fechaCarga: string;
+  horaCarga: string;
+  cargarEn: string;
+  identificador: string;
+  fechaEntrega: string;
+  horaEntregaReal: string;
+  descargarEn: string;
+  remolque1Id?: string;
+  dollyId?: string;
+  remolque2Id?: string;
+  trayectos: ViajeTrayecto[];
+  // ---- Pestana Mercancias ----
+  materialesCarga: ViajeMaterial[];
+  pesoCargaTotal: number;
+  pesoCargaUnidad: string;
+  // ---- Pestana Conceptos Facturacion ----
+  conceptosFacturacionViaje: ViajeConceptoFacturacionLinea[];
 }
 
 /** Un punto de la bitacora de avance de un viaje (ej. "Monterrey", "San Luis Potosi"). */

@@ -1,17 +1,20 @@
-import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus, ScanLine } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
-import type { Viaje } from '../types';
+import { CONFIG_AUTOTRANSPORTE_SAT } from '../lib/catalogosSat';
+import type { Caja, Cliente, ConceptoFacturacion, Viaje, ViajeMaterial, ViajeTrayecto } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
-import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
+import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 
 const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
+const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
+const UNIDADES_PESO = ['KILOGRAMOS', 'TONELADAS', 'LIBRAS'];
 
 function nextFolio(viajes: Viaje[]) {
   const max = viajes.reduce((acc, v) => {
@@ -27,8 +30,76 @@ function shiftDate(date: string, dias: number) {
   return d.toISOString().slice(0, 10);
 }
 
+function money(n: number) {
+  return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
+
+/** Modal generico de busqueda/seleccion sobre una lista ya cargada en memoria (Cliente, Remolque, Concepto...). */
+function ListaSeleccionModal<T>({
+  title,
+  items,
+  filtro,
+  renderRow,
+  onSelect,
+  onClose,
+}: {
+  title: string;
+  items: T[];
+  filtro: (item: T, termino: string) => boolean;
+  renderRow: (item: T) => ReactNode;
+  onSelect: (item: T) => void;
+  onClose: () => void;
+}) {
+  const [termino, setTermino] = useState('');
+  const filtrados = useMemo(() => items.filter((i) => filtro(i, termino.trim().toLowerCase())), [items, filtro, termino]);
+
+  return (
+    <Modal title={title} onClose={onClose}>
+      <div className="space-y-3">
+        <Input autoFocus placeholder="Buscar..." value={termino} onChange={(e) => setTermino(e.target.value)} />
+        <div className="max-h-96 overflow-auto rounded-xl border border-line-800">
+          {filtrados.length === 0 ? (
+            <p className="p-4 text-center text-sm text-ink-600">Sin resultados.</p>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <tbody>
+                {filtrados.map((item, i) => (
+                  <tr
+                    key={i}
+                    onClick={() => onSelect(item)}
+                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
+                  >
+                    {renderRow(item)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+const emptyTrayecto: Omit<ViajeTrayecto, 'id'> = {
+  operadorId: '',
+  unidadId: '',
+  origen: '',
+  destino: '',
+  cvR1: '',
+  cvR2: '',
+};
+
+const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
+  cantidad: 0,
+  unidadEmpaque: UNIDADES_EMPAQUE[0],
+  descripcion: '',
+  peso: 0,
+  unidadPeso: UNIDADES_PESO[0],
+};
+
 export function ViajesPage() {
-  const { viajes, clientes, unidades, operadores, estatusViajes } = useData();
+  const { viajes, clientes, unidades, operadores, cajas, estatusViajes, conceptosFacturacion, facturas } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -43,13 +114,14 @@ export function ViajesPage() {
   const [nuevoEstatusNombre, setNuevoEstatusNombre] = useState('');
   const [nuevoEstatusColor, setNuevoEstatusColor] = useState<Tone>('blue');
   const [editarColorOpen, setEditarColorOpen] = useState(false);
+  const [tab, setTab] = useState<'general' | 'mercancias' | 'conceptos'>('general');
 
-  const emptyForm: Omit<Viaje, 'id'> = {
+  const emptyForm = (): Omit<Viaje, 'id'> => ({
     folio: nextFolio(viajes.items),
     fecha: new Date().toISOString().slice(0, 10),
-    clienteId: clientes.items[0]?.id ?? '',
-    unidadId: unidades.items[0]?.id ?? '',
-    operadorId: operadores.items[0]?.id ?? '',
+    clienteId: '',
+    unidadId: '',
+    operadorId: '',
     materiales: '',
     cajaNombre: '',
     cajaEconomico: '',
@@ -63,9 +135,66 @@ export function ViajesPage() {
     estatus: 'Programado',
     observaciones: '',
     ubicacionActual: '',
-  };
+    sucursal: 'MA',
+    loadNumber: '',
+    moneda: 'PESOS',
+    tipoCambio: 1,
+    rutaCodigo: '',
+    rutaDescripcion: '',
+    facturable: true,
+    kilometros: 0,
+    item: '',
+    planta: '',
+    convenio: '',
+    candadoOficial: '',
+    estatusFecha: new Date().toISOString().slice(0, 10),
+    estatusHora: new Date().toTimeString().slice(0, 5),
+    fechaCarga: '',
+    horaCarga: '',
+    cargarEn: '',
+    identificador: '',
+    fechaEntrega: '',
+    horaEntregaReal: '',
+    descargarEn: '',
+    remolque1Id: undefined,
+    dollyId: undefined,
+    remolque2Id: undefined,
+    trayectos: [],
+    materialesCarga: [],
+    pesoCargaTotal: 0,
+    pesoCargaUnidad: 'KILOGRAMOS',
+    conceptosFacturacionViaje: [],
+  });
 
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<Omit<Viaje, 'id'>>(emptyForm);
+
+  // ---- Selectores (modales de busqueda) ----
+  const [clientePickerOpen, setClientePickerOpen] = useState(false);
+  const [remolque1PickerOpen, setRemolque1PickerOpen] = useState(false);
+  const [dollyPickerOpen, setDollyPickerOpen] = useState(false);
+  const [remolque2PickerOpen, setRemolque2PickerOpen] = useState(false);
+  const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
+
+  // ---- Convoy / trayectos ----
+  const [trayectoModalOpen, setTrayectoModalOpen] = useState(false);
+  const [trayectoEditandoId, setTrayectoEditandoId] = useState<string | null>(null);
+  const [trayectoForm, setTrayectoForm] = useState<Omit<ViajeTrayecto, 'id'>>(emptyTrayecto);
+  const [trayectoSeleccionadoId, setTrayectoSeleccionadoId] = useState<string | null>(null);
+
+  // ---- Mercancias ----
+  const [materialForm, setMaterialForm] = useState<Omit<ViajeMaterial, 'id'>>(emptyMaterial);
+
+  // ---- Conceptos de facturacion del viaje ----
+  const emptyConceptoLinea = {
+    conceptoFacturacionId: '',
+    concepto: '',
+    unidadMedida: '',
+    importe: 0,
+    traslada: '',
+    retiene: '',
+    importeIsr: 0,
+  };
+  const [conceptoLineaForm, setConceptoLineaForm] = useState(emptyConceptoLinea);
 
   const clienteNombre = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
@@ -76,7 +205,7 @@ export function ViajesPage() {
       viajes.items
         .filter((v) => todasLasFechas || v.fecha === fecha)
         .filter((v) =>
-          `${v.folio} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
+          `${v.folio} ${v.loadNumber} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
             .toLowerCase()
             .includes(search.toLowerCase()),
         ),
@@ -86,22 +215,37 @@ export function ViajesPage() {
 
   function openNew() {
     setEditing(null);
-    setForm({ ...emptyForm, folio: nextFolio(viajes.items) });
+    setForm(emptyForm());
+    setTab('general');
+    setTrayectoSeleccionadoId(null);
     setModalOpen(true);
   }
 
   function openEdit(v: Viaje) {
     setEditing(v);
     setForm(v);
+    setTab('general');
+    setTrayectoSeleccionadoId(null);
     setModalOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const primerTrayecto = form.trayectos[0];
+    const remolquePrincipal = cajas.items.find((c) => c.id === form.remolque1Id);
+    const payload: Omit<Viaje, 'id'> = {
+      ...form,
+      operadorId: primerTrayecto?.operadorId || form.operadorId,
+      unidadId: primerTrayecto?.unidadId || form.unidadId,
+      origen: primerTrayecto?.origen || form.origen,
+      destino: primerTrayecto?.destino || form.destino,
+      cajaEconomico: remolquePrincipal?.economico || form.cajaEconomico,
+      cajaNombre: remolquePrincipal?.marca || form.cajaNombre,
+    };
     if (editing) {
-      viajes.update(editing.id, form);
+      viajes.update(editing.id, payload);
     } else {
-      viajes.add({ id: uid('via'), ...form });
+      viajes.add({ id: uid('via'), ...payload });
     }
     setModalOpen(false);
   }
@@ -133,7 +277,12 @@ export function ViajesPage() {
         esTerminoDescarga: false,
       });
     }
-    setForm({ ...form, estatus: nombre });
+    setForm((f) => ({
+      ...f,
+      estatus: nombre,
+      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusHora: new Date().toTimeString().slice(0, 5),
+    }));
     setNuevoEstatusOpen(false);
     setNuevoEstatusNombre('');
   }
@@ -143,6 +292,126 @@ export function ViajesPage() {
     if (actual) await estatusViajes.update(actual.id, { color });
     setEditarColorOpen(false);
   }
+
+  function cambiarEstatus(nombre: string) {
+    setForm((f) => ({
+      ...f,
+      estatus: nombre,
+      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusHora: new Date().toTimeString().slice(0, 5),
+    }));
+  }
+
+  // ---- Convoy / trayectos ----
+  function abrirNuevoTrayecto() {
+    setTrayectoEditandoId(null);
+    setTrayectoForm(emptyTrayecto);
+    setTrayectoModalOpen(true);
+  }
+
+  function abrirConsultarTrayecto() {
+    const t = form.trayectos.find((tr) => tr.id === trayectoSeleccionadoId);
+    if (!t) return;
+    setTrayectoEditandoId(t.id);
+    setTrayectoForm(t);
+    setTrayectoModalOpen(true);
+  }
+
+  function guardarTrayecto() {
+    if (trayectoEditandoId) {
+      setForm((f) => ({
+        ...f,
+        trayectos: f.trayectos.map((t) => (t.id === trayectoEditandoId ? { id: t.id, ...trayectoForm } : t)),
+      }));
+    } else {
+      setForm((f) => ({ ...f, trayectos: [...f.trayectos, { id: uid('tr'), ...trayectoForm }] }));
+    }
+    setTrayectoModalOpen(false);
+  }
+
+  function eliminarTrayectoSeleccionado() {
+    if (!trayectoSeleccionadoId) return;
+    setForm((f) => ({ ...f, trayectos: f.trayectos.filter((t) => t.id !== trayectoSeleccionadoId) }));
+    setTrayectoSeleccionadoId(null);
+  }
+
+  // ---- Mercancias ----
+  function agregarMaterial() {
+    if (!materialForm.descripcion.trim() && !materialForm.cantidad) return;
+    const nuevos = [...form.materialesCarga, { id: uid('mat'), ...materialForm }];
+    const pesoTotal = nuevos.reduce((acc, m) => acc + (m.peso || 0), 0);
+    setForm((f) => ({ ...f, materialesCarga: nuevos, pesoCargaTotal: pesoTotal }));
+    setMaterialForm(emptyMaterial);
+  }
+
+  function eliminarMaterial(id: string) {
+    const nuevos = form.materialesCarga.filter((m) => m.id !== id);
+    const pesoTotal = nuevos.reduce((acc, m) => acc + (m.peso || 0), 0);
+    setForm((f) => ({ ...f, materialesCarga: nuevos, pesoCargaTotal: pesoTotal }));
+  }
+
+  // ---- Conceptos de facturacion ----
+  function seleccionarConcepto(c: ConceptoFacturacion) {
+    const trasladaPredeterminado = c.traslados.find((t) => t.predeterminado)?.impuesto ?? '';
+    const retienePredeterminado = c.retenciones.find((t) => t.predeterminado)?.impuesto ?? '';
+    setConceptoLineaForm({
+      conceptoFacturacionId: c.id,
+      concepto: c.concepto,
+      unidadMedida: c.unidadMedida,
+      importe: 0,
+      traslada: trasladaPredeterminado,
+      retiene: retienePredeterminado,
+      importeIsr: 0,
+    });
+    setConceptoPickerOpen(false);
+  }
+
+  function agregarConceptoLinea() {
+    if (!conceptoLineaForm.conceptoFacturacionId) return;
+    setForm((f) => ({
+      ...f,
+      conceptosFacturacionViaje: [...f.conceptosFacturacionViaje, { id: uid('cfv'), ...conceptoLineaForm }],
+    }));
+    setConceptoLineaForm(emptyConceptoLinea);
+  }
+
+  function eliminarConceptoLinea(id: string) {
+    setForm((f) => ({ ...f, conceptosFacturacionViaje: f.conceptosFacturacionViaje.filter((c) => c.id !== id) }));
+  }
+
+  const totalConceptos = useMemo(
+    () => form.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0),
+    [form.conceptosFacturacionViaje],
+  );
+
+  const conceptoOpcionesTraslada = useMemo(() => {
+    const c = conceptosFacturacion.items.find((x) => x.id === conceptoLineaForm.conceptoFacturacionId);
+    return c ? c.traslados.filter((t) => t.aplica) : [];
+  }, [conceptosFacturacion.items, conceptoLineaForm.conceptoFacturacionId]);
+  const conceptoOpcionesRetiene = useMemo(() => {
+    const c = conceptosFacturacion.items.find((x) => x.id === conceptoLineaForm.conceptoFacturacionId);
+    return c ? c.retenciones.filter((t) => t.aplica) : [];
+  }, [conceptosFacturacion.items, conceptoLineaForm.conceptoFacturacionId]);
+
+  const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
+  const creditoDisponible = useMemo(() => {
+    if (!clienteSeleccionado) return 0;
+    const saldoPendiente = facturas.items
+      .filter((f) => f.clienteId === clienteSeleccionado.id && f.estatus !== 'Pagado' && f.estatus !== 'Cancelado')
+      .reduce((acc, f) => acc + f.importe, 0);
+    return clienteSeleccionado.limiteCreditoMxn - saldoPendiente;
+  }, [clienteSeleccionado, facturas.items]);
+
+  const remolque1 = cajas.items.find((c) => c.id === form.remolque1Id);
+  const dolly = cajas.items.find((c) => c.id === form.dollyId);
+  const remolque2 = cajas.items.find((c) => c.id === form.remolque2Id);
+
+  const tipoUnidadDescripcion = useMemo(() => {
+    const unidadId = form.trayectos[0]?.unidadId || form.unidadId;
+    const unidad = unidades.items.find((u) => u.id === unidadId);
+    if (!unidad) return '';
+    return CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === unidad.tipo)?.descripcion ?? unidad.tipo;
+  }, [form.trayectos, form.unidadId, unidades.items]);
 
   const columns: Column<Viaje>[] = [
     {
@@ -156,6 +425,7 @@ export function ViajesPage() {
         </div>
       ),
     },
+    { header: 'Load Number', render: (v) => v.loadNumber || '—' },
     { header: 'Unidad', render: (v) => unidadNombre(v.unidadId) },
     { header: 'Cliente', render: (v) => clienteNombre(v.clienteId) },
     { header: 'Ruta', render: (v) => `${v.origen} -> ${v.destino}` },
@@ -182,6 +452,12 @@ export function ViajesPage() {
     { header: 'Estatus', render: (v) => <StatusBadge status={v.estatus} tone={estatusTono(v.estatus)} /> },
   ];
 
+  const tabs: { id: 'general' | 'mercancias' | 'conceptos'; label: string }[] = [
+    { id: 'general', label: 'General' },
+    { id: 'mercancias', label: 'Mercancias' },
+    { id: 'conceptos', label: 'Conceptos Facturacion' },
+  ];
+
   return (
     <div>
       <PageHeader
@@ -189,7 +465,7 @@ export function ViajesPage() {
         subtitle="Asigna cliente, unidad, caja y operador a cada viaje."
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por folio, unidad, cliente o ruta..."
+        searchPlaceholder="Buscar por folio, load number, unidad, cliente o ruta..."
         addLabel="Asignar viaje"
         onAdd={puedeCrear ? openNew : undefined}
         extra={
@@ -254,238 +530,807 @@ export function ViajesPage() {
 
       {modalOpen && (
         <Modal
-          title={editing ? `Editar viaje ${editing.folio}` : 'Asignar nuevo viaje'}
-          subtitle="Define cliente, recursos y ruta del viaje"
+          title={editing ? `Editando Viaje ${editing.folio}` : 'Agregando Viaje'}
           onClose={() => setModalOpen(false)}
-          wide
+          wide="xl"
         >
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Folio">
-              <Input required value={form.folio} onChange={(e) => setForm({ ...form, folio: e.target.value })} />
-            </Field>
-            <Field label="Fecha">
-              <Input
-                type="date"
-                required
-                value={form.fecha}
-                onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-              />
-            </Field>
-
-            <Field label="Cliente">
-              <Select value={form.clienteId} onChange={(e) => setForm({ ...form, clienteId: e.target.value })}>
-                {clientes.items.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Estatus">
-              <div className="flex items-center gap-2">
-                <Select value={form.estatus} onChange={(e) => setForm({ ...form, estatus: e.target.value })}>
-                  {!estatusViajes.items.some((es) => es.nombre === form.estatus) && (
-                    <option value={form.estatus}>{form.estatus}</option>
-                  )}
-                  {estatusViajes.items.map((es) => (
-                    <option key={es.id} value={es.nombre}>
-                      {es.nombre}
-                    </option>
-                  ))}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ---- Encabezado ---- */}
+            <div className="grid grid-cols-2 gap-3 rounded-xl border border-line-800 bg-bg-900 p-4 sm:grid-cols-5">
+              <Field label="Sucursal">
+                <Input value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })} />
+              </Field>
+              <Field label="Load Number">
+                <Input value={form.loadNumber} onChange={(e) => setForm({ ...form, loadNumber: e.target.value })} />
+              </Field>
+              <Field label="Fecha">
+                <Input type="date" required value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+              </Field>
+              <Field label="Moneda">
+                <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
+                  <option value="PESOS">PESOS</option>
+                  <option value="DOLARES">DOLARES</option>
                 </Select>
-                <button
-                  type="button"
-                  title="Cambiar color de este estatus"
-                  onClick={() => setEditarColorOpen((o) => !o)}
-                  disabled={!estatusViajes.items.some((es) => es.nombre === form.estatus)}
-                  className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 disabled:opacity-30"
-                >
-                  <span className={`block h-4 w-4 rounded-full ${TONE_DOT[estatusTono(form.estatus) ?? 'gray']}`} />
-                </button>
-                <button
-                  type="button"
-                  title="Agregar nuevo estatus"
-                  onClick={() => {
-                    setNuevoEstatusOpen(true);
-                    setNuevoEstatusNombre('');
-                    setNuevoEstatusColor('blue');
-                  }}
-                  className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100"
-                >
-                  <Plus size={16} />
-                </button>
+              </Field>
+              <Field label="Tipo de Cambio">
+                <Input
+                  type="number"
+                  step="0.0001"
+                  value={form.tipoCambio}
+                  onChange={(e) => setForm({ ...form, tipoCambio: Number(e.target.value) || 0 })}
+                />
+              </Field>
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-xl border border-line-800 bg-bg-900 p-4 sm:flex-row sm:items-end">
+              <div className="flex flex-1 gap-2">
+                <div className="w-28">
+                  <Field label="Nro Cliente">
+                    <Input value={clienteSeleccionado?.numeroCliente ?? ''} readOnly />
+                  </Field>
+                </div>
+                <div className="flex-1">
+                  <Field label=" ">
+                    <Input value={clienteSeleccionado?.nombre ?? ''} readOnly placeholder="Sin cliente asignado" />
+                  </Field>
+                </div>
+                <GhostButton type="button" title="Buscar cliente" onClick={() => setClientePickerOpen(true)} className="mb-0.5">
+                  <MoreHorizontal size={16} />
+                </GhostButton>
               </div>
-              {editarColorOpen && (
-                <div className="mt-2 flex items-center gap-2">
-                  {COLORES_DISPONIBLES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      title={c}
-                      onClick={() => handleCambiarColorActual(c)}
-                      className={`h-6 w-6 rounded-full ${TONE_DOT[c]} ${
-                        estatusTono(form.estatus) === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-              {nuevoEstatusOpen && (
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      autoFocus
-                      placeholder="Nombre del nuevo estatus"
-                      value={nuevoEstatusNombre}
-                      onChange={(e) => setNuevoEstatusNombre(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAgregarEstatus();
-                        }
-                      }}
-                    />
-                    <GhostButton type="button" onClick={handleAgregarEstatus}>
-                      Guardar
-                    </GhostButton>
-                    <GhostButton type="button" onClick={() => setNuevoEstatusOpen(false)}>
-                      Cancelar
-                    </GhostButton>
+              <div className="w-40">
+                <Field label="Credito Disponible">
+                  <Input readOnly value={clienteSeleccionado ? money(creditoDisponible) : money(0)} />
+                </Field>
+              </div>
+            </div>
+
+            {/* ---- Pestanas ---- */}
+            <div className="flex gap-1 border-b border-line-800">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTab(t.id)}
+                  className={`rounded-t-lg px-4 py-2 text-sm font-medium transition ${
+                    tab === t.id ? 'bg-breco-500 text-white' : 'text-ink-400 hover:text-ink-100'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {tab === 'general' && (
+              <div className="space-y-4 rounded-b-xl rounded-tr-xl border border-line-800 bg-bg-900 p-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-3">
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <Field label="Ruta">
+                          <div className="flex gap-2">
+                            <Input className="w-20" value={form.rutaCodigo} onChange={(e) => setForm({ ...form, rutaCodigo: e.target.value })} />
+                            <Input
+                              className="flex-1"
+                              value={form.rutaDescripcion}
+                              onChange={(e) => setForm({ ...form, rutaDescripcion: e.target.value })}
+                            />
+                          </div>
+                        </Field>
+                      </div>
+                      <label className="mb-2 flex items-center gap-2 whitespace-nowrap text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.facturable}
+                          onChange={(e) => setForm({ ...form, facturable: e.target.checked })}
+                        />
+                        Facturable
+                      </label>
+                      <div className="w-24">
+                        <Field label="Kilometros">
+                          <Input
+                            type="number"
+                            value={form.kilometros}
+                            onChange={(e) => setForm({ ...form, kilometros: Number(e.target.value) || 0 })}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <Field label="Item">
+                        <Input value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} />
+                      </Field>
+                      <Field label="Planta">
+                        <Input value={form.planta} onChange={(e) => setForm({ ...form, planta: e.target.value })} />
+                      </Field>
+                      <Field label="Convenio">
+                        <Input value={form.convenio} onChange={(e) => setForm({ ...form, convenio: e.target.value })} />
+                      </Field>
+                    </div>
+
+                    <div>
+                      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-500">Estatus</span>
+                      <div className="flex items-center gap-2">
+                        <Select value={form.estatus} onChange={(e) => cambiarEstatus(e.target.value)}>
+                          {!estatusViajes.items.some((es) => es.nombre === form.estatus) && (
+                            <option value={form.estatus}>{form.estatus}</option>
+                          )}
+                          {estatusViajes.items.map((es) => (
+                            <option key={es.id} value={es.nombre}>
+                              {es.nombre}
+                            </option>
+                          ))}
+                        </Select>
+                        <Input type="date" className="w-36" value={form.estatusFecha} onChange={(e) => setForm({ ...form, estatusFecha: e.target.value })} />
+                        <Input type="time" className="w-24" value={form.estatusHora} onChange={(e) => setForm({ ...form, estatusHora: e.target.value })} />
+                        <button
+                          type="button"
+                          title="Cambiar color de este estatus"
+                          onClick={() => setEditarColorOpen((o) => !o)}
+                          disabled={!estatusViajes.items.some((es) => es.nombre === form.estatus)}
+                          className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 disabled:opacity-30"
+                        >
+                          <span className={`block h-4 w-4 rounded-full ${TONE_DOT[estatusTono(form.estatus) ?? 'gray']}`} />
+                        </button>
+                        <button
+                          type="button"
+                          title="Agregar nuevo estatus"
+                          onClick={() => {
+                            setNuevoEstatusOpen(true);
+                            setNuevoEstatusNombre('');
+                            setNuevoEstatusColor('blue');
+                          }}
+                          className="shrink-0 rounded-lg border border-line-700 bg-bg-800 p-2 text-ink-400 hover:text-ink-100"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                      {editarColorOpen && (
+                        <div className="mt-2 flex items-center gap-2">
+                          {COLORES_DISPONIBLES.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              title={c}
+                              onClick={() => handleCambiarColorActual(c)}
+                              className={`h-6 w-6 rounded-full ${TONE_DOT[c]} ${
+                                estatusTono(form.estatus) === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {nuevoEstatusOpen && (
+                        <div className="mt-2 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              autoFocus
+                              placeholder="Nombre del nuevo estatus"
+                              value={nuevoEstatusNombre}
+                              onChange={(e) => setNuevoEstatusNombre(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAgregarEstatus();
+                                }
+                              }}
+                            />
+                            <GhostButton type="button" onClick={handleAgregarEstatus}>
+                              Guardar
+                            </GhostButton>
+                            <GhostButton type="button" onClick={() => setNuevoEstatusOpen(false)}>
+                              Cancelar
+                            </GhostButton>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-ink-500">Color:</span>
+                            {COLORES_DISPONIBLES.map((c) => (
+                              <button
+                                key={c}
+                                type="button"
+                                title={c}
+                                onClick={() => setNuevoEstatusColor(c)}
+                                className={`h-6 w-6 rounded-full ${TONE_DOT[c]} ${
+                                  nuevoEstatusColor === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Carga">
+                        <div className="flex gap-2">
+                          <Input type="date" value={form.fechaCarga} onChange={(e) => setForm({ ...form, fechaCarga: e.target.value })} />
+                          <Input type="time" value={form.horaCarga} onChange={(e) => setForm({ ...form, horaCarga: e.target.value })} />
+                        </div>
+                      </Field>
+                      <Field label="Cargar En">
+                        <Input value={form.cargarEn} onChange={(e) => setForm({ ...form, cargarEn: e.target.value })} />
+                      </Field>
+                      <Field label="Entrega">
+                        <div className="flex gap-2">
+                          <Input type="date" value={form.fechaEntrega} onChange={(e) => setForm({ ...form, fechaEntrega: e.target.value })} />
+                          <Input type="time" value={form.horaEntregaReal} onChange={(e) => setForm({ ...form, horaEntregaReal: e.target.value })} />
+                        </div>
+                      </Field>
+                      <Field label="Descargar En">
+                        <Input value={form.descargarEn} onChange={(e) => setForm({ ...form, descargarEn: e.target.value })} />
+                      </Field>
+                    </div>
+
+                    <div className="flex items-center gap-6 pt-1">
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.importacion}
+                          onChange={(e) => setForm({ ...form, importacion: e.target.checked })}
+                        />
+                        Importacion
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.exportacion}
+                          onChange={(e) => setForm({ ...form, exportacion: e.target.checked })}
+                        />
+                        Exportacion
+                      </label>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-ink-500">Color:</span>
-                    {COLORES_DISPONIBLES.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        title={c}
-                        onClick={() => setNuevoEstatusColor(c)}
-                        className={`h-6 w-6 rounded-full ${TONE_DOT[c]} ${
-                          nuevoEstatusColor === c ? 'ring-2 ring-offset-2 ring-offset-bg-900 ring-white' : ''
-                        }`}
+
+                  <div className="space-y-3">
+                    <Field label="Tipo de Unidad">
+                      <Input readOnly value={tipoUnidadDescripcion} />
+                    </Field>
+                    <Field label="Candado Oficial">
+                      <Input value={form.candadoOficial} onChange={(e) => setForm({ ...form, candadoOficial: e.target.value })} />
+                    </Field>
+                    <Field label="Identificador">
+                      <Input value={form.identificador} onChange={(e) => setForm({ ...form, identificador: e.target.value })} />
+                    </Field>
+                  </div>
+                </div>
+
+                {/* ---- Convoy ---- */}
+                <div className="rounded-xl border border-line-800">
+                  <div className="bg-bg-700/60 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-300">
+                    Convoy
+                  </div>
+                  <div className="space-y-2 p-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <Field label="Remolque">
+                        <div className="flex gap-2">
+                          <Input readOnly value={remolque1?.economico ?? ''} />
+                          <GhostButton type="button" onClick={() => setRemolque1PickerOpen(true)}>
+                            <MoreHorizontal size={16} />
+                          </GhostButton>
+                          <Input readOnly className="flex-1" value={remolque1 ? `${remolque1.marca ?? ''} ${remolque1.modelo ?? ''}` : ''} />
+                        </div>
+                      </Field>
+                      <Field label="Placas">
+                        <Input readOnly value={remolque1?.placas ?? ''} />
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <Field label="Dolly">
+                        <div className="flex gap-2">
+                          <Input readOnly value={dolly?.economico ?? ''} />
+                          <GhostButton type="button" onClick={() => setDollyPickerOpen(true)}>
+                            <MoreHorizontal size={16} />
+                          </GhostButton>
+                          <Input readOnly className="flex-1" value={dolly ? `${dolly.marca ?? ''} ${dolly.modelo ?? ''}` : ''} />
+                        </div>
+                      </Field>
+                      <Field label="Placas">
+                        <Input readOnly value={dolly?.placas ?? ''} />
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <Field label="Remolque">
+                        <div className="flex gap-2">
+                          <Input readOnly value={remolque2?.economico ?? ''} />
+                          <GhostButton type="button" onClick={() => setRemolque2PickerOpen(true)}>
+                            <MoreHorizontal size={16} />
+                          </GhostButton>
+                          <Input readOnly className="flex-1" value={remolque2 ? `${remolque2.marca ?? ''} ${remolque2.modelo ?? ''}` : ''} />
+                        </div>
+                      </Field>
+                      <Field label="Placas">
+                        <Input readOnly value={remolque2?.placas ?? ''} />
+                      </Field>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <PrimaryButton type="button" onClick={abrirNuevoTrayecto}>
+                        Asignar Operador/Camion
+                      </PrimaryButton>
+                      <GhostButton type="button" onClick={abrirNuevoTrayecto}>
+                        Mas Trayectos
+                      </GhostButton>
+                      <GhostButton type="button" disabled={!trayectoSeleccionadoId} onClick={abrirConsultarTrayecto}>
+                        Consultar
+                      </GhostButton>
+                      <GhostButton type="button" disabled={!trayectoSeleccionadoId} onClick={eliminarTrayectoSeleccionado}>
+                        Eliminar
+                      </GhostButton>
+                    </div>
+
+                    <div className="overflow-hidden rounded-xl border border-line-800">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+                          <tr>
+                            <th className="px-3 py-2 font-medium">Nro Oper</th>
+                            <th className="px-3 py-2 font-medium">Oper/Perm</th>
+                            <th className="px-3 py-2 font-medium">Camion</th>
+                            <th className="px-3 py-2 font-medium">Origen</th>
+                            <th className="px-3 py-2 font-medium">Destino</th>
+                            <th className="px-3 py-2 font-medium">C/V R1</th>
+                            <th className="px-3 py-2 font-medium">C/V R2</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {form.trayectos.length === 0 && (
+                            <tr>
+                              <td colSpan={7} className="px-3 py-6 text-center text-ink-600">
+                                Sin trayectos asignados.
+                              </td>
+                            </tr>
+                          )}
+                          {form.trayectos.map((t) => {
+                            const op = operadores.items.find((o) => o.id === t.operadorId);
+                            const un = unidades.items.find((u) => u.id === t.unidadId);
+                            return (
+                              <tr
+                                key={t.id}
+                                onClick={() => setTrayectoSeleccionadoId(t.id)}
+                                className={`cursor-pointer border-t border-line-800/70 ${
+                                  trayectoSeleccionadoId === t.id ? 'bg-breco-500/10' : 'hover:bg-bg-800'
+                                }`}
+                              >
+                                <td className="px-3 py-2 text-ink-300">{op?.numero ?? ''}</td>
+                                <td className="px-3 py-2 text-ink-300">{op?.nombre ?? ''}</td>
+                                <td className="px-3 py-2 text-ink-300">{un?.economico ?? ''}</td>
+                                <td className="px-3 py-2 text-ink-300">{t.origen}</td>
+                                <td className="px-3 py-2 text-ink-300">{t.destino}</td>
+                                <td className="px-3 py-2 text-ink-300">{t.cvR1}</td>
+                                <td className="px-3 py-2 text-ink-300">{t.cvR2}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tab === 'mercancias' && (
+              <div className="grid grid-cols-1 gap-4 rounded-b-xl rounded-tr-xl border border-line-800 bg-bg-900 p-4 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-line-800">
+                    <div className="bg-bg-700/60 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-300">
+                      Descripciones / Materiales Carga
+                    </div>
+                    <div className="space-y-3 p-3">
+                      <Field label="Cantidad">
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            value={materialForm.cantidad || ''}
+                            onChange={(e) => setMaterialForm({ ...materialForm, cantidad: Number(e.target.value) || 0 })}
+                          />
+                          <Select
+                            value={materialForm.unidadEmpaque}
+                            onChange={(e) => setMaterialForm({ ...materialForm, unidadEmpaque: e.target.value })}
+                          >
+                            {UNIDADES_EMPAQUE.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </Select>
+                        </div>
+                      </Field>
+                      <Field label="Descripcion Material Carga">
+                        <Textarea
+                          rows={2}
+                          value={materialForm.descripcion}
+                          onChange={(e) => setMaterialForm({ ...materialForm, descripcion: e.target.value })}
+                        />
+                      </Field>
+                      <Field label="Peso">
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            value={materialForm.peso || ''}
+                            onChange={(e) => setMaterialForm({ ...materialForm, peso: Number(e.target.value) || 0 })}
+                          />
+                          <Select
+                            value={materialForm.unidadPeso}
+                            onChange={(e) => setMaterialForm({ ...materialForm, unidadPeso: e.target.value })}
+                          >
+                            {UNIDADES_PESO.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </Select>
+                        </div>
+                      </Field>
+                      <div className="flex justify-end">
+                        <PrimaryButton type="button" onClick={agregarMaterial}>
+                          Agregar
+                        </PrimaryButton>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-line-800">
+                    <div className="bg-bg-700/60 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-300">
+                      Observaciones
+                    </div>
+                    <div className="p-3">
+                      <Textarea
+                        rows={5}
+                        value={form.observaciones}
+                        onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
                       />
-                    ))}
+                    </div>
                   </div>
                 </div>
-              )}
-            </Field>
 
-            <Field label="Unidad">
-              <Select value={form.unidadId} onChange={(e) => setForm({ ...form, unidadId: e.target.value })}>
-                {unidades.items.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.economico} ({u.estatus})
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Operador">
-              <Select value={form.operadorId} onChange={(e) => setForm({ ...form, operadorId: e.target.value })}>
-                {operadores.items.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.nombre} ({o.estatus})
-                  </option>
-                ))}
-              </Select>
-            </Field>
+                <div className="space-y-3">
+                  <div className="overflow-hidden rounded-xl border border-line-800">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+                        <tr>
+                          <th className="px-3 py-2 font-medium">Cant.</th>
+                          <th className="px-3 py-2 font-medium">Descripcion</th>
+                          <th className="px-3 py-2 font-medium">Peso</th>
+                          <th className="px-3 py-2" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {form.materialesCarga.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="px-3 py-6 text-center text-ink-600">
+                              No hay materiales agregados.
+                            </td>
+                          </tr>
+                        )}
+                        {form.materialesCarga.map((m) => (
+                          <tr key={m.id} className="border-t border-line-800/70">
+                            <td className="px-3 py-2 text-ink-300">
+                              {m.cantidad} {m.unidadEmpaque}
+                            </td>
+                            <td className="px-3 py-2 text-ink-300">{m.descripcion}</td>
+                            <td className="px-3 py-2 text-ink-300">
+                              {m.peso} {m.unidadPeso}
+                            </td>
+                            <td className="px-3 py-2">
+                              <IconButton type="button" onClick={() => eliminarMaterial(m.id)} className="hover:text-breco-500">
+                                <Trash2 size={14} />
+                              </IconButton>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-            <Field label="Materiales">
-              <Input
-                placeholder="Ej. Autopartes, PVC, Vacio..."
-                value={form.materiales}
-                onChange={(e) => setForm({ ...form, materiales: e.target.value })}
-              />
-            </Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Caja">
-                <Input
-                  placeholder="Ej. WERNER"
-                  value={form.cajaNombre}
-                  onChange={(e) => setForm({ ...form, cajaNombre: e.target.value })}
-                />
-              </Field>
-              <Field label="Economico de caja">
-                <Input
-                  placeholder="Ej. 45530"
-                  value={form.cajaEconomico}
-                  onChange={(e) => setForm({ ...form, cajaEconomico: e.target.value })}
-                />
-              </Field>
-            </div>
+                  <Field label="Peso Carga">
+                    <div className="flex gap-2">
+                      <Input readOnly value={form.pesoCargaTotal} />
+                      <Select
+                        value={form.pesoCargaUnidad}
+                        onChange={(e) => setForm({ ...form, pesoCargaUnidad: e.target.value })}
+                      >
+                        {UNIDADES_PESO.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  </Field>
+                </div>
+              </div>
+            )}
 
-            <Field label="Origen">
-              <Input required value={form.origen} onChange={(e) => setForm({ ...form, origen: e.target.value })} />
-            </Field>
-            <Field label="Destino">
-              <Input required value={form.destino} onChange={(e) => setForm({ ...form, destino: e.target.value })} />
-            </Field>
-            <Field label="Hora de salida">
-              <Input
-                type="time"
-                value={form.horaSalida}
-                onChange={(e) => setForm({ ...form, horaSalida: e.target.value })}
-              />
-            </Field>
-            <Field label="Cita">
-              <Input
-                type="time"
-                value={form.cita}
-                onChange={(e) => setForm({ ...form, cita: e.target.value })}
-              />
-            </Field>
+            {tab === 'conceptos' && (
+              <div className="space-y-3 rounded-b-xl rounded-tr-xl border border-line-800 bg-bg-900 p-4">
+                <div className="rounded-xl border border-line-800">
+                  <div className="bg-bg-700/60 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-300">
+                    Conceptos Cobro
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-6">
+                    <Field label="Concepto de Facturacion">
+                      <div className="flex gap-2">
+                        <Input readOnly className="w-16" value={conceptoLineaForm.conceptoFacturacionId ? '...' : ''} />
+                        <GhostButton type="button" onClick={() => setConceptoPickerOpen(true)}>
+                          <MoreHorizontal size={16} />
+                        </GhostButton>
+                      </div>
+                      {conceptoLineaForm.concepto && <p className="mt-1 text-xs text-ink-400">{conceptoLineaForm.concepto}</p>}
+                    </Field>
+                    <Field label="Unidad de Medida">
+                      <Input
+                        value={conceptoLineaForm.unidadMedida}
+                        onChange={(e) => setConceptoLineaForm({ ...conceptoLineaForm, unidadMedida: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Importe">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={conceptoLineaForm.importe || ''}
+                        onChange={(e) => setConceptoLineaForm({ ...conceptoLineaForm, importe: Number(e.target.value) || 0 })}
+                      />
+                    </Field>
+                    <Field label="Traslada">
+                      <Select
+                        value={conceptoLineaForm.traslada}
+                        onChange={(e) => setConceptoLineaForm({ ...conceptoLineaForm, traslada: e.target.value })}
+                      >
+                        <option value="">-</option>
+                        {conceptoOpcionesTraslada.map((t) => (
+                          <option key={t.impuesto} value={t.impuesto}>
+                            {t.impuesto}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Retiene">
+                      <Select
+                        value={conceptoLineaForm.retiene}
+                        onChange={(e) => setConceptoLineaForm({ ...conceptoLineaForm, retiene: e.target.value })}
+                      >
+                        <option value="">-</option>
+                        {conceptoOpcionesRetiene.map((t) => (
+                          <option key={t.impuesto} value={t.impuesto}>
+                            {t.impuesto}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <div className="flex items-end gap-2">
+                      <Field label="Importe ISR">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={conceptoLineaForm.importeIsr || ''}
+                          onChange={(e) => setConceptoLineaForm({ ...conceptoLineaForm, importeIsr: Number(e.target.value) || 0 })}
+                        />
+                      </Field>
+                      <IconButton
+                        type="button"
+                        title="Agregar concepto"
+                        onClick={agregarConceptoLinea}
+                        className="mb-0.5 text-emerald-500 hover:text-emerald-400"
+                      >
+                        <Plus size={20} />
+                      </IconButton>
+                    </div>
+                  </div>
 
-            <div className="flex items-center gap-6 sm:col-span-2">
-              <label className="flex items-center gap-2 text-sm text-ink-300">
-                <input
-                  type="checkbox"
-                  checked={form.importacion}
-                  onChange={(e) => setForm({ ...form, importacion: e.target.checked })}
-                  className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
-                />
-                Importacion
-              </label>
-              <label className="flex items-center gap-2 text-sm text-ink-300">
-                <input
-                  type="checkbox"
-                  checked={form.exportacion}
-                  onChange={(e) => setForm({ ...form, exportacion: e.target.checked })}
-                  className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
-                />
-                Exportacion
-              </label>
-            </div>
+                  <div className="overflow-hidden border-t border-line-800">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+                        <tr>
+                          <th className="px-3 py-2 font-medium">Concepto</th>
+                          <th className="px-3 py-2 font-medium">Unidad</th>
+                          <th className="px-3 py-2 font-medium">Importe</th>
+                          <th className="px-3 py-2 font-medium">Traslada</th>
+                          <th className="px-3 py-2 font-medium">Retiene</th>
+                          <th className="px-3 py-2 font-medium">ISR</th>
+                          <th className="px-3 py-2" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {form.conceptosFacturacionViaje.length === 0 && (
+                          <tr>
+                            <td colSpan={7} className="px-3 py-6 text-center text-ink-600">
+                              No hay conceptos agregados.
+                            </td>
+                          </tr>
+                        )}
+                        {form.conceptosFacturacionViaje.map((c) => (
+                          <tr key={c.id} className="border-t border-line-800/70">
+                            <td className="px-3 py-2 text-ink-300">{c.concepto}</td>
+                            <td className="px-3 py-2 text-ink-300">{c.unidadMedida}</td>
+                            <td className="px-3 py-2 text-ink-300">{money(c.importe)}</td>
+                            <td className="px-3 py-2 text-ink-300">{c.traslada}</td>
+                            <td className="px-3 py-2 text-ink-300">{c.retiene}</td>
+                            <td className="px-3 py-2 text-ink-300">{money(c.importeIsr)}</td>
+                            <td className="px-3 py-2">
+                              <IconButton type="button" onClick={() => eliminarConceptoLinea(c.id)} className="hover:text-breco-500">
+                                <Trash2 size={14} />
+                              </IconButton>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-            <div className="sm:col-span-2">
-              <Field label="Ubicacion actual">
-                <Input
-                  placeholder="Ej. Circulando a la altura de Matehuala"
-                  value={form.ubicacionActual}
-                  onChange={(e) => setForm({ ...form, ubicacionActual: e.target.value })}
-                />
-              </Field>
-            </div>
+                <div className="flex justify-end">
+                  <div className="w-48">
+                    <Field label="Total">
+                      <Input readOnly value={money(totalConceptos)} />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            <div className="sm:col-span-2">
-              <Field label="Observaciones">
-                <Textarea
-                  rows={3}
-                  value={form.observaciones}
-                  onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
-                />
-              </Field>
-            </div>
-
-            <div className="mt-2 flex justify-end gap-2 sm:col-span-2">
+            <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
               <GhostButton type="button" onClick={() => setModalOpen(false)}>
                 Cancelar
               </GhostButton>
-              <PrimaryButton type="submit">{editing ? 'Guardar cambios' : 'Asignar viaje'}</PrimaryButton>
+              <PrimaryButton type="submit">{editing ? 'Guardar cambios' : 'Aceptar'}</PrimaryButton>
             </div>
           </form>
         </Modal>
       )}
 
       {importarOpen && <ImportarProgramaModal onClose={() => setImportarOpen(false)} />}
+
+      {clientePickerOpen && (
+        <ListaSeleccionModal<Cliente>
+          title="Buscar Cliente"
+          items={clientes.items}
+          filtro={(c, t) => `${c.nombre} ${c.numeroCliente} ${c.rfc}`.toLowerCase().includes(t)}
+          renderRow={(c) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{c.numeroCliente}</td>
+              <td className="px-3 py-2 text-ink-200">{c.nombre}</td>
+              <td className="px-3 py-2 text-ink-500">{c.rfc}</td>
+            </>
+          )}
+          onSelect={(c) => {
+            setForm((f) => ({ ...f, clienteId: c.id }));
+            setClientePickerOpen(false);
+          }}
+          onClose={() => setClientePickerOpen(false)}
+        />
+      )}
+
+      {remolque1PickerOpen && (
+        <ListaSeleccionModal<Caja>
+          title="Buscar Remolque"
+          items={cajas.items.filter((c) => c.grupoUnidades.toUpperCase() !== 'DOLLY')}
+          filtro={(c, t) => `${c.economico} ${c.placas} ${c.marca ?? ''}`.toLowerCase().includes(t)}
+          renderRow={(c) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{c.economico}</td>
+              <td className="px-3 py-2 text-ink-200">
+                {c.marca} {c.modelo}
+              </td>
+              <td className="px-3 py-2 text-ink-500">{c.placas}</td>
+            </>
+          )}
+          onSelect={(c) => {
+            setForm((f) => ({ ...f, remolque1Id: c.id }));
+            setRemolque1PickerOpen(false);
+          }}
+          onClose={() => setRemolque1PickerOpen(false)}
+        />
+      )}
+
+      {dollyPickerOpen && (
+        <ListaSeleccionModal<Caja>
+          title="Buscar Dolly"
+          items={cajas.items.filter((c) => c.grupoUnidades.toUpperCase() === 'DOLLY')}
+          filtro={(c, t) => `${c.economico} ${c.placas} ${c.marca ?? ''}`.toLowerCase().includes(t)}
+          renderRow={(c) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{c.economico}</td>
+              <td className="px-3 py-2 text-ink-200">
+                {c.marca} {c.modelo}
+              </td>
+              <td className="px-3 py-2 text-ink-500">{c.placas}</td>
+            </>
+          )}
+          onSelect={(c) => {
+            setForm((f) => ({ ...f, dollyId: c.id }));
+            setDollyPickerOpen(false);
+          }}
+          onClose={() => setDollyPickerOpen(false)}
+        />
+      )}
+
+      {remolque2PickerOpen && (
+        <ListaSeleccionModal<Caja>
+          title="Buscar Remolque"
+          items={cajas.items.filter((c) => c.grupoUnidades.toUpperCase() !== 'DOLLY')}
+          filtro={(c, t) => `${c.economico} ${c.placas} ${c.marca ?? ''}`.toLowerCase().includes(t)}
+          renderRow={(c) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{c.economico}</td>
+              <td className="px-3 py-2 text-ink-200">
+                {c.marca} {c.modelo}
+              </td>
+              <td className="px-3 py-2 text-ink-500">{c.placas}</td>
+            </>
+          )}
+          onSelect={(c) => {
+            setForm((f) => ({ ...f, remolque2Id: c.id }));
+            setRemolque2PickerOpen(false);
+          }}
+          onClose={() => setRemolque2PickerOpen(false)}
+        />
+      )}
+
+      {conceptoPickerOpen && (
+        <ListaSeleccionModal<ConceptoFacturacion>
+          title="Buscar Concepto de Facturacion"
+          items={conceptosFacturacion.items.filter((c) => c.activo)}
+          filtro={(c, t) => `${c.codigo} ${c.concepto}`.toLowerCase().includes(t)}
+          renderRow={(c) => (
+            <>
+              <td className="px-3 py-2 font-mono text-xs text-ink-500">{c.codigo}</td>
+              <td className="px-3 py-2 text-ink-200">{c.concepto}</td>
+            </>
+          )}
+          onSelect={seleccionarConcepto}
+          onClose={() => setConceptoPickerOpen(false)}
+        />
+      )}
+
+      {trayectoModalOpen && (
+        <Modal title={trayectoEditandoId ? 'Editando Trayecto' : 'Asignar Operador/Camion'} onClose={() => setTrayectoModalOpen(false)}>
+          <div className="space-y-3">
+            <Field label="Operador">
+              <Select value={trayectoForm.operadorId} onChange={(e) => setTrayectoForm({ ...trayectoForm, operadorId: e.target.value })}>
+                <option value="">Selecciona...</option>
+                {operadores.items.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.numero} - {o.nombre}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Camion">
+              <Select value={trayectoForm.unidadId} onChange={(e) => setTrayectoForm({ ...trayectoForm, unidadId: e.target.value })}>
+                <option value="">Selecciona...</option>
+                {unidades.items.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.economico}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Origen">
+                <Input value={trayectoForm.origen} onChange={(e) => setTrayectoForm({ ...trayectoForm, origen: e.target.value })} />
+              </Field>
+              <Field label="Destino">
+                <Input value={trayectoForm.destino} onChange={(e) => setTrayectoForm({ ...trayectoForm, destino: e.target.value })} />
+              </Field>
+              <Field label="C/V R1">
+                <Input value={trayectoForm.cvR1} onChange={(e) => setTrayectoForm({ ...trayectoForm, cvR1: e.target.value })} />
+              </Field>
+              <Field label="C/V R2">
+                <Input value={trayectoForm.cvR2} onChange={(e) => setTrayectoForm({ ...trayectoForm, cvR2: e.target.value })} />
+              </Field>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
+              <GhostButton type="button" onClick={() => setTrayectoModalOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarTrayecto}>
+                Guardar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
