@@ -70,6 +70,9 @@ const emptyForm: Omit<Unidad, 'id'> = {
   noPoliza: '',
   vigenciaDesde: '',
   vigenciaHasta: '',
+  propietario: '',
+  ubicacion: '',
+  estadoCarga: 'Vacio',
 };
 
 export function UnidadesPage() {

@@ -593,6 +593,9 @@ export function ViajesPage() {
       noPoliza: '',
       vigenciaDesde: '',
       vigenciaHasta: '',
+      propietario: '',
+      ubicacion: '',
+      estadoCarga: 'Vacio',
     });
     const campo = nuevaCajaDestino === 'remolque1' ? 'remolque1Id' : nuevaCajaDestino === 'dolly' ? 'dollyId' : 'remolque2Id';
     setForm((f) => ({ ...f, [campo]: nuevoId }));
@@ -661,6 +664,9 @@ export function ViajesPage() {
       noPoliza: '',
       vigenciaDesde: '',
       vigenciaHasta: '',
+      propietario: '',
+      ubicacion: '',
+      estadoCarga: 'Vacio',
     });
     setTrayectoForm((f) => ({ ...f, unidadId: nuevoId }));
     setNuevaUnidadOpen(false);

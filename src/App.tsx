@@ -31,6 +31,8 @@ import { ViajesPage } from './pages/ViajesPage';
 import { GastosViajePage } from './pages/GastosViajePage';
 import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
+import { ParqueVehicularPage } from './pages/ParqueVehicularPage';
+import { ImprimirParqueVehicularPage } from './pages/ImprimirParqueVehicularPage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { EntregaTurnoPage } from './pages/EntregaTurnoPage';
@@ -66,6 +68,7 @@ function App() {
 
                 <Route element={<RequirePermission modulo="Catalogos" />}>
                   <Route path="/catalogos" element={<CatalogosHubPage />} />
+                  <Route path="/parque-vehicular" element={<ParqueVehicularPage />} />
                   <Route path="/catalogos/clientes" element={<ClientesPage />} />
                   <Route path="/catalogos/destinatarios" element={<DestinatariosPage />} />
                   <Route path="/catalogos/proveedores" element={<ProveedoresPage />} />
@@ -121,6 +124,7 @@ function App() {
 
               <Route path="/viajes/imprimir/:id" element={<ImprimirViajePage />} />
               <Route path="/gastos-viaje/imprimir/:id" element={<ImprimirGastoViajePage />} />
+              <Route path="/parque-vehicular/imprimir" element={<ImprimirParqueVehicularPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
             </Route>
           </Routes>

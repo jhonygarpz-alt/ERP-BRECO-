@@ -37,6 +37,10 @@ import {
   grupoUnidadToRow,
   operadorFromRow,
   operadorToRow,
+  parqueHistorialFromRow,
+  parqueHistorialToRow,
+  parqueNotaFromRow,
+  parqueNotaToRow,
   proveedorFromRow,
   proveedorToRow,
   reporteFromRow,
@@ -76,6 +80,8 @@ import type {
   GastoViaje,
   GrupoUnidad,
   Operador,
+  ParqueHistorial,
+  ParqueNota,
   Proveedor,
   ReporteExterno,
   Rol,
@@ -94,6 +100,8 @@ interface DataContextValue {
   cajas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Caja>>;
   operadores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Operador>>;
   proveedores: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Proveedor>>;
+  parqueNotas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ParqueNota>>;
+  parqueHistorial: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ParqueHistorial>>;
   cuentasBancarias: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, CuentaBancaria>>;
   estatusUnidades: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusUnidadCustom>>;
   clasificacionesViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ClasificacionViaje>>;
@@ -139,6 +147,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'proveedores',
     proveedorFromRow,
     proveedorToRow,
+  );
+  const parqueNotas = useSupabaseCollection<Record<string, unknown>, ParqueNota>(
+    'parque_notas',
+    parqueNotaFromRow,
+    parqueNotaToRow,
+  );
+  const parqueHistorial = useSupabaseCollection<Record<string, unknown>, ParqueHistorial>(
+    'parque_historial',
+    parqueHistorialFromRow,
+    parqueHistorialToRow,
   );
   const cuentasBancarias = useSupabaseCollection<Record<string, unknown>, CuentaBancaria>(
     'cuentas_bancarias',
@@ -247,6 +265,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         cajas,
         operadores,
         proveedores,
+        parqueNotas,
+        parqueHistorial,
         cuentasBancarias,
         estatusUnidades,
         clasificacionesViaje,

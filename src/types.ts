@@ -162,9 +162,19 @@ export interface Unidad {
   noPoliza: string;
   vigenciaDesde: string;
   vigenciaHasta: string;
+  // ---- Parque Vehicular ----
+  /** Nombre del dueno de la unidad (relevante sobre todo si es rentada/permisionario). */
+  propietario: string;
+  /** Ubicacion actual en texto libre (ej. "Patios Empresa", una direccion); la actualiza el boton "Ubicacion Unidad" de Parque Vehicular. */
+  ubicacion: string;
+  estadoCarga: EstadoCarga;
 }
 
-export type EstatusCaja = 'Disponible' | 'En uso' | 'Mantenimiento';
+export type EstadoCarga = 'Cargado' | 'Vacio';
+
+// "Asignado" y "Fuera de servicio" se agregan para que Parque Vehicular
+// pueda usar el mismo vocabulario de estatus en remolques que en unidades.
+export type EstatusCaja = 'Disponible' | 'En uso' | 'Mantenimiento' | 'Asignado' | 'Fuera de servicio';
 
 /** Un renglon de la tabla "Documentos del remolque" (solo metadatos, sin archivo adjunto). */
 export interface CajaDocumentoVencimiento {
@@ -221,6 +231,10 @@ export interface Caja {
   noPoliza: string;
   vigenciaDesde: string;
   vigenciaHasta: string;
+  // ---- Parque Vehicular ----
+  propietario: string;
+  ubicacion: string;
+  estadoCarga: EstadoCarga;
 }
 
 export type EstatusOperador = 'Disponible' | 'En viaje' | 'Descanso' | 'Baja';
@@ -752,4 +766,27 @@ export interface FormatoImpresion {
   nombre: string;
   descripcion: string;
   activo: boolean;
+}
+
+/** "unidad" o "remolque" (Caja): a que catalogo pertenece el registro de Parque Vehicular. */
+export type EntidadParque = 'unidad' | 'remolque';
+
+/** Una nota libre agregada desde Parque Vehicular a una unidad o remolque; se muestra la mas reciente en la columna "Nota". */
+export interface ParqueNota {
+  id: string;
+  entidadTipo: EntidadParque;
+  entidadId: string;
+  texto: string;
+  creadoEn?: string;
+}
+
+/** Bitacora de cambios (estatus, ubicacion, cargado/vacio) hechos desde Parque Vehicular sobre una unidad o remolque. */
+export interface ParqueHistorial {
+  id: string;
+  entidadTipo: EntidadParque;
+  entidadId: string;
+  campo: string;
+  valorAnterior: string;
+  valorNuevo: string;
+  creadoEn?: string;
 }

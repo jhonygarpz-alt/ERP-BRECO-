@@ -133,6 +133,9 @@ export async function leerRemolquesExcel(file: File): Promise<{ totalFilasHoja: 
       noPoliza: '',
       vigenciaDesde: '',
       vigenciaHasta: '',
+      propietario: '',
+      ubicacion: '',
+      estadoCarga: 'Vacio',
     };
 
     filas.push({ fila: i + 1, item, errores });

@@ -6,6 +6,7 @@ import {
   Route,
   Receipt,
   Wallet,
+  Truck,
   CalendarClock,
   FileSpreadsheet,
   BarChart3,
@@ -176,6 +177,7 @@ export function Sidebar() {
         {puedeCatalogos && (
           <NavGroup>
             <NavRow to="/catalogos" label="Catalogos" icon={Boxes} collapsed={collapsed} />
+            <NavRow to="/parque-vehicular" label="Parque Vehicular" icon={Truck} collapsed={collapsed} />
           </NavGroup>
         )}
 

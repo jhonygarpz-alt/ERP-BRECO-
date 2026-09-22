@@ -39,6 +39,7 @@ export const TONE_DOT: Record<Tone, string> = {
 const STATUS_TONE: Record<string, Tone> = {
   Disponible: 'green',
   activo: 'green',
+  Asignado: 'blue',
   'En viaje': 'blue',
   'En transito': 'green',
   Programado: 'amber',
@@ -60,9 +61,15 @@ const STATUS_TONE: Record<string, Tone> = {
  * "tone" permite pasar un color explicito (ej. desde un catalogo editable
  * por el usuario como estatus_viaje.color) que tiene prioridad sobre el
  * mapa fijo de arriba, el cual solo cubre los estatus que vienen de fabrica.
+ * Exportada aparte para que otras pantallas (ej. la leyenda de Parque
+ * Vehicular) pinten el mismo color que StatusBadge sin duplicar el mapa.
  */
+export function resolverTono(status: string, toneProp?: Tone | null): Tone {
+  return toneProp ?? STATUS_TONE[status] ?? 'gray';
+}
+
 export function StatusBadge({ status, tone: toneProp }: { status: string; tone?: Tone | null }) {
-  const tone = toneProp ?? STATUS_TONE[status] ?? 'gray';
+  const tone = resolverTono(status, toneProp);
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${TONES[tone]}`}

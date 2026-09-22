@@ -22,7 +22,7 @@ import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '..
 import { StatusBadge } from '../../components/ui/Badge';
 
 const BUCKET = 'remolque-documentos';
-const estatuses: EstatusCaja[] = ['Disponible', 'En uso', 'Mantenimiento'];
+const estatuses: EstatusCaja[] = ['Disponible', 'En uso', 'Mantenimiento', 'Asignado', 'Fuera de servicio'];
 
 const emptyDocVencimiento: CajaDocumentoVencimiento = { numeroDocumento: '', documento: '', fechaVencimiento: '' };
 
@@ -58,6 +58,9 @@ const emptyForm: Omit<Caja, 'id'> = {
   noPoliza: '',
   vigenciaDesde: '',
   vigenciaHasta: '',
+  propietario: '',
+  ubicacion: '',
+  estadoCarga: 'Vacio',
 };
 
 export function RemolquesPage() {

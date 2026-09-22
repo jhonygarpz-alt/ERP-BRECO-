@@ -16,6 +16,8 @@ import type {
   FormatoImpresion,
   GastoViaje,
   GrupoUnidad,
+  ParqueHistorial,
+  ParqueNota,
   Operador,
   Proveedor,
   ReporteExterno,
@@ -162,6 +164,9 @@ export function unidadFromRow(row: Record<string, unknown>): Unidad {
     noPoliza: row.no_poliza as string,
     vigenciaDesde: (row.vigencia_desde as string | null) ?? '',
     vigenciaHasta: (row.vigencia_hasta as string | null) ?? '',
+    propietario: (row.propietario as string | null) ?? '',
+    ubicacion: (row.ubicacion as string | null) ?? '',
+    estadoCarga: ((row.estado_carga as string | null) ?? 'Vacio') as Unidad['estadoCarga'],
   };
 }
 export function unidadToRow(u: Unidad) {
@@ -208,6 +213,9 @@ export function unidadToRow(u: Unidad) {
     no_poliza: u.noPoliza,
     vigencia_desde: u.vigenciaDesde || null,
     vigencia_hasta: u.vigenciaHasta || null,
+    propietario: u.propietario,
+    ubicacion: u.ubicacion,
+    estado_carga: u.estadoCarga,
   };
 }
 
@@ -245,6 +253,9 @@ export function cajaFromRow(row: Record<string, unknown>): Caja {
     noPoliza: row.no_poliza as string,
     vigenciaDesde: (row.vigencia_desde as string | null) ?? '',
     vigenciaHasta: (row.vigencia_hasta as string | null) ?? '',
+    propietario: (row.propietario as string | null) ?? '',
+    ubicacion: (row.ubicacion as string | null) ?? '',
+    estadoCarga: ((row.estado_carga as string | null) ?? 'Vacio') as Caja['estadoCarga'],
   };
 }
 export function cajaToRow(c: Caja) {
@@ -281,6 +292,9 @@ export function cajaToRow(c: Caja) {
     no_poliza: c.noPoliza,
     vigencia_desde: c.vigenciaDesde || null,
     vigencia_hasta: c.vigenciaHasta || null,
+    propietario: c.propietario,
+    ubicacion: c.ubicacion,
+    estado_carga: c.estadoCarga,
   };
 }
 
@@ -1100,6 +1114,41 @@ export function gastoViajeToRow(g: GastoViaje) {
     combustible_tipo: g.combustibleTipo || null,
     litros: g.litros ?? null,
     precio_litro: g.precioLitro ?? null,
+  };
+}
+
+export function parqueNotaFromRow(row: Record<string, unknown>): ParqueNota {
+  return {
+    id: row.id as string,
+    entidadTipo: row.entidad_tipo as ParqueNota['entidadTipo'],
+    entidadId: row.entidad_id as string,
+    texto: row.texto as string,
+    creadoEn: row.creado_en as string | undefined,
+  };
+}
+export function parqueNotaToRow(n: ParqueNota) {
+  return { id: n.id, entidad_tipo: n.entidadTipo, entidad_id: n.entidadId, texto: n.texto };
+}
+
+export function parqueHistorialFromRow(row: Record<string, unknown>): ParqueHistorial {
+  return {
+    id: row.id as string,
+    entidadTipo: row.entidad_tipo as ParqueHistorial['entidadTipo'],
+    entidadId: row.entidad_id as string,
+    campo: row.campo as string,
+    valorAnterior: row.valor_anterior as string,
+    valorNuevo: row.valor_nuevo as string,
+    creadoEn: row.creado_en as string | undefined,
+  };
+}
+export function parqueHistorialToRow(h: ParqueHistorial) {
+  return {
+    id: h.id,
+    entidad_tipo: h.entidadTipo,
+    entidad_id: h.entidadId,
+    campo: h.campo,
+    valor_anterior: h.valorAnterior,
+    valor_nuevo: h.valorNuevo,
   };
 }
 

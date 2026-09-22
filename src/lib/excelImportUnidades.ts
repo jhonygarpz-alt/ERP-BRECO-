@@ -143,6 +143,9 @@ export async function leerUnidadesExcel(file: File): Promise<{ totalFilasHoja: n
       noPoliza: '',
       vigenciaDesde: '',
       vigenciaHasta: '',
+      propietario: '',
+      ubicacion: '',
+      estadoCarga: 'Vacio',
     };
 
     filas.push({ fila: i + 1, item, errores });
