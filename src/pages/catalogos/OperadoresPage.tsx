@@ -7,10 +7,17 @@ import { useColoniasPorCP } from '../../lib/useColoniasPorCP';
 import { mensajeDeError } from '../../lib/errors';
 import { operadorToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
+import {
+  descargarPlantillaOperadores,
+  guardarOperadoresImportados,
+  leerOperadoresExcel,
+  marcarDuplicadosOperadores,
+} from '../../lib/excelImportOperadores';
 import type { EstatusOperador, Operador, OperadorDocumento, OperadorVencimiento } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
+import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
@@ -100,6 +107,7 @@ export function OperadoresPage() {
   const [subiendoDoc, setSubiendoDoc] = useState(false);
   const [errorDoc, setErrorDoc] = useState('');
   const [error, setError] = useState('');
+  const [importarOpen, setImportarOpen] = useState(false);
   const coloniasSugeridas = useColoniasPorCP(form.cp);
 
   /** Los datos obligatorios que identifican a un operador no se pueden repetir dentro de la misma empresa. */
@@ -287,6 +295,14 @@ export function OperadoresPage() {
         searchPlaceholder="Buscar por numero, nombre o licencia..."
         addLabel="Agregar"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <Upload size={14} />
+              Importar
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -724,6 +740,26 @@ export function OperadoresPage() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {importarOpen && (
+        <ImportarCatalogoModal<Operador>
+          titulo="Importar Operadores"
+          nombrePlural="operadores"
+          descargarPlantilla={descargarPlantillaOperadores}
+          leerArchivo={leerOperadoresExcel}
+          marcarDuplicados={marcarDuplicadosOperadores}
+          existentes={operadores.items}
+          guardar={guardarOperadoresImportados}
+          columnasPreview={[
+            { header: 'Numero', render: (o) => o.numero || '(auto)' },
+            { header: 'Nombre', render: (o) => o.nombre },
+            { header: 'RFC', render: (o) => o.rfc },
+            { header: 'Licencia', render: (o) => o.licencia },
+          ]}
+          onClose={() => setImportarOpen(false)}
+          onImportado={() => operadores.reload()}
+        />
       )}
     </div>
   );

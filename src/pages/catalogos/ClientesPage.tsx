@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { useColoniasPorCP } from '../../lib/useColoniasPorCP';
 import { uid } from '../../lib/storage';
+import {
+  descargarPlantillaClientes,
+  guardarClientesImportados,
+  leerClientesExcel,
+  marcarDuplicadosClientes,
+} from '../../lib/excelImportClientes';
 import type { Cliente, ClienteContacto } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
+import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
@@ -80,6 +87,7 @@ export function ClientesPage() {
   const [contactoForm, setContactoForm] = useState<ClienteContacto | null>(null);
   const [contactoEditIndex, setContactoEditIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [importarOpen, setImportarOpen] = useState(false);
   const coloniasSugeridas = useColoniasPorCP(form.cp);
 
   /** Numero de cliente y RFC (los datos obligatorios que identifican al cliente) no se pueden repetir dentro de la misma empresa. */
@@ -195,6 +203,14 @@ export function ClientesPage() {
         searchPlaceholder="Buscar por numero, nombre o RFC..."
         addLabel="Agregar"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <Upload size={14} />
+              Importar
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -565,6 +581,26 @@ export function ClientesPage() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {importarOpen && (
+        <ImportarCatalogoModal<Cliente>
+          titulo="Importar Clientes"
+          nombrePlural="clientes"
+          descargarPlantilla={descargarPlantillaClientes}
+          leerArchivo={leerClientesExcel}
+          marcarDuplicados={marcarDuplicadosClientes}
+          existentes={clientes.items}
+          guardar={guardarClientesImportados}
+          columnasPreview={[
+            { header: 'Numero', render: (c) => c.numeroCliente || '(auto)' },
+            { header: 'Nombre Fiscal', render: (c) => c.nombre },
+            { header: 'RFC', render: (c) => c.rfc },
+            { header: 'Tipo', render: (c) => c.tipo },
+          ]}
+          onClose={() => setImportarOpen(false)}
+          onImportado={() => clientes.reload()}
+        />
       )}
     </div>
   );

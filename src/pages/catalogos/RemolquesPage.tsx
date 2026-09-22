@@ -7,10 +7,17 @@ import { mensajeDeError } from '../../lib/errors';
 import { cajaToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { SUBTIPO_REMOLQUE_SAT } from '../../lib/catalogosSat';
+import {
+  descargarPlantillaRemolques,
+  guardarRemolquesImportados,
+  leerRemolquesExcel,
+  marcarDuplicadosRemolques,
+} from '../../lib/excelImportRemolques';
 import type { Caja, CajaArchivo, CajaDocumentoVencimiento, EstatusCaja } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
+import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
@@ -65,6 +72,7 @@ export function RemolquesPage() {
   const [form, setForm] = useState(emptyForm);
   const [draftId, setDraftId] = useState('');
   const [error, setError] = useState('');
+  const [importarOpen, setImportarOpen] = useState(false);
 
   const [docForm, setDocForm] = useState(emptyDocVencimiento);
   const [archDescripcion, setArchDescripcion] = useState('');
@@ -224,6 +232,14 @@ export function RemolquesPage() {
         searchPlaceholder="Buscar por codigo, placas o tipo..."
         addLabel="Agregar"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <Upload size={14} />
+              Importar
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -517,6 +533,26 @@ export function RemolquesPage() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {importarOpen && (
+        <ImportarCatalogoModal<Caja>
+          titulo="Importar Remolques"
+          nombrePlural="remolques"
+          descargarPlantilla={descargarPlantillaRemolques}
+          leerArchivo={leerRemolquesExcel}
+          marcarDuplicados={marcarDuplicadosRemolques}
+          existentes={cajas.items}
+          guardar={guardarRemolquesImportados}
+          columnasPreview={[
+            { header: 'Codigo', render: (c) => c.economico },
+            { header: 'Placas', render: (c) => c.placas },
+            { header: 'Marca', render: (c) => c.marca ?? '' },
+            { header: 'Modelo', render: (c) => c.modelo ?? '' },
+          ]}
+          onClose={() => setImportarOpen(false)}
+          onImportado={() => cajas.reload()}
+        />
       )}
     </div>
   );

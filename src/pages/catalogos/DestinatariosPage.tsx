@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Upload } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { useColoniasPorCP } from '../../lib/useColoniasPorCP';
 import { uid } from '../../lib/storage';
+import {
+  descargarPlantillaDestinatarios,
+  guardarDestinatariosImportados,
+  leerDestinatariosExcel,
+  marcarDuplicadosDestinatarios,
+} from '../../lib/excelImportDestinatarios';
 import type { Destinatario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
+import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
@@ -51,6 +59,7 @@ export function DestinatariosPage() {
   const [editing, setEditing] = useState<Destinatario | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState('');
+  const [importarOpen, setImportarOpen] = useState(false);
   const coloniasSugeridas = useColoniasPorCP(form.cp);
 
   /** El numero (dato obligatorio) no se puede repetir dentro de la misma empresa; el RFC si puede repetirse a proposito (varias ubicaciones del mismo cliente). */
@@ -133,6 +142,14 @@ export function DestinatariosPage() {
         searchPlaceholder="Buscar por numero, nombre o RFC..."
         addLabel="Agregar"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <Upload size={14} />
+              Importar
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -272,6 +289,25 @@ export function DestinatariosPage() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {importarOpen && (
+        <ImportarCatalogoModal<Destinatario>
+          titulo="Importar Destinatarios"
+          nombrePlural="destinatarios"
+          descargarPlantilla={descargarPlantillaDestinatarios}
+          leerArchivo={(file) => leerDestinatariosExcel(file, clientes.items)}
+          marcarDuplicados={marcarDuplicadosDestinatarios}
+          existentes={destinatarios.items}
+          guardar={guardarDestinatariosImportados}
+          columnasPreview={[
+            { header: 'Numero', render: (d) => d.numero || '(auto)' },
+            { header: 'Nombre', render: (d) => d.nombre },
+            { header: 'RFC', render: (d) => d.rfc },
+          ]}
+          onClose={() => setImportarOpen(false)}
+          onImportado={() => destinatarios.reload()}
+        />
       )}
     </div>
   );

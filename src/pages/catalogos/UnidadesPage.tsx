@@ -7,10 +7,17 @@ import { mensajeDeError } from '../../lib/errors';
 import { unidadToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { CONFIG_AUTOTRANSPORTE_SAT } from '../../lib/catalogosSat';
+import {
+  descargarPlantillaUnidades,
+  guardarUnidadesImportadas,
+  leerUnidadesExcel,
+  marcarDuplicadosUnidades,
+} from '../../lib/excelImportUnidades';
 import type { Unidad, UnidadArchivo, UnidadDocumentoVencimiento } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
+import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge, type Tone } from '../../components/ui/Badge';
 
@@ -78,6 +85,7 @@ export function UnidadesPage() {
   const [draftId, setDraftId] = useState('');
   const [tab, setTab] = useState<'general' | 'seguros'>('general');
   const [error, setError] = useState('');
+  const [importarOpen, setImportarOpen] = useState(false);
 
   const [docForm, setDocForm] = useState(emptyDocVencimiento);
   const [archDescripcion, setArchDescripcion] = useState('');
@@ -263,6 +271,14 @@ export function UnidadesPage() {
         searchPlaceholder="Buscar por codigo, operador o cliente..."
         addLabel="Agregar"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <Upload size={14} />
+              Importar
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -638,6 +654,26 @@ export function UnidadesPage() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {importarOpen && (
+        <ImportarCatalogoModal<Unidad>
+          titulo="Importar Unidades"
+          nombrePlural="unidades"
+          descargarPlantilla={descargarPlantillaUnidades}
+          leerArchivo={leerUnidadesExcel}
+          marcarDuplicados={marcarDuplicadosUnidades}
+          existentes={unidades.items}
+          guardar={guardarUnidadesImportadas}
+          columnasPreview={[
+            { header: 'Codigo', render: (u) => u.economico },
+            { header: 'Placas', render: (u) => u.placas },
+            { header: 'Marca', render: (u) => u.marca },
+            { header: 'Modelo', render: (u) => u.modelo },
+          ]}
+          onClose={() => setImportarOpen(false)}
+          onImportado={() => unidades.reload()}
+        />
       )}
     </div>
   );

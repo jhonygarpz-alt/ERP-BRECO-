@@ -7,10 +7,17 @@ import { mensajeDeError } from '../../lib/errors';
 import { proveedorToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { useColoniasPorCP } from '../../lib/useColoniasPorCP';
+import {
+  descargarPlantillaProveedores,
+  guardarProveedoresImportados,
+  leerProveedoresExcel,
+  marcarDuplicadosProveedores,
+} from '../../lib/excelImportProveedores';
 import type { Proveedor, ProveedorDocumento, TipoProveedor } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
+import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
@@ -75,6 +82,7 @@ export function ProveedoresPage() {
   const [draftId, setDraftId] = useState('');
   const [tab, setTab] = useState<'domicilio' | 'creditos' | 'bancaria' | 'documentos'>('domicilio');
   const [error, setError] = useState('');
+  const [importarOpen, setImportarOpen] = useState(false);
 
   const [docDescripcion, setDocDescripcion] = useState('');
   const [subiendoDoc, setSubiendoDoc] = useState(false);
@@ -230,6 +238,14 @@ export function ProveedoresPage() {
         searchPlaceholder="Buscar por numero, nombre o RFC..."
         addLabel="Agregar"
         onAdd={puedeCrear ? openNew : undefined}
+        extra={
+          puedeCrear && (
+            <GhostButton type="button" onClick={() => setImportarOpen(true)}>
+              <Upload size={14} />
+              Importar
+            </GhostButton>
+          )
+        }
       />
 
       <CrudTable
@@ -501,6 +517,26 @@ export function ProveedoresPage() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {importarOpen && (
+        <ImportarCatalogoModal<Proveedor>
+          titulo="Importar Proveedores"
+          nombrePlural="proveedores"
+          descargarPlantilla={descargarPlantillaProveedores}
+          leerArchivo={leerProveedoresExcel}
+          marcarDuplicados={marcarDuplicadosProveedores}
+          existentes={proveedores.items}
+          guardar={guardarProveedoresImportados}
+          columnasPreview={[
+            { header: 'Numero', render: (p) => p.numero || '(auto)' },
+            { header: 'Nombre Fiscal', render: (p) => p.nombre },
+            { header: 'RFC', render: (p) => p.rfc },
+            { header: 'Tipo', render: (p) => p.tipo },
+          ]}
+          onClose={() => setImportarOpen(false)}
+          onImportado={() => proveedores.reload()}
+        />
       )}
     </div>
   );
