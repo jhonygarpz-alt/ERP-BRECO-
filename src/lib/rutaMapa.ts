@@ -22,7 +22,13 @@ export async function geocodificarDireccion(direccion: string): Promise<PuntoGeo
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error('No se pudo consultar el geocodificador.');
   const data = (await res.json()) as { lat: string; lon: string; display_name: string }[];
-  if (data.length === 0) throw new Error(`No se encontro la direccion: "${direccion}"`);
+  if (data.length === 0) {
+    throw new Error(
+      `No se encontro "${direccion}" en OpenStreetMap (el buscador gratuito no reconoce nombres de empresas/marcas, ` +
+        'solo direcciones reales). Intenta con calle, colonia y ciudad (ej. "Lago Alberto, Anahuac, Ciudad de Mexico"), ' +
+        'sin el numero exterior ni el nombre del negocio, o elige una opcion de la lista de sugerencias mientras escribes.',
+    );
+  }
   return { lat: Number(data[0].lat), lon: Number(data[0].lon), displayName: data[0].display_name };
 }
 

@@ -183,6 +183,13 @@ export function TrazarRutaModal({
     }
     setCargando(true);
     setError('');
+    setResultado(null);
+    // Se limpia el mapa ANTES de intentar geocodificar/trazar: si la
+    // busqueda falla, el mapa debe quedar vacio (no mostrar el trazo de un
+    // intento anterior), de lo contrario parece que el sistema encontro un
+    // destino equivocado cuando en realidad solo esta mostrando informacion
+    // vieja que nunca se borro.
+    capaRuta.current?.clearLayers();
     try {
       const [origen, destino] = await Promise.all([
         origenPunto ?? geocodificarDireccion(origenTexto),
@@ -194,7 +201,6 @@ export function TrazarRutaModal({
       const mapa = mapaInstancia.current;
       const capa = capaRuta.current;
       if (mapa && capa) {
-        capa.clearLayers();
         L.circleMarker([origen.lat, origen.lon], { radius: 8, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 })
           .bindTooltip('Origen')
           .addTo(capa);
