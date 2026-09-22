@@ -31,6 +31,8 @@ import {
   facturaSistemaToRow,
   formatoImpresionFromRow,
   formatoImpresionToRow,
+  gastoViajeFromRow,
+  gastoViajeToRow,
   grupoUnidadFromRow,
   grupoUnidadToRow,
   operadorFromRow,
@@ -71,6 +73,7 @@ import type {
   Factura,
   FacturaSistema,
   FormatoImpresion,
+  GastoViaje,
   GrupoUnidad,
   Operador,
   Proveedor,
@@ -101,6 +104,7 @@ interface DataContextValue {
   tiposViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TipoViaje>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
+  gastosViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GastoViaje>>;
   estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
   entregaTurnoUnidades: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EntregaTurnoUnidad>>;
   entregaTurnoNotas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EntregaTurnoNota>>;
@@ -183,6 +187,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     viajeUbicacionFromRow,
     viajeUbicacionToRow,
   );
+  const gastosViaje = useSupabaseCollection<Record<string, unknown>, GastoViaje>(
+    'gastos_viaje',
+    gastoViajeFromRow,
+    gastoViajeToRow,
+  );
   const estatusViajes = useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>(
     'estatus_viaje',
     estatusViajeFromRow,
@@ -249,6 +258,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         tiposViaje,
         viajes,
         viajeUbicaciones,
+        gastosViaje,
         estatusViajes,
         entregaTurnoUnidades,
         entregaTurnoNotas,

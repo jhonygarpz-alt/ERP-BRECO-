@@ -14,6 +14,7 @@ import type {
   Factura,
   FacturaSistema,
   FormatoImpresion,
+  GastoViaje,
   GrupoUnidad,
   Operador,
   Proveedor,
@@ -1057,6 +1058,40 @@ export function proveedorToRow(p: Proveedor) {
     cuenta_clabe: p.cuentaClabe,
     no_cuenta: p.noCuenta,
     documentos: p.documentos,
+  };
+}
+
+export function gastoViajeFromRow(row: Record<string, unknown>): GastoViaje {
+  return {
+    id: row.id as string,
+    viajeId: row.viaje_id as string,
+    operadorId: (row.operador_id as string) || undefined,
+    tipo: row.tipo as string,
+    concepto: row.concepto as string,
+    proveedorId: (row.proveedor_id as string) || undefined,
+    fecha: row.fecha as string,
+    numeroReferencia: row.numero_referencia as string,
+    moneda: row.moneda as string,
+    monto: Number(row.monto) || 0,
+    generaPasivo: row.genera_pasivo as boolean,
+    notas: row.notas as string,
+    creadoEn: row.creado_en as string | undefined,
+  };
+}
+export function gastoViajeToRow(g: GastoViaje) {
+  return {
+    id: g.id,
+    viaje_id: g.viajeId,
+    operador_id: g.operadorId || null,
+    tipo: g.tipo,
+    concepto: g.concepto,
+    proveedor_id: g.proveedorId || null,
+    fecha: g.fecha,
+    numero_referencia: g.numeroReferencia,
+    moneda: g.moneda,
+    monto: g.monto,
+    genera_pasivo: g.generaPasivo,
+    notas: g.notas,
   };
 }
 

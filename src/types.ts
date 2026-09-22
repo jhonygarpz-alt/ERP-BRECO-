@@ -709,6 +709,30 @@ export interface Ruta {
   materialesCarga: ViajeMaterial[];
 }
 
+// Los valores tipicos son Peajes/Combustible/Viaticos/Anticipo, pero queda
+// libre (como EstatusViaje) para poder capturar "Otro" con una descripcion
+// propia sin tener que dar de alta un catalogo aparte.
+export type TipoGastoViaje = string;
+
+/** Un gasto capturado contra un viaje (peajes, combustible, viaticos/anticipos, u otro). */
+export interface GastoViaje {
+  id: string;
+  viajeId: string;
+  operadorId?: string;
+  tipo: TipoGastoViaje;
+  concepto: string;
+  proveedorId?: string;
+  fecha: string;
+  numeroReferencia: string;
+  moneda: string;
+  monto: number;
+  /** "Generar pasivo en cuentas por pagar": marca el gasto para que Cuentas por Pagar lo tome en cuenta. */
+  generaPasivo: boolean;
+  notas: string;
+  /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
+  creadoEn?: string;
+}
+
 /** Un formato de impresion configurable por area/proceso (ej. "Viajes" -> Con Importe Real / Con Valor $0). */
 export interface FormatoImpresion {
   id: string;

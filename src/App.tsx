@@ -28,6 +28,7 @@ import { UnidadesPage } from './pages/catalogos/UnidadesPage';
 import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
+import { GastosViajePage } from './pages/GastosViajePage';
 import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
@@ -84,6 +85,7 @@ function App() {
 
                 <Route element={<RequirePermission modulo="Viajes" />}>
                   <Route path="/viajes" element={<ViajesPage />} />
+                  <Route path="/gastos-viaje" element={<GastosViajePage />} />
                   <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
                   <Route path="/aeropuerto" element={<AeropuertoPage />} />
                   <Route path="/trafico/reportes" element={<ReportesTraficoHubPage />} />

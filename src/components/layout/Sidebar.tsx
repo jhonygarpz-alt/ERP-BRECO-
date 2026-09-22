@@ -5,6 +5,7 @@ import {
   Boxes,
   Route,
   Receipt,
+  Wallet,
   CalendarClock,
   FileSpreadsheet,
   BarChart3,
@@ -94,7 +95,15 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-const traficoRoutes = ['/viajes', '/viajes-del-dia', '/aeropuerto', '/programa', '/entrega-turno', '/trafico/reportes'];
+const traficoRoutes = [
+  '/viajes',
+  '/gastos-viaje',
+  '/viajes-del-dia',
+  '/aeropuerto',
+  '/programa',
+  '/entrega-turno',
+  '/trafico/reportes',
+];
 
 export function Sidebar() {
   const location = useLocation();
@@ -120,6 +129,7 @@ export function Sidebar() {
 
   const traficoLinks = [
     puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
+    puedeViajes && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet },
     puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
     puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
     puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
