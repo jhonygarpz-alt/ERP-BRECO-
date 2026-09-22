@@ -74,8 +74,16 @@ function etiquetaTablero(v: Viaje, ahora: Date, colorPersonalizado: Tone | null)
   return { texto: v.estatus.toUpperCase(), tono: colorPersonalizado ?? 'gray' };
 }
 
-/** Fraccion 0-1 de las 24 h autorizadas ya transcurridas (puede pasar de 1 si va demorado). */
+/**
+ * Fraccion 0-1 del avance del viaje. Si ya se entrego, el camion se va
+ * directo al 100% (destino) sin importar cuanto tiempo real haya pasado --
+ * antes se calculaba solo contra las 24 horas autorizadas, asi que un
+ * viaje corto ya entregado se veia "atorado" cerca del origen porque
+ * apenas habia transcurrido una fraccion chica de esas 24 horas.
+ */
 function avanceTransito(v: Viaje, ahora: Date): number | null {
+  if (v.estatus === 'Entregado') return 1;
+  if (v.estatus === 'Cancelado') return null;
   const inicio = inicioTransito(v);
   if (!inicio) return null;
   const transcurrido = ahora.getTime() - inicio.getTime();
@@ -123,17 +131,20 @@ function LineaTiempoRuta({ origen, destino, fraccion }: { origen: string; destin
           Destino: <span className="font-medium text-ink-200">{destino || 'N/D'}</span>
         </span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 py-3">
         <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-emerald-500" />
-        <div className="relative h-0.5 flex-1">
-          <div className="absolute inset-x-0 top-0 border-t-2 border-dashed border-line-700" />
+        <div className="relative h-1 flex-1">
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-dashed border-line-700" />
           <div
-            className={`absolute left-0 top-0 h-0.5 rounded-full ${demorado ? 'bg-red-500' : 'bg-emerald-500'}`}
+            className={`absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full ${demorado ? 'bg-red-500' : 'bg-emerald-500'}`}
             style={{ width: `${pct}%` }}
           />
-          <div className="absolute top-1/2 transition-[left] duration-1000 ease-linear" style={{ left: `${pct}%`, transform: 'translate(-50%, -50%)' }}>
-            <div className={`flex h-7 w-7 items-center justify-center rounded-full ring-4 ${demorado ? 'bg-red-500 ring-red-500/20' : 'bg-blue-500 ring-blue-500/20'}`}>
-              <Truck size={14} className="text-white [animation:camion-manejando_0.6s_ease-in-out_infinite]" />
+          <div
+            className="absolute top-1/2 z-10 transition-[left] duration-1000 ease-linear"
+            style={{ left: `${pct}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            <div className={`flex h-8 w-8 items-center justify-center rounded-lg shadow-lg ${demorado ? 'bg-red-500 shadow-red-500/40' : 'bg-emerald-500 shadow-emerald-500/40'}`}>
+              <Truck size={17} className="text-bg-950 [animation:camion-manejando_0.6s_ease-in-out_infinite]" strokeWidth={2.25} />
             </div>
           </div>
         </div>
