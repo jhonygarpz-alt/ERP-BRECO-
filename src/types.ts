@@ -708,3 +708,14 @@ export interface Ruta {
   conceptosFacturacion: ViajeConceptoFacturacionLinea[];
   materialesCarga: ViajeMaterial[];
 }
+
+/** Un formato de impresion configurable por area/proceso (ej. "Viajes" -> Con Importe Real / Con Valor $0). */
+export interface FormatoImpresion {
+  id: string;
+  area: string;
+  /** Identificador tecnico que usa la pantalla de impresion de esa area para saber que formato se eligio. */
+  clave: string;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+}

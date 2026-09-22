@@ -54,7 +54,8 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
 };
 
 export function ViajesPage() {
-  const { viajes, clientes, unidades, operadores, cajas, rutas, estatusViajes, conceptosFacturacion, facturas } = useData();
+  const { viajes, clientes, unidades, operadores, cajas, rutas, estatusViajes, conceptosFacturacion, facturas, formatosImpresion } =
+    useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -278,14 +279,16 @@ export function ViajesPage() {
     setViajeSeleccionadoId(null);
   }
 
+  const formatosViajeHabilitados = formatosImpresion.items.filter((f) => f.area === 'Viajes' && f.activo);
+
   function imprimirViajeSeleccionado() {
     if (!viajeSeleccionado) return;
     setImprimirFormatoOpen(true);
   }
 
-  function imprimirConFormato(modo: 'real' | 'cero') {
+  function imprimirConFormato(clave: string) {
     if (!viajeSeleccionado) return;
-    window.open(`#/viajes/imprimir/${viajeSeleccionado.id}?modo=${modo}`, '_blank');
+    window.open(`#/viajes/imprimir/${viajeSeleccionado.id}?modo=${clave}`, '_blank');
     setImprimirFormatoOpen(false);
   }
 
@@ -1556,22 +1559,22 @@ export function ViajesPage() {
       {imprimirFormatoOpen && viajeSeleccionado && (
         <Modal title="Imprimir Viaje" subtitle="Elige el formato de impresion" onClose={() => setImprimirFormatoOpen(false)}>
           <div className="space-y-3">
-            <button
-              type="button"
-              onClick={() => imprimirConFormato('real')}
-              className="block w-full rounded-xl border border-line-700 bg-bg-900 p-4 text-left transition hover:border-breco-500"
-            >
-              <p className="font-medium text-ink-100">Impresion de Viaje con Importe Real</p>
-              <p className="text-sm text-ink-500">Incluye los conceptos de facturacion con sus importes reales. Para uso interno/oficina.</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => imprimirConFormato('cero')}
-              className="block w-full rounded-xl border border-line-700 bg-bg-900 p-4 text-left transition hover:border-breco-500"
-            >
-              <p className="font-medium text-ink-100">Impresion de Viaje con Valor $0</p>
-              <p className="text-sm text-ink-500">Muestra los mismos conceptos pero con importe en $0.00. Para entregar al operador.</p>
-            </button>
+            {formatosViajeHabilitados.length === 0 && (
+              <p className="text-sm text-ink-500">
+                No hay formatos de impresion habilitados para Viajes. Actívalos en Configuracion → Formatos de Impresion.
+              </p>
+            )}
+            {formatosViajeHabilitados.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => imprimirConFormato(f.clave)}
+                className="block w-full rounded-xl border border-line-700 bg-bg-900 p-4 text-left transition hover:border-breco-500"
+              >
+                <p className="font-medium text-ink-100">{f.nombre}</p>
+                {f.descripcion && <p className="text-sm text-ink-500">{f.descripcion}</p>}
+              </button>
+            ))}
           </div>
           <div className="flex justify-end pt-4">
             <GhostButton type="button" onClick={() => setImprimirFormatoOpen(false)}>

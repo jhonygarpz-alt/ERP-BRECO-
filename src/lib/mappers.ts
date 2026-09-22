@@ -13,6 +13,7 @@ import type {
   EstatusViajeCustom,
   Factura,
   FacturaSistema,
+  FormatoImpresion,
   GrupoUnidad,
   Operador,
   Proveedor,
@@ -1057,4 +1058,18 @@ export function proveedorToRow(p: Proveedor) {
     no_cuenta: p.noCuenta,
     documentos: p.documentos,
   };
+}
+
+export function formatoImpresionFromRow(row: Record<string, unknown>): FormatoImpresion {
+  return {
+    id: row.id as string,
+    area: row.area as string,
+    clave: row.clave as string,
+    nombre: row.nombre as string,
+    descripcion: row.descripcion as string,
+    activo: row.activo as boolean,
+  };
+}
+export function formatoImpresionToRow(f: FormatoImpresion) {
+  return { id: f.id, area: f.area, clave: f.clave, nombre: f.nombre, descripcion: f.descripcion, activo: f.activo };
 }

@@ -29,6 +29,8 @@ import {
   facturaToRow,
   facturaSistemaFromRow,
   facturaSistemaToRow,
+  formatoImpresionFromRow,
+  formatoImpresionToRow,
   grupoUnidadFromRow,
   grupoUnidadToRow,
   operadorFromRow,
@@ -68,6 +70,7 @@ import type {
   EstatusViajeCustom,
   Factura,
   FacturaSistema,
+  FormatoImpresion,
   GrupoUnidad,
   Operador,
   Proveedor,
@@ -104,6 +107,7 @@ interface DataContextValue {
   facturas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Factura>>;
   facturasSistema: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FacturaSistema>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
+  formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
   /** Compatibilidad: la empresa del usuario conectado (antes era una tabla singleton "empresa"). */
   empresa: { value: Empresa; update: (patch: Partial<Empresa>) => Promise<void> };
@@ -163,6 +167,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     grupoUnidadToRow,
   );
   const rutas = useSupabaseCollection<Record<string, unknown>, Ruta>('rutas', rutaFromRow, rutaToRow);
+  const formatosImpresion = useSupabaseCollection<Record<string, unknown>, FormatoImpresion>(
+    'formatos_impresion',
+    formatoImpresionFromRow,
+    formatoImpresionToRow,
+  );
   const tiposViaje = useSupabaseCollection<Record<string, unknown>, TipoViaje>(
     'tipos_viaje',
     tipoViajeFromRow,
@@ -236,6 +245,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         conceptosFacturacion,
         gruposUnidad,
         rutas,
+        formatosImpresion,
         tiposViaje,
         viajes,
         viajeUbicaciones,
