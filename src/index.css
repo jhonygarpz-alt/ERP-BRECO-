@@ -33,6 +33,16 @@
   --color-breco-600: #c8142a;
   --color-breco-700: #9f0f22;
   --color-breco-glow: rgba(225, 29, 46, 0.35);
+
+  /* Paleta fija del sidebar: siempre azul-marino oscuro, sin importar el
+     tema claro/oscuro elegido para el resto de la app (mismo patron que
+     paneles tipo Apple/Cisco, donde la navegacion mantiene su identidad
+     aunque el contenido cambie de tema). */
+  --color-sb-bg: #0f1420;
+  --color-sb-bg-active: #1a2233;
+  --color-sb-border: #1e2635;
+  --color-sb-text: #e7eaf0;
+  --color-sb-text-muted: #8b93a7;
 }
 
 /*
@@ -50,16 +60,18 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --color-bg-950: #eef1f5;
+  /* #f5f5f7 es el mismo gris "papel" que usa apple.com de fondo -- de ahi
+     el pedido de que se vea elegante como Apple/Cisco. */
+  --color-bg-950: #f5f5f7;
   --color-bg-900: #ffffff;
   --color-bg-800: #ffffff;
-  --color-bg-700: #f2f4f7;
-  --color-bg-600: #e6e9ef;
-  --color-bg-500: #d5d9e1;
+  --color-bg-700: #f5f5f7;
+  --color-bg-600: #e8e8ed;
+  --color-bg-500: #d2d2d7;
 
-  --color-line-800: #e3e6ec;
-  --color-line-700: #d5d9e1;
-  --color-line-600: #c1c6d0;
+  --color-line-800: #e5e5ea;
+  --color-line-700: #d2d2d7;
+  --color-line-600: #b8b8bf;
 
   --color-ink-100: #12141c;
   --color-ink-300: #454b58;
@@ -86,6 +98,43 @@
   --color-indigo-400: #4f46e5;
   --color-lime-400: #4d7c0f;
   --color-sky-400: #0284c7;
+}
+
+/*
+ * Acento de marca seleccionable (Configuracion -> Temas): "breco" sigue
+ * siendo el nombre de la variable (para no tocar cada className del
+ * proyecto que ya usa bg-breco-500/text-breco-500/etc.), pero su color
+ * real cambia segun data-accent en <html>. Rojo (el actual) es el
+ * default y no necesita regla propia. El brillo (glow) usa mas opacidad
+ * en oscuro que en claro, igual que ya hacia el rojo original.
+ */
+:root[data-accent='blue'] {
+  --color-breco-500: #0071e3;
+  --color-breco-600: #0058b0;
+  --color-breco-700: #00458c;
+  --color-breco-glow: rgba(0, 113, 227, 0.35);
+}
+:root[data-accent='green'] {
+  --color-breco-500: #059669;
+  --color-breco-600: #047857;
+  --color-breco-700: #065f46;
+  --color-breco-glow: rgba(5, 150, 105, 0.35);
+}
+:root[data-accent='purple'] {
+  --color-breco-500: #7c3aed;
+  --color-breco-600: #6d28d9;
+  --color-breco-700: #5b21b6;
+  --color-breco-glow: rgba(124, 58, 237, 0.35);
+}
+
+:root[data-theme='light'][data-accent='blue'] {
+  --color-breco-glow: rgba(0, 113, 227, 0.16);
+}
+:root[data-theme='light'][data-accent='green'] {
+  --color-breco-glow: rgba(5, 150, 105, 0.16);
+}
+:root[data-theme='light'][data-accent='purple'] {
+  --color-breco-glow: rgba(124, 58, 237, 0.16);
 }
 
 body {

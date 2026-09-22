@@ -61,7 +61,7 @@ function NavRow({
         `flex items-center gap-3.5 rounded-2xl border px-3 py-2.5 text-[15px] transition ${collapsed ? 'justify-center px-0' : ''} ${
           isActive
             ? 'border-breco-500/50 bg-breco-500/10 font-semibold text-white shadow-[0_0_0_1px_rgba(225,29,46,0.25),0_0_20px_rgba(225,29,46,0.25)]'
-            : 'border-transparent font-medium text-ink-300 hover:bg-bg-700/70 hover:text-ink-100'
+            : 'border-transparent font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
         }`
       }
     >
@@ -84,7 +84,7 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
       <button
         onClick={toggleTheme}
         title={isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
-        className="flex w-full items-center justify-center rounded-xl border border-line-700 bg-bg-800 p-2.5 text-ink-400 hover:text-ink-100"
+        className="flex w-full items-center justify-center rounded-xl border border-sb-border bg-sb-bg-active p-2.5 text-sb-text-muted hover:text-sb-text"
       >
         {isLight ? <Sun size={16} className="text-amber-500" /> : <Moon size={16} className="text-blue-400" />}
       </button>
@@ -94,16 +94,16 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   return (
     <button
       onClick={toggleTheme}
-      className="flex w-full items-center justify-center gap-3 rounded-xl border border-line-700 bg-bg-800 px-3 py-2.5"
+      className="flex w-full items-center justify-center gap-3 rounded-xl border border-sb-border bg-sb-bg-active px-3 py-2.5"
       title="Cambiar tema"
     >
-      <Sun size={16} className={isLight ? 'text-amber-500' : 'text-ink-600'} />
-      <span className={`relative h-5 w-9 flex-shrink-0 rounded-full transition ${isLight ? 'bg-line-600' : 'bg-breco-500'}`}>
+      <Sun size={16} className={isLight ? 'text-amber-500' : 'text-sb-text-muted'} />
+      <span className={`relative h-5 w-9 flex-shrink-0 rounded-full transition ${isLight ? 'bg-sb-border' : 'bg-breco-500'}`}>
         <span
           className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${isLight ? 'left-0.5' : 'left-[18px]'}`}
         />
       </span>
-      <Moon size={16} className={!isLight ? 'text-blue-400' : 'text-ink-600'} />
+      <Moon size={16} className={!isLight ? 'text-blue-400' : 'text-sb-text-muted'} />
     </button>
   );
 }
@@ -153,13 +153,13 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`flex h-full flex-shrink-0 flex-col border-r border-line-800 bg-bg-900 transition-[width] duration-200 ${
+      className={`flex h-full flex-shrink-0 flex-col border-r border-sb-border bg-sb-bg transition-[width] duration-200 ${
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
-      <div className={`flex items-center gap-3 border-b border-line-800 px-5 py-5 ${collapsed ? 'justify-center px-3' : ''}`}>
+      <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-5 ${collapsed ? 'justify-center px-3' : ''}`}>
         {empresa.value.logoDataUrl ? (
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-800">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-sb-bg-active">
             <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
@@ -169,7 +169,7 @@ export function Sidebar() {
         )}
         {!collapsed && (
           <div className="min-w-0 leading-tight">
-            <div className="truncate text-[15px] tracking-tight text-ink-100">
+            <div className="truncate text-[15px] tracking-tight text-sb-text">
               <BrandName nombre={empresa.value.nombre} />
             </div>
             <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
@@ -195,8 +195,8 @@ export function Sidebar() {
               title={collapsed ? 'Trafico' : undefined}
               className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-2.5 text-[15px] transition ${collapsed ? 'justify-center px-0' : ''} ${
                 traficoRoutes.some((r) => location.pathname.startsWith(r))
-                  ? 'font-semibold text-ink-100'
-                  : 'font-medium text-ink-300 hover:bg-bg-700/70 hover:text-ink-100'
+                  ? 'font-semibold text-sb-text'
+                  : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
               }`}
             >
               <IconBadge icon={Route} gradient={['#2dd4bf', '#0891b2']} />
@@ -205,16 +205,16 @@ export function Sidebar() {
                   <span className="flex-1 text-left">Trafico</span>
                   <ChevronDown
                     size={16}
-                    className={`text-ink-500 transition-transform ${traficoOpen ? 'rotate-180' : ''}`}
+                    className={`text-sb-text-muted transition-transform ${traficoOpen ? 'rotate-180' : ''}`}
                   />
                 </>
               )}
             </button>
             {!collapsed && traficoOpen && (
-              <div className="relative ml-5 space-y-1.5 border-l border-line-700 py-1 pl-4">
+              <div className="relative ml-5 space-y-1.5 border-l border-sb-border py-1 pl-4">
                 {traficoLinks.map((item) => (
                   <div key={item.to} className="relative">
-                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-line-600" />
+                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
                     <NavRow to={item.to} label={item.label} icon={item.icon} gradient={item.gradient} />
                   </div>
                 ))}
@@ -255,7 +255,7 @@ export function Sidebar() {
         )}
       </nav>
 
-      <div className="space-y-2 border-t border-line-800 px-3 py-3">
+      <div className="space-y-2 border-t border-sb-border px-3 py-3">
         {puedeConfiguracion && (
           <NavRow
             to="/configuracion"
@@ -267,14 +267,14 @@ export function Sidebar() {
         )}
         <button
           onClick={toggleCollapsed}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-line-700 bg-bg-800 px-3 py-2 text-xs font-medium text-ink-400 hover:text-ink-100"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-sb-border bg-sb-bg-active px-3 py-2 text-xs font-medium text-sb-text-muted hover:text-sb-text"
         >
           {collapsed ? <ChevronsRight size={15} /> : <ChevronsLeft size={15} />}
           {!collapsed && 'Colapsar menu'}
         </button>
         <ThemeToggle collapsed={collapsed} />
         {!collapsed && (
-          <div className="flex items-center gap-2 rounded-lg bg-bg-800 px-3 py-2.5 text-xs text-ink-500">
+          <div className="flex items-center gap-2 rounded-lg bg-sb-bg-active px-3 py-2.5 text-xs text-sb-text-muted">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             Datos compartidos en tiempo real
           </div>
