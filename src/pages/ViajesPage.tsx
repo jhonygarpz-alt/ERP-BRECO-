@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
@@ -8,6 +8,7 @@ import type { Caja, Cliente, ConceptoFacturacion, Ruta, Unidad, Viaje, ViajeMate
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
+import { ListaSeleccionModal } from '../components/ui/ListaSeleccionModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
@@ -32,63 +33,6 @@ function shiftDate(date: string, dias: number) {
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-}
-
-/** Modal generico de busqueda/seleccion sobre una lista ya cargada en memoria (Cliente, Remolque, Concepto...). */
-function ListaSeleccionModal<T>({
-  title,
-  items,
-  filtro,
-  renderRow,
-  onSelect,
-  onClose,
-  accionExtra,
-}: {
-  title: string;
-  items: T[];
-  filtro: (item: T, termino: string) => boolean;
-  renderRow: (item: T) => ReactNode;
-  onSelect: (item: T) => void;
-  onClose: () => void;
-  accionExtra?: { label: string; onClick: () => void };
-}) {
-  const [termino, setTermino] = useState('');
-  const filtrados = useMemo(() => items.filter((i) => filtro(i, termino.trim().toLowerCase())), [items, filtro, termino]);
-
-  return (
-    <Modal title={title} onClose={onClose}>
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <Input autoFocus className="flex-1" placeholder="Buscar..." value={termino} onChange={(e) => setTermino(e.target.value)} />
-          {accionExtra && (
-            <GhostButton type="button" onClick={accionExtra.onClick}>
-              <Plus size={14} />
-              {accionExtra.label}
-            </GhostButton>
-          )}
-        </div>
-        <div className="max-h-96 overflow-auto rounded-xl border border-line-800">
-          {filtrados.length === 0 ? (
-            <p className="p-4 text-center text-sm text-ink-600">Sin resultados.</p>
-          ) : (
-            <table className="w-full text-left text-sm">
-              <tbody>
-                {filtrados.map((item, i) => (
-                  <tr
-                    key={i}
-                    onClick={() => onSelect(item)}
-                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
-                  >
-                    {renderRow(item)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-    </Modal>
-  );
 }
 
 const emptyTrayecto: Omit<ViajeTrayecto, 'id'> = {
@@ -621,12 +565,33 @@ export function ViajesPage() {
       setNuevaRutaError('Falta la descripcion de la ruta.');
       return;
     }
-    if (rutas.items.some((r) => r.descripcion.toLowerCase() === descripcion.toLowerCase())) {
-      setNuevaRutaError(`Ya existe una ruta llamada "${descripcion}".`);
-      return;
-    }
     const nuevoId = uid('rt');
-    rutas.add({ id: nuevoId, codigo: '', descripcion, activo: true });
+    rutas.add({
+      id: nuevoId,
+      codigo: '',
+      activo: true,
+      facturable: true,
+      internacional: false,
+      tipoOperacion: 'Importacion',
+      clienteId: undefined,
+      descripcion,
+      origenId: undefined,
+      destinoId: undefined,
+      tipoUnidad: '',
+      tipoViajeId: undefined,
+      clasificacionId: undefined,
+      origenDireccion: '',
+      destinoDireccion: '',
+      horas: 0,
+      eta: '',
+      kilometros: 0,
+      tipoTrayecto: 'Permanente',
+      trayectoLiquidable: true,
+      trazoRuta: '',
+      trayectos: [],
+      conceptosFacturacion: [],
+      materialesCarga: [],
+    });
     setForm((f) => ({ ...f, rutaCodigo: '', rutaDescripcion: descripcion }));
     setNuevaRutaOpen(false);
   }
@@ -1603,7 +1568,33 @@ export function ViajesPage() {
             </>
           )}
           onSelect={(r) => {
-            setForm((f) => ({ ...f, rutaCodigo: r.codigo, rutaDescripcion: r.descripcion }));
+            // La Ruta funciona como plantilla: al elegirla se copian sus
+            // trayectos, conceptos de facturacion y mercancias precargados.
+            const trayectosCopiados: ViajeTrayecto[] = r.trayectos.map((t) => ({
+              id: uid('tr'),
+              operadorId: '',
+              unidadId: '',
+              origen: t.origen,
+              destino: t.destino,
+              cvR1: '',
+              cvR2: '',
+            }));
+            const conceptosCopiados = r.conceptosFacturacion.map((c) => ({ ...c, id: uid('cfv') }));
+            const materialesCopiados = r.materialesCarga.map((m) => ({ ...m, id: uid('mat') }));
+            setForm((f) => ({
+              ...f,
+              rutaCodigo: r.codigo,
+              rutaDescripcion: r.descripcion,
+              kilometros: r.kilometros || f.kilometros,
+              clienteId: f.clienteId || r.clienteId || '',
+              trayectos: trayectosCopiados.length > 0 ? trayectosCopiados : f.trayectos,
+              conceptosFacturacionViaje: conceptosCopiados.length > 0 ? conceptosCopiados : f.conceptosFacturacionViaje,
+              materialesCarga: materialesCopiados.length > 0 ? materialesCopiados : f.materialesCarga,
+              pesoCargaTotal:
+                materialesCopiados.length > 0
+                  ? materialesCopiados.reduce((acc, m) => acc + (m.peso || 0), 0)
+                  : f.pesoCargaTotal,
+            }));
             setRutaPickerOpen(false);
           }}
           onClose={() => setRutaPickerOpen(false)}

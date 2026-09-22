@@ -661,9 +661,50 @@ export interface ConceptoFacturacion {
   objetoImpuesto: string;
 }
 
+export type TipoOperacionRuta = 'Importacion' | 'Exportacion';
+export type TipoTrayectoRuta = 'Permanente' | 'Eventual';
+
+/** Un tramo dentro del catalogo de Rutas (secuencia de origen/destino con su propio trazo). */
+export interface RutaTrayecto {
+  id: string;
+  secuencia: number;
+  origen: string;
+  destino: string;
+  kilometros: number;
+  horas: number;
+  eta: string;
+  tipoTrayecto: TipoTrayectoRuta;
+  /** JSON con las coordenadas [lat, lon] del trazo calculado (OpenStreetMap/OSRM). */
+  trazoRuta: string;
+}
+
+/** Catalogo de Rutas/Tarifas: plantilla reutilizable para armar un viaje rapido (trayectos, conceptos y mercancias precargados). */
 export interface Ruta {
   id: string;
   codigo: string;
-  descripcion: string;
   activo: boolean;
+  facturable: boolean;
+  internacional: boolean;
+  tipoOperacion: TipoOperacionRuta;
+  clienteId?: string;
+  descripcion: string;
+  /** Destinatario de origen. */
+  origenId?: string;
+  /** Destinatario de destino. */
+  destinoId?: string;
+  /** Clave del catalogo SAT c_ConfigAutotransporte, o vacio para "Todos los tipos de unidades". */
+  tipoUnidad: string;
+  tipoViajeId?: string;
+  clasificacionId?: string;
+  origenDireccion: string;
+  destinoDireccion: string;
+  horas: number;
+  eta: string;
+  kilometros: number;
+  tipoTrayecto: TipoTrayectoRuta;
+  trayectoLiquidable: boolean;
+  trazoRuta: string;
+  trayectos: RutaTrayecto[];
+  conceptosFacturacion: ViajeConceptoFacturacionLinea[];
+  materialesCarga: ViajeMaterial[];
 }
