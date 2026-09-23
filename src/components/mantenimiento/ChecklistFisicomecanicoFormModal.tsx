@@ -17,6 +17,7 @@ import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { CHECKLIST_FISICOMECANICO_TEMPLATE, nextFolioMantenimiento } from '../../lib/mantenimiento';
 import type { ChecklistFisicomecanico, ChecklistFisicomecanicoItem } from '../../types';
+import { ChecklistIlustracion, tieneIlustracion } from './ChecklistIlustracion';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Textarea, ToolbarButton } from '../ui/form';
@@ -168,7 +169,11 @@ export function ChecklistFisicomecanicoFormModal({
                           </span>
                         </label>
                         <div className={`my-3 flex h-20 items-center justify-center rounded-lg ${meta.icono}`}>
-                          <Icon size={32} strokeWidth={1.5} />
+                          {tieneIlustracion(i.concepto) ? (
+                            <ChecklistIlustracion concepto={i.concepto} className="h-14 w-14" />
+                          ) : (
+                            <Icon size={32} strokeWidth={1.5} />
+                          )}
                         </div>
                         <div className="relative">
                           <MessageSquare size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-600" />
