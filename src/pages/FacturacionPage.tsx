@@ -58,6 +58,19 @@ export function FacturacionPage() {
     moneda: 'MXN',
     estatus: 'Pendiente',
     observaciones: '',
+    tipo: 'Viaje',
+    viajeIds: viajes.items[0]?.id ? [viajes.items[0].id] : [],
+    sucursal: '',
+    condicionesPago: 'CREDITO',
+    formaPago: '',
+    metodoPago: 'PPD',
+    usoCfdi: 'G03',
+    tipoCambio: 1,
+    referencia: '',
+    solicitante: '',
+    lineas: [],
+    subtotal: 0,
+    descuentoTotal: 0,
   };
 
   const [form, setForm] = useState(emptyForm);
@@ -79,7 +92,7 @@ export function FacturacionPage() {
 
   function handleViajeChange(viajeId: string) {
     const viaje = viajes.items.find((v) => v.id === viajeId);
-    setForm({ ...form, viajeId, clienteId: viaje?.clienteId ?? form.clienteId });
+    setForm({ ...form, viajeId, viajeIds: [viajeId], clienteId: viaje?.clienteId ?? form.clienteId });
   }
 
   function handleSubmit(e: React.FormEvent) {

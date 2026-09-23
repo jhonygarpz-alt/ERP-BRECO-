@@ -34,6 +34,9 @@ import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
 import { ParqueVehicularPage } from './pages/ParqueVehicularPage';
 import { ImprimirParqueVehicularPage } from './pages/ImprimirParqueVehicularPage';
 import { FacturacionPage } from './pages/FacturacionPage';
+import { FacturacionPorViajePage } from './pages/facturacion/FacturacionPorViajePage';
+import { FacturacionPorConceptoPage } from './pages/facturacion/FacturacionPorConceptoPage';
+import { ImprimirFacturaPage } from './pages/facturacion/ImprimirFacturaPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
 import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
@@ -112,6 +115,8 @@ function App() {
 
                 <Route element={<RequirePermission modulo="Facturacion" />}>
                   <Route path="/facturacion" element={<FacturacionPage />} />
+                  <Route path="/facturacion/por-viaje" element={<FacturacionPorViajePage />} />
+                  <Route path="/facturacion/por-concepto" element={<FacturacionPorConceptoPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Programa" />}>
@@ -144,6 +149,7 @@ function App() {
               <Route path="/viajes/imprimir/:id" element={<ImprimirViajePage />} />
               <Route path="/gastos-viaje/imprimir/:id" element={<ImprimirGastoViajePage />} />
               <Route path="/parque-vehicular/imprimir" element={<ImprimirParqueVehicularPage />} />
+              <Route path="/facturacion/imprimir/:id" element={<ImprimirFacturaPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
               <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>

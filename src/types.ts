@@ -453,10 +453,29 @@ export interface ViajeUbicacion {
 
 export type EstatusFactura = 'Pendiente' | 'Facturado' | 'Pagado' | 'Cancelado';
 
+export type TipoFactura = 'Viaje' | 'Concepto';
+
+/** Un renglon de la factura (misma forma que ViajeConceptoFacturacionLinea, mas cantidad/precio/descuento porque aqui si se editan a mano). */
+export interface FacturaLinea {
+  id: string;
+  conceptoFacturacionId?: string;
+  concepto: string;
+  unidadMedida: string;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  importe: number;
+  traslada: string;
+  importeIva: number;
+  retiene: string;
+  importeRetencion: number;
+}
+
 export interface Factura {
   id: string;
   folio: string;
   fecha: string;
+  /** Primer viaje relacionado (compatibilidad con reportes existentes); la lista completa vive en viajeIds. */
   viajeId: string;
   clienteId: string;
   importe: number;
@@ -465,6 +484,21 @@ export interface Factura {
   observaciones: string;
   /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
   creadoEn?: string;
+  // ---- Facturacion por Viaje / por Concepto ----
+  tipo: TipoFactura;
+  /** Todos los viajes incluidos (Por Viaje puede facturar varios juntos; Por Concepto queda vacio). */
+  viajeIds: string[];
+  sucursal: string;
+  condicionesPago: string;
+  formaPago: string;
+  metodoPago: string;
+  usoCfdi: string;
+  tipoCambio: number;
+  referencia: string;
+  solicitante: string;
+  lineas: FacturaLinea[];
+  subtotal: number;
+  descuentoTotal: number;
 }
 
 // Refleja la hoja "BASE_DATOS" del Excel real "Facturacion Diaria por

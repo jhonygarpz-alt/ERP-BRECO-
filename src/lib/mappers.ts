@@ -640,6 +640,19 @@ export function facturaFromRow(row: Record<string, unknown>): Factura {
     estatus: row.estatus as Factura['estatus'],
     observaciones: row.observaciones as string,
     creadoEn: (row.creado_en as string | null) ?? undefined,
+    tipo: (row.tipo as Factura['tipo']) || 'Concepto',
+    viajeIds: (row.viaje_ids as string[] | null) ?? [],
+    sucursal: (row.sucursal as string) ?? '',
+    condicionesPago: (row.condiciones_pago as string) ?? 'CREDITO',
+    formaPago: (row.forma_pago as string) ?? '',
+    metodoPago: (row.metodo_pago as string) ?? 'PPD',
+    usoCfdi: (row.uso_cfdi as string) ?? 'G03',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    referencia: (row.referencia as string) ?? '',
+    solicitante: (row.solicitante as string) ?? '',
+    lineas: (row.lineas as Factura['lineas'] | null) ?? [],
+    subtotal: Number(row.subtotal) || 0,
+    descuentoTotal: Number(row.descuento_total) || 0,
   };
 }
 export function facturaToRow(f: Factura) {
@@ -653,6 +666,19 @@ export function facturaToRow(f: Factura) {
     moneda: f.moneda,
     estatus: f.estatus,
     observaciones: f.observaciones,
+    tipo: f.tipo,
+    viaje_ids: f.viajeIds,
+    sucursal: f.sucursal,
+    condiciones_pago: f.condicionesPago,
+    forma_pago: f.formaPago,
+    metodo_pago: f.metodoPago,
+    uso_cfdi: f.usoCfdi,
+    tipo_cambio: f.tipoCambio,
+    referencia: f.referencia,
+    solicitante: f.solicitante,
+    lineas: f.lineas,
+    subtotal: f.subtotal,
+    descuento_total: f.descuentoTotal,
   };
 }
 

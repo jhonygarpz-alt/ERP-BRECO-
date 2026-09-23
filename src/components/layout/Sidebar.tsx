@@ -27,6 +27,7 @@ import {
   BellRing,
   MessageSquare,
   FileBarChart,
+  FileText,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -70,6 +71,63 @@ function NavGroup({ children }: { children: ReactNode }) {
   return <div className="space-y-1">{children}</div>;
 }
 
+/** Grupo colapsable del menu (Trafico/Monitoreo/Facturacion): un boton que
+ * expande/contrae su lista de sub-paginas, resaltado si la ruta actual cae
+ * dentro de "routes". Se abre solo si la ruta activa ya esta dentro del
+ * grupo al cargar la pantalla. */
+function NavCollapsibleGroup({
+  label,
+  icon: Icon,
+  routes,
+  links,
+  collapsed,
+  onExpandCollapsed,
+}: {
+  label: string;
+  icon: LucideIcon;
+  routes: string[];
+  links: { to: string; label: string; icon: LucideIcon }[];
+  collapsed: boolean;
+  onExpandCollapsed: () => void;
+}) {
+  const location = useLocation();
+  const [open, setOpen] = useState(routes.some((r) => location.pathname.startsWith(r)));
+
+  if (links.length === 0) return null;
+
+  return (
+    <NavGroup>
+      <button
+        onClick={() => (collapsed ? (onExpandCollapsed(), setOpen(true)) : setOpen((v) => !v))}
+        title={collapsed ? label : undefined}
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
+          routes.some((r) => location.pathname.startsWith(r))
+            ? 'font-semibold text-sb-text'
+            : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
+        }`}
+      >
+        <Icon size={18} strokeWidth={2} className="flex-shrink-0" />
+        {!collapsed && (
+          <>
+            <span className="flex-1 text-left">{label}</span>
+            <ChevronDown size={16} className={`text-sb-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+          </>
+        )}
+      </button>
+      {!collapsed && open && (
+        <div className="relative ml-5 space-y-1 border-l border-sb-border py-1 pl-4">
+          {links.map((item) => (
+            <div key={item.to} className="relative">
+              <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
+              <NavRow to={item.to} end={item.to === routes[0]} label={item.label} icon={item.icon} />
+            </div>
+          ))}
+        </div>
+      )}
+    </NavGroup>
+  );
+}
+
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   const { theme, toggleTheme } = useTheme();
   const isLight = theme === 'light';
@@ -105,13 +163,11 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
 
 const traficoRoutes = ['/viajes', '/gastos-viaje', '/viajes-del-dia', '/aeropuerto', '/programa', '/trafico/reportes'];
 const monitoreoRoutes = ['/monitoreo'];
+const facturacionRoutes = ['/facturacion'];
 
 export function Sidebar() {
-  const location = useLocation();
   const { empresa } = useData();
   const { hasPermission } = useAuth();
-  const [traficoOpen, setTraficoOpen] = useState(traficoRoutes.some((r) => location.pathname.startsWith(r)));
-  const [monitoreoOpen, setMonitoreoOpen] = useState(monitoreoRoutes.some((r) => location.pathname.startsWith(r)));
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('breco-sidebar-collapsed') === '1');
 
   function toggleCollapsed() {
@@ -151,10 +207,13 @@ export function Sidebar() {
       ]
     : [];
 
-  function abrirGrupo(setter: (v: boolean) => void) {
-    if (collapsed) setCollapsed(false);
-    setter(true);
-  }
+  const facturacionLinks: { to: string; label: string; icon: LucideIcon }[] = puedeFacturacion
+    ? [
+        { to: '/facturacion', label: 'Facturacion Diaria', icon: Receipt },
+        { to: '/facturacion/por-viaje', label: 'Por Viaje', icon: Route },
+        { to: '/facturacion/por-concepto', label: 'Por Concepto', icon: FileText },
+      ]
+    : [];
 
   return (
     <aside
@@ -194,81 +253,32 @@ export function Sidebar() {
           </NavGroup>
         )}
 
-        {traficoLinks.length > 0 && (
-          <NavGroup>
-            <button
-              onClick={() => (collapsed ? abrirGrupo(setTraficoOpen) : setTraficoOpen((v) => !v))}
-              title={collapsed ? 'Trafico' : undefined}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
-                traficoRoutes.some((r) => location.pathname.startsWith(r))
-                  ? 'font-semibold text-sb-text'
-                  : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
-              }`}
-            >
-              <Route size={18} strokeWidth={2} className="flex-shrink-0" />
-              {!collapsed && (
-                <>
-                  <span className="flex-1 text-left">Trafico</span>
-                  <ChevronDown
-                    size={16}
-                    className={`text-sb-text-muted transition-transform ${traficoOpen ? 'rotate-180' : ''}`}
-                  />
-                </>
-              )}
-            </button>
-            {!collapsed && traficoOpen && (
-              <div className="relative ml-5 space-y-1 border-l border-sb-border py-1 pl-4">
-                {traficoLinks.map((item) => (
-                  <div key={item.to} className="relative">
-                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
-                    <NavRow to={item.to} label={item.label} icon={item.icon} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </NavGroup>
-        )}
+        <NavCollapsibleGroup
+          label="Trafico"
+          icon={Route}
+          routes={traficoRoutes}
+          links={traficoLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
 
-        {monitoreoLinks.length > 0 && (
-          <NavGroup>
-            <button
-              onClick={() => (collapsed ? abrirGrupo(setMonitoreoOpen) : setMonitoreoOpen((v) => !v))}
-              title={collapsed ? 'Monitoreo' : undefined}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
-                monitoreoRoutes.some((r) => location.pathname.startsWith(r))
-                  ? 'font-semibold text-sb-text'
-                  : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
-              }`}
-            >
-              <Radar size={18} strokeWidth={2} className="flex-shrink-0" />
-              {!collapsed && (
-                <>
-                  <span className="flex-1 text-left">Monitoreo</span>
-                  <ChevronDown
-                    size={16}
-                    className={`text-sb-text-muted transition-transform ${monitoreoOpen ? 'rotate-180' : ''}`}
-                  />
-                </>
-              )}
-            </button>
-            {!collapsed && monitoreoOpen && (
-              <div className="relative ml-5 space-y-1 border-l border-sb-border py-1 pl-4">
-                {monitoreoLinks.map((item) => (
-                  <div key={item.to} className="relative">
-                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
-                    <NavRow to={item.to} end={item.to === '/monitoreo'} label={item.label} icon={item.icon} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </NavGroup>
-        )}
+        <NavCollapsibleGroup
+          label="Monitoreo"
+          icon={Radar}
+          routes={monitoreoRoutes}
+          links={monitoreoLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
 
-        {puedeFacturacion && (
-          <NavGroup>
-            <NavRow to="/facturacion" label="Facturacion Diaria" icon={Receipt} collapsed={collapsed} />
-          </NavGroup>
-        )}
+        <NavCollapsibleGroup
+          label="Facturacion"
+          icon={Receipt}
+          routes={facturacionRoutes}
+          links={facturacionLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
 
         {puedeReportes && (
           <NavGroup>
