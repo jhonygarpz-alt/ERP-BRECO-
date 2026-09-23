@@ -11,6 +11,34 @@ export interface ClaveSat {
   descripcion: string;
 }
 
+/** c_UsoCFDI -- para que efecto fiscal solicita el cliente el comprobante (Facturacion). */
+export const USO_CFDI_SAT: ClaveSat[] = [
+  { clave: 'G01', descripcion: 'Adquisicion de mercancias' },
+  { clave: 'G02', descripcion: 'Devoluciones, descuentos o bonificaciones' },
+  { clave: 'G03', descripcion: 'Gastos en general' },
+  { clave: 'I01', descripcion: 'Construcciones' },
+  { clave: 'I02', descripcion: 'Mobiliario y equipo de oficina por inversiones' },
+  { clave: 'I03', descripcion: 'Equipo de transporte' },
+  { clave: 'I04', descripcion: 'Equipo de computo y accesorios' },
+  { clave: 'I05', descripcion: 'Dados, troqueles, moldes, matrices y otros activos' },
+  { clave: 'I06', descripcion: 'Comunicaciones telefonicas' },
+  { clave: 'I07', descripcion: 'Comunicaciones satelitales' },
+  { clave: 'I08', descripcion: 'Otra maquinaria y equipo' },
+  { clave: 'D01', descripcion: 'Honorarios medicos, dentales y gastos hospitalarios' },
+  { clave: 'D02', descripcion: 'Gastos medicos por incapacidad o discapacidad' },
+  { clave: 'D03', descripcion: 'Gastos funerales' },
+  { clave: 'D04', descripcion: 'Donativos' },
+  { clave: 'D05', descripcion: 'Intereses reales pagados por creditos hipotecarios (casa habitacion)' },
+  { clave: 'D06', descripcion: 'Aportaciones voluntarias al SAR' },
+  { clave: 'D07', descripcion: 'Primas por seguros de gastos medicos' },
+  { clave: 'D08', descripcion: 'Gastos de transportacion escolar obligatoria' },
+  { clave: 'D09', descripcion: 'Depositos en cuentas para el ahorro, pensiones' },
+  { clave: 'D10', descripcion: 'Pagos por servicios educativos (colegiaturas)' },
+  { clave: 'S01', descripcion: 'Sin efectos fiscales' },
+  { clave: 'CP01', descripcion: 'Pagos' },
+  { clave: 'CN01', descripcion: 'Nomina' },
+];
+
 /** c_ConfigAutotransporte -- configuracion vehicular del vehiculo motriz (Unidades). */
 export const CONFIG_AUTOTRANSPORTE_SAT: ClaveSat[] = [
   { clave: 'VL', descripcion: 'Vehiculo ligero de carga (2 llantas en el eje delantero y 2 llantas en el eje trasero)' },

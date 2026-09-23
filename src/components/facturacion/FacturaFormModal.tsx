@@ -3,6 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
+import { USO_CFDI_SAT } from '../../lib/catalogosSat';
 import type { ConceptoFacturacion, Factura, FacturaLinea, TipoFactura } from '../../types';
 import {
   calcularTotalesFactura,
@@ -216,7 +217,13 @@ export function FacturaFormModal({
               </Select>
             </Field>
             <Field label="Uso del CFDI">
-              <Input value={form.usoCfdi} onChange={(e) => setForm({ ...form, usoCfdi: e.target.value })} placeholder="G03" />
+              <Select value={form.usoCfdi} onChange={(e) => setForm({ ...form, usoCfdi: e.target.value })}>
+                {USO_CFDI_SAT.map((u) => (
+                  <option key={u.clave} value={u.clave}>
+                    {u.clave} - {u.descripcion}
+                  </option>
+                ))}
+              </Select>
             </Field>
           </div>
 
