@@ -1107,13 +1107,12 @@ export interface OrdenServicio {
   creadoEn?: string;
 }
 
-export type ResultadoChecklistItem = 'Bien' | 'Regular' | 'Malo' | 'N/A';
-
 export interface ChecklistFisicomecanicoItem {
   id: string;
   seccion: string;
   concepto: string;
-  resultado: ResultadoChecklistItem;
+  descripcion: string;
+  completado: boolean;
   observaciones: string;
 }
 

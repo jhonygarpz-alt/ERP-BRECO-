@@ -29,11 +29,11 @@ export function ChecklistFisicomecanicoPage() {
   }
 
   function resultadoResumen(c: ChecklistFisicomecanico) {
-    const malos = c.items.filter((i) => i.resultado === 'Malo').length;
-    const regulares = c.items.filter((i) => i.resultado === 'Regular').length;
-    if (malos > 0) return { texto: `${malos} malo(s)`, tone: 'red' as const };
-    if (regulares > 0) return { texto: `${regulares} regular(es)`, tone: 'amber' as const };
-    return { texto: 'Todo bien', tone: 'green' as const };
+    const completados = c.items.filter((i) => i.completado).length;
+    const total = c.items.length;
+    if (completados === total) return { texto: 'Completo', tone: 'green' as const };
+    if (completados === 0) return { texto: 'Sin iniciar', tone: 'red' as const };
+    return { texto: `${completados} de ${total}`, tone: 'amber' as const };
   }
 
   const filtered = useMemo(() => {
