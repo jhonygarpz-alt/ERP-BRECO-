@@ -20,6 +20,13 @@ import {
   PlaneTakeoff,
   Sun,
   Moon,
+  Radar,
+  Navigation,
+  Map,
+  AlertTriangle,
+  BellRing,
+  MessageSquare,
+  FileBarChart,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -96,21 +103,15 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-const traficoRoutes = [
-  '/viajes',
-  '/gastos-viaje',
-  '/viajes-del-dia',
-  '/aeropuerto',
-  '/programa',
-  '/entrega-turno',
-  '/trafico/reportes',
-];
+const traficoRoutes = ['/viajes', '/gastos-viaje', '/viajes-del-dia', '/aeropuerto', '/programa', '/trafico/reportes'];
+const monitoreoRoutes = ['/monitoreo'];
 
 export function Sidebar() {
   const location = useLocation();
   const { empresa } = useData();
   const { hasPermission } = useAuth();
   const [traficoOpen, setTraficoOpen] = useState(traficoRoutes.some((r) => location.pathname.startsWith(r)));
+  const [monitoreoOpen, setMonitoreoOpen] = useState(monitoreoRoutes.some((r) => location.pathname.startsWith(r)));
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('breco-sidebar-collapsed') === '1');
 
   function toggleCollapsed() {
@@ -124,7 +125,7 @@ export function Sidebar() {
   const puedeViajes = hasPermission('Viajes', 'ver');
   const puedeFacturacion = hasPermission('Facturacion', 'ver');
   const puedePrograma = hasPermission('Programa', 'ver');
-  const puedeEntregaTurno = hasPermission('EntregaTurno', 'ver');
+  const puedeMonitoreo = hasPermission('Monitoreo', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
@@ -134,9 +135,21 @@ export function Sidebar() {
     puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
     puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
     puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
-    puedeEntregaTurno && { to: '/entrega-turno', label: 'Entrega de Turno', icon: ClipboardList },
     puedeViajes && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart },
   ].filter(Boolean) as { to: string; label: string; icon: LucideIcon }[];
+
+  const monitoreoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeMonitoreo
+    ? [
+        { to: '/monitoreo', label: 'Centro de Control', icon: Radar },
+        { to: '/monitoreo/viajes', label: 'Monitoreo de Viajes', icon: Navigation },
+        { to: '/monitoreo/mapa', label: 'Mapa GPS', icon: Map },
+        { to: '/monitoreo/bitacora', label: 'Bitacora de Seguimiento', icon: ClipboardList },
+        { to: '/monitoreo/incidencias', label: 'Incidencias', icon: AlertTriangle },
+        { to: '/monitoreo/alertas', label: 'Alertas', icon: BellRing },
+        { to: '/monitoreo/comunicacion', label: 'Comunicacion', icon: MessageSquare },
+        { to: '/monitoreo/reportes', label: 'Reportes de Monitoreo', icon: FileBarChart },
+      ]
+    : [];
 
   function abrirGrupo(setter: (v: boolean) => void) {
     if (collapsed) setCollapsed(false);
@@ -209,6 +222,41 @@ export function Sidebar() {
                   <div key={item.to} className="relative">
                     <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
                     <NavRow to={item.to} label={item.label} icon={item.icon} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </NavGroup>
+        )}
+
+        {monitoreoLinks.length > 0 && (
+          <NavGroup>
+            <button
+              onClick={() => (collapsed ? abrirGrupo(setMonitoreoOpen) : setMonitoreoOpen((v) => !v))}
+              title={collapsed ? 'Monitoreo' : undefined}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
+                monitoreoRoutes.some((r) => location.pathname.startsWith(r))
+                  ? 'font-semibold text-sb-text'
+                  : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
+              }`}
+            >
+              <Radar size={18} strokeWidth={2} className="flex-shrink-0" />
+              {!collapsed && (
+                <>
+                  <span className="flex-1 text-left">Monitoreo</span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-sb-text-muted transition-transform ${monitoreoOpen ? 'rotate-180' : ''}`}
+                  />
+                </>
+              )}
+            </button>
+            {!collapsed && monitoreoOpen && (
+              <div className="relative ml-5 space-y-1 border-l border-sb-border py-1 pl-4">
+                {monitoreoLinks.map((item) => (
+                  <div key={item.to} className="relative">
+                    <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
+                    <NavRow to={item.to} end={item.to === '/monitoreo'} label={item.label} icon={item.icon} />
                   </div>
                 ))}
               </div>

@@ -35,7 +35,17 @@ import { ParqueVehicularPage } from './pages/ParqueVehicularPage';
 import { ImprimirParqueVehicularPage } from './pages/ImprimirParqueVehicularPage';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { ProgramaPage } from './pages/ProgramaPage';
-import { EntregaTurnoPage } from './pages/EntregaTurnoPage';
+import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
+import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
+import { MonitoreoMapaPage } from './pages/monitoreo/MonitoreoMapaPage';
+import { MonitoreoBitacoraPage } from './pages/monitoreo/MonitoreoBitacoraPage';
+import { MonitoreoIncidenciasPage } from './pages/monitoreo/MonitoreoIncidenciasPage';
+import { MonitoreoAlertasPage } from './pages/monitoreo/MonitoreoAlertasPage';
+import { MonitoreoComunicacionPage } from './pages/monitoreo/MonitoreoComunicacionPage';
+import { MonitoreoReportesHubPage } from './pages/monitoreo/MonitoreoReportesHubPage';
+import { MonitoreoReporteIncidenciasPage } from './pages/monitoreo/MonitoreoReporteIncidenciasPage';
+import { MonitoreoReporteAlertasPage } from './pages/monitoreo/MonitoreoReporteAlertasPage';
+import { ImprimirReporteMonitoreoPage } from './pages/monitoreo/ImprimirReporteMonitoreoPage';
 import { ViajesDelDiaPage } from './pages/ViajesDelDiaPage';
 import { AeropuertoPage } from './pages/AeropuertoPage';
 import { ReportesPage } from './pages/ReportesPage';
@@ -108,8 +118,17 @@ function App() {
                   <Route path="/programa" element={<ProgramaPage />} />
                 </Route>
 
-                <Route element={<RequirePermission modulo="EntregaTurno" />}>
-                  <Route path="/entrega-turno" element={<EntregaTurnoPage />} />
+                <Route element={<RequirePermission modulo="Monitoreo" />}>
+                  <Route path="/monitoreo" element={<MonitoreoCentroControlPage />} />
+                  <Route path="/monitoreo/viajes" element={<MonitoreoViajesPage />} />
+                  <Route path="/monitoreo/mapa" element={<MonitoreoMapaPage />} />
+                  <Route path="/monitoreo/bitacora" element={<MonitoreoBitacoraPage />} />
+                  <Route path="/monitoreo/incidencias" element={<MonitoreoIncidenciasPage />} />
+                  <Route path="/monitoreo/alertas" element={<MonitoreoAlertasPage />} />
+                  <Route path="/monitoreo/comunicacion" element={<MonitoreoComunicacionPage />} />
+                  <Route path="/monitoreo/reportes" element={<MonitoreoReportesHubPage />} />
+                  <Route path="/monitoreo/reportes/incidencias" element={<MonitoreoReporteIncidenciasPage />} />
+                  <Route path="/monitoreo/reportes/alertas" element={<MonitoreoReporteAlertasPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Reportes" />}>
@@ -126,6 +145,7 @@ function App() {
               <Route path="/gastos-viaje/imprimir/:id" element={<ImprimirGastoViajePage />} />
               <Route path="/parque-vehicular/imprimir" element={<ImprimirParqueVehicularPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
+              <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>
           </Routes>
         </HashRouter>

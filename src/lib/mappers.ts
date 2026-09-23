@@ -7,8 +7,6 @@ import type {
   CuentaBancaria,
   Destinatario,
   Empresa,
-  EntregaTurnoNota,
-  EntregaTurnoUnidad,
   EstatusUnidadCustom,
   EstatusViajeCustom,
   Factura,
@@ -16,6 +14,8 @@ import type {
   FormatoImpresion,
   GastoViaje,
   GrupoUnidad,
+  IncidenciaViaje,
+  MensajeViaje,
   ParqueHistorial,
   ParqueNota,
   Operador,
@@ -23,8 +23,6 @@ import type {
   ReporteExterno,
   Rol,
   Ruta,
-  SemaforoEntrega,
-  TipoNotaEntregaTurno,
   TipoViaje,
   Unidad,
   Usuario,
@@ -593,54 +591,41 @@ export function estatusUnidadToRow(e: EstatusUnidadCustom) {
   return { id: e.id, nombre: e.nombre, color: e.color, tipo_estatus: e.tipoEstatus };
 }
 
-export function entregaTurnoUnidadFromRow(row: Record<string, unknown>): EntregaTurnoUnidad {
+export function incidenciaViajeFromRow(row: Record<string, unknown>): IncidenciaViaje {
   return {
     id: row.id as string,
-    fecha: row.fecha as string,
-    unidadTexto: (row.unidad_texto as string) ?? '',
-    operadorTexto: (row.operador_texto as string) ?? '',
-    servicioAnterior: (row.servicio_anterior as string) ?? '',
-    semaforo: (row.semaforo as SemaforoEntrega) ?? 'verde',
-    estatusActual: (row.estatus_actual as string) ?? '',
-    notaAdicional: (row.nota_adicional as string) ?? '',
-    cita: (row.cita as string) ?? '',
-    instruccion: (row.instruccion as string) ?? '',
-    proximoServicio: (row.proximo_servicio as string) ?? '',
-    resumenEstatus: (row.resumen_estatus as string) ?? '',
-    resumenSiguiente: (row.resumen_siguiente as string) ?? '',
-    orden: Number(row.orden) || 0,
+    viajeId: row.viaje_id as string,
+    tipo: row.tipo as string,
+    descripcion: (row.descripcion as string) ?? '',
+    severidad: (row.severidad as IncidenciaViaje['severidad']) ?? 'Media',
+    estatus: (row.estatus as IncidenciaViaje['estatus']) ?? 'Abierta',
+    creadoEn: row.creado_en as string | undefined,
+    resueltoEn: (row.resuelto_en as string | null) ?? undefined,
   };
 }
-export function entregaTurnoUnidadToRow(e: EntregaTurnoUnidad) {
+export function incidenciaViajeToRow(i: IncidenciaViaje) {
   return {
-    id: e.id,
-    fecha: e.fecha,
-    unidad_texto: e.unidadTexto,
-    operador_texto: e.operadorTexto,
-    servicio_anterior: e.servicioAnterior,
-    semaforo: e.semaforo,
-    estatus_actual: e.estatusActual,
-    nota_adicional: e.notaAdicional,
-    cita: e.cita,
-    instruccion: e.instruccion,
-    proximo_servicio: e.proximoServicio,
-    resumen_estatus: e.resumenEstatus,
-    resumen_siguiente: e.resumenSiguiente,
-    orden: e.orden,
+    id: i.id,
+    viaje_id: i.viajeId,
+    tipo: i.tipo,
+    descripcion: i.descripcion,
+    severidad: i.severidad,
+    estatus: i.estatus,
+    resuelto_en: i.resueltoEn || null,
   };
 }
 
-export function entregaTurnoNotaFromRow(row: Record<string, unknown>): EntregaTurnoNota {
+export function mensajeViajeFromRow(row: Record<string, unknown>): MensajeViaje {
   return {
     id: row.id as string,
-    fecha: row.fecha as string,
-    tipo: row.tipo as TipoNotaEntregaTurno,
-    texto: (row.texto as string) ?? '',
-    orden: Number(row.orden) || 0,
+    viajeId: row.viaje_id as string,
+    autor: (row.autor as string) ?? '',
+    mensaje: (row.mensaje as string) ?? '',
+    creadoEn: row.creado_en as string | undefined,
   };
 }
-export function entregaTurnoNotaToRow(n: EntregaTurnoNota) {
-  return { id: n.id, fecha: n.fecha, tipo: n.tipo, texto: n.texto, orden: n.orden };
+export function mensajeViajeToRow(m: MensajeViaje) {
+  return { id: m.id, viaje_id: m.viajeId, autor: m.autor, mensaje: m.mensaje };
 }
 
 export function facturaFromRow(row: Record<string, unknown>): Factura {

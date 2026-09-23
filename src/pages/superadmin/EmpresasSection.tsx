@@ -11,7 +11,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
-const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'EntregaTurno', 'Reportes', 'Configuracion'];
+const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'Monitoreo', 'Reportes', 'Configuracion'];
 
 function permisos(...habilitados: Modulo[]): Record<Modulo, PermisoModulo> {
   return modulos.reduce(
@@ -36,7 +36,7 @@ function rolesDeFabrica(empresaId: string): Rol[] {
       id: `${empresaId}-rol-trafico`,
       nombre: 'Jefe de Trafico',
       descripcion: 'Gestiona catalogos, viajes y programa diario.',
-      permisos: permisos('Catalogos', 'Viajes', 'Programa', 'EntregaTurno'),
+      permisos: permisos('Catalogos', 'Viajes', 'Programa', 'Monitoreo'),
       empresaId,
     },
     {

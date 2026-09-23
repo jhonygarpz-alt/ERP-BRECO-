@@ -8,8 +8,8 @@ import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/form';
 
-const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'EntregaTurno', 'Reportes', 'Configuracion'];
-const MODULO_LABELS: Partial<Record<Modulo, string>> = { EntregaTurno: 'Entrega de Turno' };
+const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Programa', 'Monitoreo', 'Reportes', 'Configuracion'];
+const MODULO_LABELS: Partial<Record<Modulo, string>> = { Monitoreo: 'Monitoreo' };
 const etiquetaModulo = (m: Modulo) => MODULO_LABELS[m] ?? m;
 const acciones: { key: keyof PermisoModulo; label: string }[] = [
   { key: 'ver', label: 'Ver' },

@@ -21,41 +21,20 @@ import type { Tone } from '../components/ui/Badge';
 import type { EstatusViajeCustom, Ruta, Viaje } from '../types';
 import { StatCard } from '../components/ui/StatCard';
 import { GhostButton, Input, ToolbarButton, inputClass } from '../components/ui/form';
-
-// Solo se usa como respaldo cuando el viaje no tiene una Ruta capturada (o
-// esa Ruta no trae sus horas estimadas) -- siempre que se pueda, el limite
-// se calcula con las horas reales de esa Ruta, no con un numero fijo.
-const HORAS_MAX_TRANSITO_RESPALDO = 24;
+import {
+  HORAS_MAX_TRANSITO_RESPALDO,
+  avanceTransito,
+  etiquetaTablero,
+  horasAutorizadas,
+  inicioTransito,
+  limiteTransito,
+  normalizarEstatus,
+} from '../lib/monitoreoViajes';
 
 function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + dias);
   return d.toISOString().slice(0, 10);
-}
-
-// El catalogo de Estatus de Viaje es texto libre (EstatusViaje = string), asi
-// que dos capturas del mismo estatus pueden diferir en mayusculas/minusculas
-// ("En transito" vs "en transito"). Todas las comparaciones de esta pantalla
-// normalizan antes de comparar para no depender de que coincida el case
-// exacto.
-function normalizarEstatus(estatus: string): string {
-  return estatus.trim().toLowerCase();
-}
-
-function formatearDuracion(ms: number): string {
-  const totalMin = Math.max(0, Math.round(Math.abs(ms) / 60000));
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  if (h === 0) return `${m} min`;
-  if (m === 0) return `${h} h`;
-  return `${h} h ${m} min`;
-}
-
-/** Horas autorizadas de transito para este viaje: las de su Ruta (si tiene
- * una capturada con horas > 0) o, si no, el respaldo fijo. */
-function horasAutorizadas(v: Viaje, rutas: Ruta[]): number {
-  const ruta = v.rutaCodigo ? rutas.find((r) => r.codigo === v.rutaCodigo) : undefined;
-  return ruta && ruta.horas > 0 ? ruta.horas : HORAS_MAX_TRANSITO_RESPALDO;
 }
 
 const TONE_TEXT: Record<Tone, string> = {
@@ -66,65 +45,6 @@ const TONE_TEXT: Record<Tone, string> = {
   gray: 'text-ink-400',
   purple: 'text-violet-400',
 };
-
-interface EtiquetaEstatus {
-  texto: string;
-  tono: Tone;
-  detalle?: string;
-}
-
-/** Inicio real del transito: fecha + hora de salida a ruta. null si aun no se ha registrado. */
-function inicioTransito(v: Viaje): Date | null {
-  if (!v.horaSalida) return null;
-  const d = new Date(`${v.fecha}T${v.horaSalida}`);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-/** Limite autorizado: hora de salida + las horas autorizadas para esta Ruta. */
-function limiteTransito(v: Viaje, horasAutorizadasViaje: number): Date | null {
-  const inicio = inicioTransito(v);
-  return inicio ? new Date(inicio.getTime() + horasAutorizadasViaje * 60 * 60 * 1000) : null;
-}
-
-/**
- * Traduce el estatus real del viaje al lenguaje de un tablero de operacion.
- * En cuanto hay hora de salida registrada, "EN TIEMPO"/"DEMORADO" se
- * calculan contra el limite real (salida + horas de ETA de la Ruta) y
- * muestran cuanto falta o cuanto de retraso lleva.
- */
-function etiquetaTablero(v: Viaje, ahora: Date, colorPersonalizado: Tone | null, horasAutorizadasViaje: number): EtiquetaEstatus {
-  const est = normalizarEstatus(v.estatus);
-  if (est === 'cancelado') return { texto: 'CANCELADO', tono: 'red' };
-  if (est === 'entregado') return { texto: 'ENTREGADO', tono: 'green' };
-
-  const limite = limiteTransito(v, horasAutorizadasViaje);
-  if (limite) {
-    const diff = ahora.getTime() - limite.getTime();
-    if (diff > 0) return { texto: 'DEMORADO', tono: 'red', detalle: `${formatearDuracion(diff)} de retraso` };
-    return { texto: 'EN TIEMPO', tono: 'green', detalle: `ETA en ${formatearDuracion(diff)}` };
-  }
-
-  if (est === 'en transito') return { texto: 'EN TRANSITO', tono: 'blue' };
-  if (est === 'programado') return { texto: 'PROGRAMADO', tono: 'gray' };
-  return { texto: v.estatus.toUpperCase(), tono: colorPersonalizado ?? 'gray' };
-}
-
-/**
- * Fraccion 0-1 del avance del viaje. Si ya se entrego, el camion se va
- * directo al 100% (destino) sin importar cuanto tiempo real haya pasado --
- * antes se calculaba solo contra un numero fijo de horas, asi que un viaje
- * corto ya entregado se veia "atorado" cerca del origen porque apenas
- * habia transcurrido una fraccion chica de esas horas.
- */
-function avanceTransito(v: Viaje, ahora: Date, horasAutorizadasViaje: number): number | null {
-  const est = normalizarEstatus(v.estatus);
-  if (est === 'entregado') return 1;
-  if (est === 'cancelado') return null;
-  const inicio = inicioTransito(v);
-  if (!inicio) return null;
-  const transcurrido = ahora.getTime() - inicio.getTime();
-  return transcurrido / (horasAutorizadasViaje * 60 * 60 * 1000);
-}
 
 function BarraAvance({ fraccion }: { fraccion: number }) {
   const pct = Math.min(Math.max(fraccion, 0), 1) * 100;

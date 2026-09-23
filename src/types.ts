@@ -330,33 +330,28 @@ export interface EstatusViajeCustom {
   esTerminoDescarga: boolean;
 }
 
-export type SemaforoEntrega = 'verde' | 'amarillo' | 'rojo';
+export type SeveridadIncidencia = 'Alta' | 'Media' | 'Baja';
+export type EstatusIncidencia = 'Abierta' | 'Resuelta';
 
-export interface EntregaTurnoUnidad {
+/** Un evento reportado por trafico/operador sobre un viaje (Monitoreo > Incidencias). */
+export interface IncidenciaViaje {
   id: string;
-  fecha: string;
-  unidadTexto: string;
-  operadorTexto: string;
-  servicioAnterior: string;
-  semaforo: SemaforoEntrega;
-  estatusActual: string;
-  notaAdicional: string;
-  cita: string;
-  instruccion: string;
-  proximoServicio: string;
-  resumenEstatus: string;
-  resumenSiguiente: string;
-  orden: number;
+  viajeId: string;
+  tipo: string;
+  descripcion: string;
+  severidad: SeveridadIncidencia;
+  estatus: EstatusIncidencia;
+  creadoEn?: string;
+  resueltoEn?: string;
 }
 
-export type TipoNotaEntregaTurno = 'cita' | 'prioridad';
-
-export interface EntregaTurnoNota {
+/** Un mensaje de la bitacora de comunicacion de un viaje (Monitoreo > Comunicacion). */
+export interface MensajeViaje {
   id: string;
-  fecha: string;
-  tipo: TipoNotaEntregaTurno;
-  texto: string;
-  orden: number;
+  viajeId: string;
+  autor: string;
+  mensaje: string;
+  creadoEn?: string;
 }
 
 /** Un tramo del convoy de un viaje (Asignar Operador/Camion / Mas Trayectos). */
@@ -516,7 +511,7 @@ export interface Empresa {
   csfImportadaEn?: string;
 }
 
-export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'EntregaTurno' | 'Reportes' | 'Configuracion';
+export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'Monitoreo' | 'Reportes' | 'Configuracion';
 
 export interface ReporteExterno {
   id: string;
