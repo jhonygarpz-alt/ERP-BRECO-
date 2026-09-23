@@ -1,3 +1,4 @@
+import { DEFAULT_ALERTAS_VENCIMIENTOS } from './alertasVencimientosConfig';
 import type { Empresa } from '../types';
 
 // Valor de respaldo que se muestra brevemente mientras carga la fila real
@@ -17,4 +18,5 @@ export const seedEmpresa: Empresa = {
   logoDataUrl: '',
   estatus: 'activa',
   csfStoragePath: '',
+  alertasVencimientos: DEFAULT_ALERTAS_VENCIMIENTOS,
 };

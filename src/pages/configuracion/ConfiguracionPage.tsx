@@ -1,18 +1,20 @@
 import { useState } from 'react';
-import { Building2, Palette, Printer, ShieldCheck, Users } from 'lucide-react';
+import { Bell, Building2, Palette, Printer, ShieldCheck, Users } from 'lucide-react';
 import { EmpresaSection } from './EmpresaSection';
 import { UsuariosSection } from './UsuariosSection';
 import { RolesSection } from './RolesSection';
 import { FormatosSection } from './FormatosSection';
 import { TemasSection } from './TemasSection';
+import { AlertasVencimientosSection } from './AlertasVencimientosSection';
 
-type Tab = 'empresa' | 'usuarios' | 'roles' | 'formatos' | 'temas';
+type Tab = 'empresa' | 'usuarios' | 'roles' | 'formatos' | 'temas' | 'alertas';
 
 const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
   { key: 'empresa', label: 'Informacion de la empresa', icon: Building2 },
   { key: 'usuarios', label: 'Usuarios', icon: Users },
   { key: 'roles', label: 'Roles y permisos', icon: ShieldCheck },
   { key: 'formatos', label: 'Formatos de Impresion', icon: Printer },
+  { key: 'alertas', label: 'Alertas de Vencimientos', icon: Bell },
   { key: 'temas', label: 'Temas', icon: Palette },
 ];
 
@@ -47,6 +49,7 @@ export function ConfiguracionPage() {
       {tab === 'usuarios' && <UsuariosSection />}
       {tab === 'roles' && <RolesSection />}
       {tab === 'formatos' && <FormatosSection />}
+      {tab === 'alertas' && <AlertasVencimientosSection />}
       {tab === 'temas' && <TemasSection />}
     </div>
   );

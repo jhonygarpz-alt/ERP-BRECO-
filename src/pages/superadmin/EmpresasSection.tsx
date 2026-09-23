@@ -4,6 +4,7 @@ import { useData } from '../../lib/DataContext';
 import { supabaseAuthAlta } from '../../lib/supabaseClient';
 import { mensajeDeError } from '../../lib/errors';
 import { uid } from '../../lib/storage';
+import { DEFAULT_ALERTAS_VENCIMIENTOS } from '../../lib/alertasVencimientosConfig';
 import type { Empresa, Modulo, PermisoModulo, Rol } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -116,6 +117,7 @@ export function EmpresasSection() {
         logoDataUrl: '',
         estatus: 'activa',
         csfStoragePath: '',
+        alertasVencimientos: DEFAULT_ALERTAS_VENCIMIENTOS,
       };
       await empresas.add(nuevaEmpresa);
 

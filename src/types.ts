@@ -97,11 +97,16 @@ export interface EstatusUnidadCustom {
   tipoEstatus: TipoEstatusUnidad;
 }
 
+/** Categoria de un documento de unidad, usada por Configuracion > Alertas de Vencimientos para saber a cual checkbox pertenece. */
+export type TipoDocumentoUnidad = 'Placas' | 'Permisos' | 'Seguro Placa Mexicana' | 'Seguro Placa Americana' | 'Otro';
+
 /** Un renglon de la tabla "Documentos de la unidad" (solo metadatos, sin archivo adjunto). */
 export interface UnidadDocumentoVencimiento {
   numeroDocumento: string;
   documento: string;
   fechaVencimiento: string;
+  /** Ausente en documentos capturados antes de que existiera esta categorizacion: se trata como 'Otro'. */
+  tipo?: TipoDocumentoUnidad;
 }
 
 /** Un archivo cargado en "Archivos adicionales" (guardado en Supabase Storage). */
@@ -531,6 +536,24 @@ export interface FacturaSistema {
   utilidad: number;
 }
 
+/** Configuracion de Configuracion > Alertas de Vencimientos: que categorias de documentos generan alerta y con cuantos dias de anticipacion. */
+export interface AlertasVencimientosConfig {
+  unidad: {
+    placas: boolean;
+    permisos: boolean;
+    seguroPlacaMexicana: boolean;
+    seguroPlacaAmericana: boolean;
+    documentosAdicionales: boolean;
+    diasNotificar: number;
+  };
+  operador: {
+    licencia: boolean;
+    pasaporte: boolean;
+    documentosAdicionales: boolean;
+    diasNotificar: number;
+  };
+}
+
 export interface Empresa {
   id: string;
   nombre: string;
@@ -545,6 +568,7 @@ export interface Empresa {
   /** Ruta en Supabase Storage (bucket "empresa-documentos") del ultimo PDF de Constancia de Situacion Fiscal importado. */
   csfStoragePath: string;
   csfImportadaEn?: string;
+  alertasVencimientos: AlertasVencimientosConfig;
 }
 
 export type Modulo =

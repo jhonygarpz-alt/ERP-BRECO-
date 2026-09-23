@@ -26,7 +26,14 @@ const BUCKET = 'unidad-documentos';
 const TIPOS_TRANSMISION = ['Manual', 'Automatica'];
 const TIPOS_COMBUSTIBLE = ['Diesel', 'Gasolina', 'Gas Natural', 'Electrico'];
 
-const emptyDocVencimiento: UnidadDocumentoVencimiento = { numeroDocumento: '', documento: '', fechaVencimiento: '' };
+const emptyDocVencimiento: UnidadDocumentoVencimiento = { numeroDocumento: '', documento: '', fechaVencimiento: '', tipo: 'Otro' };
+const TIPOS_DOCUMENTO_UNIDAD: NonNullable<UnidadDocumentoVencimiento['tipo']>[] = [
+  'Placas',
+  'Permisos',
+  'Seguro Placa Mexicana',
+  'Seguro Placa Americana',
+  'Otro',
+];
 
 const emptyForm: Omit<Unidad, 'id'> = {
   economico: '',
@@ -524,12 +531,22 @@ export function UnidadesPage() {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Documentos de la unidad</h4>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                       <Input
                         placeholder="Número de documento"
                         value={docForm.numeroDocumento}
                         onChange={(e) => setDocForm({ ...docForm, numeroDocumento: e.target.value })}
                       />
+                      <Select
+                        value={docForm.tipo ?? 'Otro'}
+                        onChange={(e) => setDocForm({ ...docForm, tipo: e.target.value as UnidadDocumentoVencimiento['tipo'] })}
+                      >
+                        {TIPOS_DOCUMENTO_UNIDAD.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </Select>
                       <Input
                         placeholder="Documento"
                         value={docForm.documento}
@@ -551,6 +568,7 @@ export function UnidadesPage() {
                         <thead>
                           <tr className="border-b border-line-800 bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
                             <th className="px-3 py-2 font-medium">Número de documento</th>
+                            <th className="px-3 py-2 font-medium">Tipo</th>
                             <th className="px-3 py-2 font-medium">Documento</th>
                             <th className="px-3 py-2 font-medium">Vencimiento</th>
                             <th className="px-3 py-2" />
@@ -559,12 +577,13 @@ export function UnidadesPage() {
                         <tbody>
                           {form.documentosVencimiento.length === 0 && (
                             <tr>
-                              <td colSpan={4} className="px-3 py-6 text-center text-ink-600">No hay documentos registrados.</td>
+                              <td colSpan={5} className="px-3 py-6 text-center text-ink-600">No hay documentos registrados.</td>
                             </tr>
                           )}
                           {form.documentosVencimiento.map((d, i) => (
                             <tr key={i} className="border-b border-line-800/70 last:border-0">
                               <td className="px-3 py-2 text-ink-200">{d.numeroDocumento}</td>
+                              <td className="px-3 py-2 text-ink-400">{d.tipo ?? 'Otro'}</td>
                               <td className="px-3 py-2 text-ink-400">{d.documento}</td>
                               <td className="px-3 py-2 text-ink-400">{d.fechaVencimiento}</td>
                               <td className="px-3 py-2">

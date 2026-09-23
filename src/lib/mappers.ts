@@ -1,3 +1,4 @@
+import { DEFAULT_ALERTAS_VENCIMIENTOS } from './alertasVencimientosConfig';
 import type {
   Caja,
   CatalogoServicio,
@@ -817,6 +818,7 @@ export function empresaFromRow(row: Record<string, unknown>): Empresa {
     estatus: (row.estatus as Empresa['estatus']) ?? 'activa',
     csfStoragePath: (row.csf_storage_path as string | null) ?? '',
     csfImportadaEn: (row.csf_importada_en as string | null) ?? undefined,
+    alertasVencimientos: (row.alertas_vencimientos as Empresa['alertasVencimientos'] | null) ?? DEFAULT_ALERTAS_VENCIMIENTOS,
   };
 }
 export function empresaToRow(e: Empresa) {
@@ -833,6 +835,7 @@ export function empresaToRow(e: Empresa) {
     estatus: e.estatus,
     csf_storage_path: e.csfStoragePath,
     csf_importada_en: e.csfImportadaEn ?? null,
+    alertas_vencimientos: e.alertasVencimientos,
   };
 }
 
