@@ -14,6 +14,7 @@ import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge'
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 import { hoyISO, fechaLocal } from '../lib/fechas';
+import { ordenServicioActivaDeUnidad } from '../lib/mantenimiento';
 
 const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
@@ -55,8 +56,19 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
 };
 
 export function ViajesPage() {
-  const { viajes, clientes, unidades, operadores, cajas, rutas, estatusViajes, conceptosFacturacion, facturas, formatosImpresion } =
-    useData();
+  const {
+    viajes,
+    clientes,
+    unidades,
+    operadores,
+    cajas,
+    rutas,
+    estatusViajes,
+    conceptosFacturacion,
+    facturas,
+    formatosImpresion,
+    ordenesServicio,
+  } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
@@ -1773,15 +1785,25 @@ export function ViajesPage() {
           title="Buscar Unidad"
           items={unidades.items}
           filtro={(u, t) => `${u.economico} ${u.placas} ${u.marca ?? ''}`.toLowerCase().includes(t)}
-          renderRow={(u) => (
-            <>
-              <td className="px-3 py-2 font-mono text-xs text-ink-500">{u.economico}</td>
-              <td className="px-3 py-2 text-ink-200">
-                {u.marca} {u.modelo}
-              </td>
-              <td className="px-3 py-2 text-ink-500">{u.placas}</td>
-            </>
-          )}
+          renderRow={(u) => {
+            const ordenActiva = ordenServicioActivaDeUnidad(u.id, ordenesServicio.items);
+            return (
+              <>
+                <td className="px-3 py-2 font-mono text-xs text-ink-500">{u.economico}</td>
+                <td className="px-3 py-2 text-ink-200">
+                  {u.marca} {u.modelo}
+                </td>
+                <td className="px-3 py-2 text-ink-500">{u.placas}</td>
+                <td className="px-3 py-2">
+                  {ordenActiva && (
+                    <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
+                      En Mantenimiento
+                    </span>
+                  )}
+                </td>
+              </>
+            );
+          }}
           onSelect={(u) => {
             setTrayectoForm((f) => ({ ...f, unidadId: u.id }));
             setUnidadPickerOpen(false);
@@ -1984,6 +2006,16 @@ export function ViajesPage() {
                   <MoreHorizontal size={16} />
                 </ToolbarButton>
               </div>
+              {(() => {
+                const ordenActiva = trayectoForm.unidadId ? ordenServicioActivaDeUnidad(trayectoForm.unidadId, ordenesServicio.items) : null;
+                return (
+                  ordenActiva && (
+                    <p className="mt-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-400">
+                      Esta unidad esta en mantenimiento (Orden de Servicio {ordenActiva.folio}).
+                    </p>
+                  )
+                );
+              })()}
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Origen">

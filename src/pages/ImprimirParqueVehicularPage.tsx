@@ -6,7 +6,7 @@ import type { Tone } from '../components/ui/Badge';
 
 export function ImprimirParqueVehicularPage() {
   const [searchParams] = useSearchParams();
-  const { unidades, cajas, viajes, clientes, estatusUnidades, empresa } = useData();
+  const { unidades, cajas, viajes, clientes, estatusUnidades, ordenesServicio, empresa } = useData();
 
   const filtros: FiltrosParque = {
     tipo: (searchParams.get('tipo') as FiltrosParque['tipo']) || 'todas',
@@ -20,7 +20,10 @@ export function ImprimirParqueVehicularPage() {
   const colorEstatusUnidad = (nombre: string): Tone | null =>
     (estatusUnidades.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
-  const filas = filtrarFilasParque(construirFilasParque(unidades.items, cajas.items, viajes.items, colorEstatusUnidad), filtros);
+  const filas = filtrarFilasParque(
+    construirFilasParque(unidades.items, cajas.items, viajes.items, ordenesServicio.items, colorEstatusUnidad),
+    filtros,
+  );
 
   function nombreCliente(id?: string) {
     if (!id) return '-';
@@ -67,7 +70,9 @@ export function ImprimirParqueVehicularPage() {
               <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px', fontWeight: 700 }}>{f.codigo}</td>
               <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>{f.descripcion || '-'}</td>
               <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>{f.entidadTipo === 'unidad' ? 'Unidad' : 'Remolque'}</td>
-              <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>{f.estatus}</td>
+              <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>
+                {f.enMantenimiento ? `En Mantenimiento (${f.ordenServicioFolio})` : f.estatus}
+              </td>
               <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>{nombreCliente(f.clienteId)}</td>
               <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>{f.propietario || '-'}</td>
               <td style={{ borderBottom: '1px solid #ddd', padding: '4px 6px' }}>{f.ubicacion || '-'}</td>

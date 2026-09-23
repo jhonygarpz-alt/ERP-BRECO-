@@ -22,6 +22,19 @@ export function totalManoObra(lineas: OrdenServicioLinea[]): number {
   return Math.round(lineas.reduce((acc, l) => acc + l.manoObra, 0) * 100) / 100;
 }
 
+/**
+ * La Orden de Servicio "activa" de una unidad (si tiene una): cualquiera que no este
+ * Concluida ni Cancelada. Mientras exista, la unidad se considera en mantenimiento en
+ * todo el sistema (Parque Vehicular, seleccion de unidad en Viajes, etc.).
+ */
+export function ordenServicioActivaDeUnidad(unidadId: string, ordenes: OrdenServicio[]): OrdenServicio | null {
+  return (
+    ordenes
+      .filter((o) => o.unidadId === unidadId && o.estatus !== 'Concluida' && o.estatus !== 'Cancelada')
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))[0] ?? null
+  );
+}
+
 function sumarMeses(fechaIso: string, meses: number): string {
   const [y, m, d] = fechaIso.split('-').map(Number);
   const dt = new Date(Date.UTC(y, m - 1 + meses, d));

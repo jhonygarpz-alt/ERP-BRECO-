@@ -35,7 +35,7 @@ const ESTATUS_CAJA_FIJO: EstatusCaja[] = ['Disponible', 'En uso', 'Mantenimiento
 const POR_PAGINA = 10;
 
 export function ParqueVehicularPage() {
-  const { unidades, cajas, viajes, clientes, estatusUnidades, parqueNotas, parqueHistorial } = useData();
+  const { unidades, cajas, viajes, clientes, estatusUnidades, parqueNotas, parqueHistorial, ordenesServicio } = useData();
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -59,9 +59,9 @@ export function ParqueVehicularPage() {
     (estatusUnidades.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
   const todasLasFilas = useMemo(
-    () => construirFilasParque(unidades.items, cajas.items, viajes.items, colorEstatusUnidad),
+    () => construirFilasParque(unidades.items, cajas.items, viajes.items, ordenesServicio.items, colorEstatusUnidad),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [unidades.items, cajas.items, viajes.items, estatusUnidades.items],
+    [unidades.items, cajas.items, viajes.items, ordenesServicio.items, estatusUnidades.items],
   );
 
   const filasFiltradas = useMemo(() => filtrarFilasParque(todasLasFilas, filtros), [todasLasFilas, filtros]);
@@ -392,7 +392,11 @@ export function ParqueVehicularPage() {
                   <td className="px-4 py-3 font-semibold text-ink-100">{fila.codigo}</td>
                   <td className="px-4 py-3 text-ink-300">{fila.descripcion || '-'}</td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={fila.estatus} tone={fila.tono} />
+                    {fila.enMantenimiento ? (
+                      <StatusBadge status={`En Mantenimiento (${fila.ordenServicioFolio})`} tone="amber" />
+                    ) : (
+                      <StatusBadge status={fila.estatus} tone={fila.tono} />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-ink-500">{fila.fechaHoraEst || '-'}</td>
                   <td className="max-w-[180px] truncate px-4 py-3 text-ink-500" title={ultimaNota(fila)}>
@@ -579,7 +583,11 @@ export function ParqueVehicularPage() {
               </div>
               <div>
                 <div className="text-xs uppercase tracking-wide text-ink-500">Estatus</div>
-                <StatusBadge status={unicaSeleccionada.estatus} tone={unicaSeleccionada.tono} />
+                {unicaSeleccionada.enMantenimiento ? (
+                  <StatusBadge status={`En Mantenimiento (${unicaSeleccionada.ordenServicioFolio})`} tone="amber" />
+                ) : (
+                  <StatusBadge status={unicaSeleccionada.estatus} tone={unicaSeleccionada.tono} />
+                )}
               </div>
               <div>
                 <div className="text-xs uppercase tracking-wide text-ink-500">Descripcion</div>

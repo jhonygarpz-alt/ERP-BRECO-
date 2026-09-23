@@ -1,5 +1,6 @@
-import type { Caja, EstadoCarga, Unidad, Viaje } from '../types';
+import type { Caja, EstadoCarga, OrdenServicio, Unidad, Viaje } from '../types';
 import type { Tone } from '../components/ui/Badge';
+import { ordenServicioActivaDeUnidad } from './mantenimiento';
 
 export interface FilaParque {
   key: string;
@@ -16,6 +17,9 @@ export interface FilaParque {
   ubicacion: string;
   estadoCarga: EstadoCarga;
   fechaHoraEst: string;
+  /** true si la unidad tiene una Orden de Servicio activa (no Concluida ni Cancelada) -- se muestra como "En Mantenimiento" sin alterar su estatus real capturado. */
+  enMantenimiento: boolean;
+  ordenServicioFolio?: string;
 }
 
 function normalizarEstatusViaje(s: string) {
@@ -44,10 +48,12 @@ export function construirFilasParque(
   unidades: Unidad[],
   cajas: Caja[],
   viajes: Viaje[],
+  ordenesServicio: OrdenServicio[],
   colorEstatusUnidad: (nombre: string) => Tone | null,
 ): FilaParque[] {
   const filasUnidad: FilaParque[] = unidades.map((u) => {
     const viaje = viajeActivoDeUnidad(viajes, u.id);
+    const ordenActiva = ordenServicioActivaDeUnidad(u.id, ordenesServicio);
     return {
       key: `unidad:${u.id}`,
       entidadTipo: 'unidad',
@@ -63,6 +69,8 @@ export function construirFilasParque(
       ubicacion: u.ubicacion,
       estadoCarga: u.estadoCarga,
       fechaHoraEst: viaje ? `${viaje.fecha} ${viaje.horaLlegadaEstimada || ''}`.trim() : '',
+      enMantenimiento: Boolean(ordenActiva),
+      ordenServicioFolio: ordenActiva?.folio,
     };
   });
   const filasRemolque: FilaParque[] = cajas.map((c) => {
@@ -82,6 +90,7 @@ export function construirFilasParque(
       ubicacion: c.ubicacion,
       estadoCarga: c.estadoCarga,
       fechaHoraEst: viaje ? `${viaje.fecha} ${viaje.horaLlegadaEstimada || ''}`.trim() : '',
+      enMantenimiento: false,
     };
   });
   return [...filasUnidad, ...filasRemolque].sort((a, b) => a.codigo.localeCompare(b.codigo, undefined, { numeric: true }));
