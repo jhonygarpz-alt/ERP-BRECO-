@@ -47,6 +47,22 @@ import {
   checklistFisicomecanicoToRow,
   ticketSoporteFromRow,
   ticketSoporteToRow,
+  almacenFromRow,
+  almacenToRow,
+  articuloFromRow,
+  articuloToRow,
+  tipoMovimientoAlmacenFromRow,
+  tipoMovimientoAlmacenToRow,
+  cotizacionFromRow,
+  cotizacionToRow,
+  requisicionFromRow,
+  requisicionToRow,
+  ordenCompraFromRow,
+  ordenCompraToRow,
+  compraFromRow,
+  compraToRow,
+  movimientoAlmacenFromRow,
+  movimientoAlmacenToRow,
   estatusUnidadFromRow,
   estatusUnidadToRow,
   estatusViajeFromRow,
@@ -88,6 +104,8 @@ import {
 } from './mappers';
 import { seedEmpresa } from './seed';
 import type {
+  Almacen,
+  Articulo,
   Caja,
   CatalogoServicio,
   ChecklistFisicomecanico,
@@ -95,7 +113,9 @@ import type {
   ClasificacionServicio,
   ClasificacionViaje,
   Cliente,
+  Compra,
   ConceptoFacturacion,
+  Cotizacion,
   CuentaBancaria,
   Destinatario,
   Empresa,
@@ -110,8 +130,10 @@ import type {
   ConciliacionBancaria,
   Mecanico,
   MensajeViaje,
+  MovimientoAlmacen,
   MovimientoBancario,
   NotaCredito,
+  OrdenCompra,
   OrdenServicio,
   PagoCliente,
   PagoProveedor,
@@ -122,9 +144,11 @@ import type {
   Proveedor,
   ReporteExterno,
   ReporteFalla,
+  Requisicion,
   Rol,
   Ruta,
   TicketSoporte,
+  TipoMovimientoAlmacen,
   TipoViaje,
   Unidad,
   Usuario,
@@ -170,6 +194,14 @@ interface DataContextValue {
   ordenesServicio: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, OrdenServicio>>;
   checklistsFisicomecanicos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ChecklistFisicomecanico>>;
   ticketsSoporte: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TicketSoporte>>;
+  almacenes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Almacen>>;
+  articulos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Articulo>>;
+  tiposMovimientoAlmacen: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TipoMovimientoAlmacen>>;
+  cotizaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Cotizacion>>;
+  requisiciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Requisicion>>;
+  ordenesCompra: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, OrdenCompra>>;
+  compras: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Compra>>;
+  movimientosAlmacen: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MovimientoAlmacen>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
   formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
@@ -344,6 +376,34 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ticketSoporteFromRow,
     ticketSoporteToRow,
   );
+  const almacenes = useSupabaseCollection<Record<string, unknown>, Almacen>('almacenes', almacenFromRow, almacenToRow);
+  const articulos = useSupabaseCollection<Record<string, unknown>, Articulo>('articulos', articuloFromRow, articuloToRow);
+  const tiposMovimientoAlmacen = useSupabaseCollection<Record<string, unknown>, TipoMovimientoAlmacen>(
+    'tipos_movimiento_almacen',
+    tipoMovimientoAlmacenFromRow,
+    tipoMovimientoAlmacenToRow,
+  );
+  const cotizaciones = useSupabaseCollection<Record<string, unknown>, Cotizacion>(
+    'cotizaciones',
+    cotizacionFromRow,
+    cotizacionToRow,
+  );
+  const requisiciones = useSupabaseCollection<Record<string, unknown>, Requisicion>(
+    'requisiciones',
+    requisicionFromRow,
+    requisicionToRow,
+  );
+  const ordenesCompra = useSupabaseCollection<Record<string, unknown>, OrdenCompra>(
+    'ordenes_compra',
+    ordenCompraFromRow,
+    ordenCompraToRow,
+  );
+  const compras = useSupabaseCollection<Record<string, unknown>, Compra>('compras', compraFromRow, compraToRow);
+  const movimientosAlmacen = useSupabaseCollection<Record<string, unknown>, MovimientoAlmacen>(
+    'movimientos_almacen',
+    movimientoAlmacenFromRow,
+    movimientoAlmacenToRow,
+  );
   const reportes = useSupabaseCollection<Record<string, unknown>, ReporteExterno>(
     'reportes',
     reporteFromRow,
@@ -410,6 +470,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         ordenesServicio,
         checklistsFisicomecanicos,
         ticketsSoporte,
+        almacenes,
+        articulos,
+        tiposMovimientoAlmacen,
+        cotizaciones,
+        requisiciones,
+        ordenesCompra,
+        compras,
+        movimientosAlmacen,
         reportes,
         empresas,
         empresa,

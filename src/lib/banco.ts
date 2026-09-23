@@ -1,5 +1,6 @@
 import { uid } from './storage';
-import type { GastoViaje, LineaConciliacion, MovimientoBancario, PagoProveedor } from '../types';
+import { calcularTotalesArticulos } from './almacen';
+import type { Compra, GastoViaje, LineaConciliacion, MovimientoBancario, PagoProveedor } from '../types';
 
 /** Saldo actual de una cuenta: suma de todos sus movimientos activos (ingresos - egresos). Nunca se guarda. */
 export function saldoCuenta(cuentaBancariaId: string, movimientos: MovimientoBancario[]): number {
@@ -76,6 +77,37 @@ export function gastosPendientesDePago(gastos: GastoViaje[], pagos: PagoProveedo
     .map((g) => ({ gasto: g, saldo: saldoGasto(g, pagos) }))
     .filter((gc) => gc.saldo > 0)
     .sort((a, b) => a.gasto.fecha.localeCompare(b.gasto.fecha));
+}
+
+/** Cuanto se le ha pagado a una Compra de Almacen via pagos a proveedor ya aplicados. */
+export function montoPagadoCompra(compraId: string, pagos: PagoProveedor[]): number {
+  return pagos
+    .filter((p) => p.estatus === 'Aplicado')
+    .flatMap((p) => p.aplicaciones)
+    .filter((a) => a.compraId === compraId)
+    .reduce((acc, a) => acc + a.importe, 0);
+}
+
+/** Saldo pendiente real de una Compra: su total - pagos aplicados. Nunca negativo. */
+export function saldoCompra(compra: Compra, pagos: PagoProveedor[]): number {
+  if (compra.estatus === 'Cancelada') return 0;
+  const total = calcularTotalesArticulos(compra.lineas).total;
+  const saldo = total - montoPagadoCompra(compra.id, pagos);
+  return Math.max(0, Math.round(saldo * 100) / 100);
+}
+
+export interface CompraConSaldo {
+  compra: Compra;
+  saldo: number;
+}
+
+/** Compras de un proveedor que generan pasivo y todavia tienen saldo pendiente (para elegir en Cuentas por Pagar). */
+export function comprasPendientesDePago(compras: Compra[], pagos: PagoProveedor[], proveedorId: string): CompraConSaldo[] {
+  return compras
+    .filter((c) => c.proveedorId === proveedorId && c.generarPasivo && c.estatus !== 'Cancelada')
+    .map((c) => ({ compra: c, saldo: saldoCompra(c, pagos) }))
+    .filter((cc) => cc.saldo > 0)
+    .sort((a, b) => a.compra.fecha.localeCompare(b.compra.fecha));
 }
 
 function diferenciaDias(desdeIso: string, hastaIso: string): number {

@@ -4,7 +4,7 @@ import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { hoyISO } from '../../lib/fechas';
 import { uid } from '../../lib/storage';
-import { gastosPendientesDePago } from '../../lib/banco';
+import { comprasPendientesDePago, gastosPendientesDePago } from '../../lib/banco';
 import type { PagoProveedor } from '../../types';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Input, ToolbarButton } from '../../components/ui/form';
@@ -16,7 +16,7 @@ function money(n: number) {
 }
 
 export function CuentasPorPagarPage() {
-  const { pagosProveedor, proveedores, gastosViaje, movimientosBancarios } = useData();
+  const { pagosProveedor, proveedores, gastosViaje, movimientosBancarios, compras } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Banco', 'crear');
   const puedeEditar = hasPermission('Banco', 'editar');
@@ -35,10 +35,13 @@ export function CuentasPorPagarPage() {
 
   const pendientesTotales = useMemo(() => {
     return proveedores.items.reduce((acc, p) => {
-      const pendientes = gastosPendientesDePago(gastosViaje.items, pagosProveedor.items, p.id);
-      return acc + pendientes.reduce((a, gc) => a + gc.saldo, 0);
+      const pendientesGastos = gastosPendientesDePago(gastosViaje.items, pagosProveedor.items, p.id);
+      const pendientesCompras = comprasPendientesDePago(compras.items, pagosProveedor.items, p.id);
+      return (
+        acc + pendientesGastos.reduce((a, gc) => a + gc.saldo, 0) + pendientesCompras.reduce((a, cc) => a + cc.saldo, 0)
+      );
     }, 0);
-  }, [proveedores.items, gastosViaje.items, pagosProveedor.items]);
+  }, [proveedores.items, gastosViaje.items, compras.items, pagosProveedor.items]);
 
   const filtered = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
@@ -119,7 +122,9 @@ export function CuentasPorPagarPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-ink-100">Cuentas por Pagar</h1>
-          <p className="mt-1 text-sm text-ink-500">Registra los pagos a proveedor que liquidan gastos marcados "Genera pasivo".</p>
+          <p className="mt-1 text-sm text-ink-500">
+            Registra los pagos a proveedor que liquidan gastos de viaje o compras de almacen marcados "Genera pasivo".
+          </p>
         </div>
         {pendientesTotales > 0 && (
           <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-400">

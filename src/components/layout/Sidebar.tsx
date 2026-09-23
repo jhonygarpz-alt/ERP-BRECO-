@@ -36,6 +36,12 @@ import {
   GitCompareArrows,
   Wrench,
   ClipboardCheck,
+  Warehouse,
+  FileSearch,
+  ShoppingCart,
+  PackagePlus,
+  ShoppingBasket,
+  PackageSearch,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -175,6 +181,7 @@ const facturacionRoutes = ['/facturacion'];
 const cobranzaRoutes = ['/cobranza'];
 const bancoRoutes = ['/banco'];
 const mantenimientoRoutes = ['/mantenimiento'];
+const almacenRoutes = ['/almacen'];
 
 export function Sidebar() {
   const { empresa } = useData();
@@ -196,6 +203,7 @@ export function Sidebar() {
   const puedeCobranza = hasPermission('Cobranza', 'ver');
   const puedeBanco = hasPermission('Banco', 'ver');
   const puedeMantenimiento = hasPermission('Mantenimiento', 'ver');
+  const puedeAlmacen = hasPermission('Almacen', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
@@ -252,6 +260,18 @@ export function Sidebar() {
         { to: '/mantenimiento/ordenes-servicio', label: 'Ordenes de Servicios', icon: Wrench },
         { to: '/mantenimiento/servicios-programados', label: 'Servicios Programados', icon: CalendarClock },
         { to: '/mantenimiento/checklist', label: 'Checklist Fisicomecanico Rapido', icon: ClipboardCheck },
+      ]
+    : [];
+
+  const almacenLinks: { to: string; label: string; icon: LucideIcon }[] = puedeAlmacen
+    ? [
+        { to: '/almacen/catalogos', label: 'Catalogos', icon: Boxes },
+        { to: '/almacen/cotizaciones', label: 'Cotizaciones', icon: FileSearch },
+        { to: '/almacen/requisiciones', label: 'Requisiciones', icon: ShoppingCart },
+        { to: '/almacen/ordenes-compra', label: 'Ordenes de Compra', icon: PackagePlus },
+        { to: '/almacen/compras', label: 'Compras', icon: ShoppingBasket },
+        { to: '/almacen/movimientos', label: 'Movimientos de Almacen', icon: Warehouse },
+        { to: '/almacen/inventario', label: 'Inventario de Almacen', icon: PackageSearch },
       ]
     : [];
 
@@ -343,6 +363,15 @@ export function Sidebar() {
           icon={Wrench}
           routes={mantenimientoRoutes}
           links={mantenimientoLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
+
+        <NavCollapsibleGroup
+          label="Almacen"
+          icon={Warehouse}
+          routes={almacenRoutes}
+          links={almacenLinks}
           collapsed={collapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />

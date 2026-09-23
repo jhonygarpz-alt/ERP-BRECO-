@@ -15,6 +15,7 @@ const modulos: Modulo[] = [
   'Cobranza',
   'Banco',
   'Mantenimiento',
+  'Almacen',
   'Programa',
   'Monitoreo',
   'Reportes',
@@ -25,6 +26,7 @@ const MODULO_LABELS: Partial<Record<Modulo, string>> = {
   Cobranza: 'Cobranza',
   Banco: 'Banco',
   Mantenimiento: 'Mantenimiento',
+  Almacen: 'Almacen',
 };
 const etiquetaModulo = (m: Modulo) => MODULO_LABELS[m] ?? m;
 const acciones: { key: keyof PermisoModulo; label: string }[] = [

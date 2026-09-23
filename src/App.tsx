@@ -60,6 +60,18 @@ import { ChecklistFisicomecanicoPage } from './pages/mantenimiento/ChecklistFisi
 import { ImprimirReporteFallaPage } from './pages/mantenimiento/ImprimirReporteFallaPage';
 import { ImprimirOrdenServicioPage } from './pages/mantenimiento/ImprimirOrdenServicioPage';
 import { ImprimirChecklistFisicomecanicoPage } from './pages/mantenimiento/ImprimirChecklistFisicomecanicoPage';
+import { AlmacenCatalogosHubPage } from './pages/almacen/AlmacenCatalogosHubPage';
+import { AlmacenesPage } from './pages/almacen/AlmacenesPage';
+import { ArticulosPage } from './pages/almacen/ArticulosPage';
+import { TiposMovimientoAlmacenPage } from './pages/almacen/TiposMovimientoAlmacenPage';
+import { CotizacionesPage } from './pages/almacen/CotizacionesPage';
+import { RequisicionesPage } from './pages/almacen/RequisicionesPage';
+import { OrdenesCompraPage } from './pages/almacen/OrdenesCompraPage';
+import { ComprasPage } from './pages/almacen/ComprasPage';
+import { MovimientosAlmacenPage } from './pages/almacen/MovimientosAlmacenPage';
+import { InventarioAlmacenPage } from './pages/almacen/InventarioAlmacenPage';
+import { ImprimirRequisicionPage } from './pages/almacen/ImprimirRequisicionPage';
+import { ImprimirMovimientoAlmacenPage } from './pages/almacen/ImprimirMovimientoAlmacenPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
 import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
@@ -168,6 +180,19 @@ function App() {
                   <Route path="/mantenimiento/checklist" element={<ChecklistFisicomecanicoPage />} />
                 </Route>
 
+                <Route element={<RequirePermission modulo="Almacen" />}>
+                  <Route path="/almacen/catalogos" element={<AlmacenCatalogosHubPage />} />
+                  <Route path="/almacen/catalogos/almacenes" element={<AlmacenesPage />} />
+                  <Route path="/almacen/catalogos/articulos" element={<ArticulosPage />} />
+                  <Route path="/almacen/catalogos/tipos-movimiento" element={<TiposMovimientoAlmacenPage />} />
+                  <Route path="/almacen/cotizaciones" element={<CotizacionesPage />} />
+                  <Route path="/almacen/requisiciones" element={<RequisicionesPage />} />
+                  <Route path="/almacen/ordenes-compra" element={<OrdenesCompraPage />} />
+                  <Route path="/almacen/compras" element={<ComprasPage />} />
+                  <Route path="/almacen/movimientos" element={<MovimientosAlmacenPage />} />
+                  <Route path="/almacen/inventario" element={<InventarioAlmacenPage />} />
+                </Route>
+
                 <Route element={<RequirePermission modulo="Programa" />}>
                   <Route path="/programa" element={<ProgramaPage />} />
                 </Route>
@@ -206,6 +231,8 @@ function App() {
               <Route path="/mantenimiento/reportes-falla/imprimir/:id" element={<ImprimirReporteFallaPage />} />
               <Route path="/mantenimiento/ordenes-servicio/imprimir/:id" element={<ImprimirOrdenServicioPage />} />
               <Route path="/mantenimiento/checklist/imprimir/:id" element={<ImprimirChecklistFisicomecanicoPage />} />
+              <Route path="/almacen/requisiciones/imprimir/:id" element={<ImprimirRequisicionPage />} />
+              <Route path="/almacen/movimientos/imprimir/:id" element={<ImprimirMovimientoAlmacenPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
               <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>

@@ -606,6 +606,7 @@ export type Modulo =
   | 'Cobranza'
   | 'Banco'
   | 'Mantenimiento'
+  | 'Almacen'
   | 'Programa'
   | 'Monitoreo'
   | 'Reportes'
@@ -981,9 +982,14 @@ export interface MovimientoBancario {
   creadoEn?: string;
 }
 
-/** Cuanto de un Pago a Proveedor se aplico a un gasto especifico (un pago puede cubrir varios gastos). */
+/**
+ * Cuanto de un Pago a Proveedor se aplico a un pasivo especifico (un pago puede cubrir varios).
+ * Un pasivo es un GastoViaje marcado "Genera pasivo" o una Compra de Almacen -- exactamente uno
+ * de los dos ids viene lleno segun el origen.
+ */
 export interface AplicacionGasto {
-  gastoId: string;
+  gastoId?: string;
+  compraId?: string;
   importe: number;
 }
 
@@ -1177,5 +1183,160 @@ export interface ChecklistFisicomecanico {
   operadorId?: string;
   items: ChecklistFisicomecanicoItem[];
   observacionesGenerales: string;
+  creadoEn?: string;
+}
+
+// ============================================================================
+// Almacen: Catalogos (Almacenes, Articulos, Tipos de Movimiento), ciclo de
+// compras (Cotizaciones, Requisiciones, Ordenes de Compra, Compras) y
+// Movimientos/Inventario de Almacen.
+// ============================================================================
+
+export interface Almacen {
+  id: string;
+  codigo: string;
+  nombre: string;
+  activo: boolean;
+}
+
+/** Catalogo de Articulos/Insumos/Refacciones que se mueven por almacen. */
+export interface Articulo {
+  id: string;
+  codigo: string;
+  descripcion: string;
+  unidadMedida: string;
+  precioUnitario: number;
+  activo: boolean;
+}
+
+export type NaturalezaMovimientoAlmacen = 'Entrada' | 'Salida';
+
+/** Catalogo editable de Tipos de Movimiento de Almacen (ej. Entrada por Compra, Salida por Consumo). */
+export interface TipoMovimientoAlmacen {
+  id: string;
+  codigo: string;
+  nombre: string;
+  naturaleza: NaturalezaMovimientoAlmacen;
+  activo: boolean;
+}
+
+/** Una linea de articulo generica, reutilizada por Cotizaciones/Requisiciones/Ordenes de Compra/Compras/Movimientos. */
+export interface LineaArticuloAlmacen {
+  id: string;
+  articuloId?: string;
+  codigo: string;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  unidadMedida: string;
+  observaciones: string;
+}
+
+export type EstatusCotizacion = 'Abierta' | 'Cerrada' | 'Cancelada';
+
+/** Cotizacion de un proveedor para uno o varios articulos, referencia de precio antes de comprar. */
+export interface Cotizacion {
+  id: string;
+  folio: string;
+  fecha: string;
+  proveedorId?: string;
+  moneda: string;
+  tipoCambio: number;
+  lineas: LineaArticuloAlmacen[];
+  observaciones: string;
+  estatus: EstatusCotizacion;
+}
+
+export type EstatusRequisicion = 'Abierta' | 'Aplicada' | 'Cancelada';
+
+/** Requisicion interna de compra; paso opcional antes de una Orden de Compra. */
+export interface Requisicion {
+  id: string;
+  folio: string;
+  fecha: string;
+  proveedorId?: string;
+  almacenId?: string;
+  referencia: string;
+  moneda: string;
+  tipoCambio: number;
+  lineas: LineaArticuloAlmacen[];
+  observaciones: string;
+  estatus: EstatusRequisicion;
+}
+
+/** Una linea de Orden de Compra: ademas de cantidad/precio, da seguimiento a lo ya recibido via Compras. */
+export interface LineaOrdenCompra extends LineaArticuloAlmacen {
+  almacenId: string;
+  cantidadRecibida: number;
+}
+
+export type EstatusOrdenCompra = 'Abierta' | 'Parcialmente Recibida' | 'Recibida' | 'Cancelada';
+
+/** Orden de Compra: autoriza a un proveedor a surtir articulos; puede originarse en una Requisicion o crearse directa. */
+export interface OrdenCompra {
+  id: string;
+  folio: string;
+  fecha: string;
+  proveedorId: string;
+  requisicionId?: string;
+  referencia: string;
+  moneda: string;
+  tipoCambio: number;
+  lineas: LineaOrdenCompra[];
+  observaciones: string;
+  estatus: EstatusOrdenCompra;
+}
+
+/** Una linea de Compra: liga a la Orden de Compra/almacen de origen para descontar lo pendiente. */
+export interface LineaCompra extends LineaArticuloAlmacen {
+  ordenCompraId?: string;
+  /** Id de la linea original dentro de esa Orden de Compra, para descontar su cantidadRecibida al aplicar la Compra. */
+  ordenCompraLineaId?: string;
+  almacenId: string;
+}
+
+export type EstatusCompra = 'Aplicada' | 'Cancelada';
+
+/** Compra: registra la mercancia que efectivamente entrega el proveedor (con o sin Orden de Compra previa). */
+export interface Compra {
+  id: string;
+  folio: string;
+  fecha: string;
+  proveedorId: string;
+  folioFiscalUuid: string;
+  serieDocumento: string;
+  numeroDocumento: string;
+  fechaRecibido: string;
+  fechaVencimiento: string;
+  moneda: string;
+  tipoCambio: number;
+  ordenesCompraIds: string[];
+  lineas: LineaCompra[];
+  generarPasivo: boolean;
+  observaciones: string;
+  estatus: EstatusCompra;
+  creadoEn?: string;
+}
+
+export type OrigenMovimientoAlmacen = 'Manual' | 'Compra';
+export type EstatusMovimientoAlmacen = 'Aplicado' | 'Cancelado';
+
+/** Movimiento de entrada o salida de almacen (manual o generado automaticamente al registrar una Compra). */
+export interface MovimientoAlmacen {
+  id: string;
+  folio: string;
+  fecha: string;
+  tipoMovimientoId: string;
+  almacenId: string;
+  almacenDestinoId?: string;
+  proveedorId?: string;
+  referencia: string;
+  moneda: string;
+  tipoCambio: number;
+  lineas: LineaArticuloAlmacen[];
+  observaciones: string;
+  origen: OrigenMovimientoAlmacen;
+  origenId?: string;
+  estatus: EstatusMovimientoAlmacen;
   creadoEn?: string;
 }

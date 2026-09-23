@@ -8,7 +8,7 @@ function money(n: number) {
 
 export function ImprimirPagoProveedorPage() {
   const { id } = useParams<{ id: string }>();
-  const { pagosProveedor, proveedores, gastosViaje, cuentasBancarias, empresa } = useData();
+  const { pagosProveedor, proveedores, gastosViaje, compras, cuentasBancarias, empresa } = useData();
 
   const pago = pagosProveedor.items.find((p) => p.id === id);
   const proveedor = proveedores.items.find((p) => p.id === pago?.proveedorId);
@@ -87,7 +87,7 @@ export function ImprimirPagoProveedorPage() {
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <h2 style={sectionTitle}>Gastos liquidados</h2>
+        <h2 style={sectionTitle}>Gastos y compras liquidados</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -105,11 +105,12 @@ export function ImprimirPagoProveedorPage() {
               </tr>
             )}
             {pago.aplicaciones.map((a) => {
-              const g = gastosViaje.items.find((gg) => gg.id === a.gastoId);
+              const g = a.gastoId ? gastosViaje.items.find((gg) => gg.id === a.gastoId) : undefined;
+              const c = a.compraId ? compras.items.find((cc) => cc.id === a.compraId) : undefined;
               return (
-                <tr key={a.gastoId}>
-                  <td style={tdStyle}>{g?.concepto ?? a.gastoId}</td>
-                  <td style={tdStyle}>{g?.fecha ?? '-'}</td>
+                <tr key={a.gastoId ?? a.compraId}>
+                  <td style={tdStyle}>{g ? g.concepto || g.tipo : c ? `Compra ${c.folio}` : (a.gastoId ?? a.compraId)}</td>
+                  <td style={tdStyle}>{g?.fecha ?? c?.fecha ?? '-'}</td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>{money(a.importe)}</td>
                 </tr>
               );

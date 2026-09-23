@@ -1,8 +1,12 @@
 import { DEFAULT_ALERTAS_VENCIMIENTOS } from './alertasVencimientosConfig';
 import type {
+  Almacen,
+  Articulo,
   Caja,
   CatalogoServicio,
   ChecklistFisicomecanico,
+  Compra,
+  Cotizacion,
   ClasificacionOperador,
   ClasificacionServicio,
   ClasificacionViaje,
@@ -22,8 +26,10 @@ import type {
   ConciliacionBancaria,
   Mecanico,
   MensajeViaje,
+  MovimientoAlmacen,
   MovimientoBancario,
   NotaCredito,
+  OrdenCompra,
   OrdenServicio,
   PagoCliente,
   PagoProveedor,
@@ -34,9 +40,11 @@ import type {
   Proveedor,
   ReporteExterno,
   ReporteFalla,
+  Requisicion,
   Rol,
   Ruta,
   TicketSoporte,
+  TipoMovimientoAlmacen,
   TipoViaje,
   Unidad,
   Usuario,
@@ -1567,5 +1575,222 @@ export function ticketSoporteToRow(t: TicketSoporte) {
     telefono: t.telefono,
     mensajes: t.mensajes,
     estatus: t.estatus,
+  };
+}
+
+export function almacenFromRow(row: Record<string, unknown>): Almacen {
+  return {
+    id: row.id as string,
+    codigo: (row.codigo as string) ?? '',
+    nombre: (row.nombre as string) ?? '',
+    activo: Boolean(row.activo),
+  };
+}
+export function almacenToRow(a: Almacen) {
+  return { id: a.id, codigo: a.codigo, nombre: a.nombre, activo: a.activo };
+}
+
+export function articuloFromRow(row: Record<string, unknown>): Articulo {
+  return {
+    id: row.id as string,
+    codigo: (row.codigo as string) ?? '',
+    descripcion: (row.descripcion as string) ?? '',
+    unidadMedida: (row.unidad_medida as string) ?? '',
+    precioUnitario: Number(row.precio_unitario) || 0,
+    activo: Boolean(row.activo),
+  };
+}
+export function articuloToRow(a: Articulo) {
+  return {
+    id: a.id,
+    codigo: a.codigo,
+    descripcion: a.descripcion,
+    unidad_medida: a.unidadMedida,
+    precio_unitario: a.precioUnitario,
+    activo: a.activo,
+  };
+}
+
+export function tipoMovimientoAlmacenFromRow(row: Record<string, unknown>): TipoMovimientoAlmacen {
+  return {
+    id: row.id as string,
+    codigo: (row.codigo as string) ?? '',
+    nombre: (row.nombre as string) ?? '',
+    naturaleza: (row.naturaleza as TipoMovimientoAlmacen['naturaleza']) ?? 'Entrada',
+    activo: Boolean(row.activo),
+  };
+}
+export function tipoMovimientoAlmacenToRow(t: TipoMovimientoAlmacen) {
+  return { id: t.id, codigo: t.codigo, nombre: t.nombre, naturaleza: t.naturaleza, activo: t.activo };
+}
+
+export function cotizacionFromRow(row: Record<string, unknown>): Cotizacion {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    proveedorId: (row.proveedor_id as string | null) ?? undefined,
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    lineas: (row.lineas as Cotizacion['lineas'] | null) ?? [],
+    observaciones: (row.observaciones as string) ?? '',
+    estatus: (row.estatus as Cotizacion['estatus']) ?? 'Abierta',
+  };
+}
+export function cotizacionToRow(c: Cotizacion) {
+  return {
+    id: c.id,
+    folio: c.folio,
+    fecha: c.fecha,
+    proveedor_id: c.proveedorId || null,
+    moneda: c.moneda,
+    tipo_cambio: c.tipoCambio,
+    lineas: c.lineas,
+    observaciones: c.observaciones,
+    estatus: c.estatus,
+  };
+}
+
+export function requisicionFromRow(row: Record<string, unknown>): Requisicion {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    proveedorId: (row.proveedor_id as string | null) ?? undefined,
+    almacenId: (row.almacen_id as string | null) ?? undefined,
+    referencia: (row.referencia as string) ?? '',
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    lineas: (row.lineas as Requisicion['lineas'] | null) ?? [],
+    observaciones: (row.observaciones as string) ?? '',
+    estatus: (row.estatus as Requisicion['estatus']) ?? 'Abierta',
+  };
+}
+export function requisicionToRow(r: Requisicion) {
+  return {
+    id: r.id,
+    folio: r.folio,
+    fecha: r.fecha,
+    proveedor_id: r.proveedorId || null,
+    almacen_id: r.almacenId || null,
+    referencia: r.referencia,
+    moneda: r.moneda,
+    tipo_cambio: r.tipoCambio,
+    lineas: r.lineas,
+    observaciones: r.observaciones,
+    estatus: r.estatus,
+  };
+}
+
+export function ordenCompraFromRow(row: Record<string, unknown>): OrdenCompra {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    proveedorId: row.proveedor_id as string,
+    requisicionId: (row.requisicion_id as string | null) ?? undefined,
+    referencia: (row.referencia as string) ?? '',
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    lineas: (row.lineas as OrdenCompra['lineas'] | null) ?? [],
+    observaciones: (row.observaciones as string) ?? '',
+    estatus: (row.estatus as OrdenCompra['estatus']) ?? 'Abierta',
+  };
+}
+export function ordenCompraToRow(o: OrdenCompra) {
+  return {
+    id: o.id,
+    folio: o.folio,
+    fecha: o.fecha,
+    proveedor_id: o.proveedorId,
+    requisicion_id: o.requisicionId || null,
+    referencia: o.referencia,
+    moneda: o.moneda,
+    tipo_cambio: o.tipoCambio,
+    lineas: o.lineas,
+    observaciones: o.observaciones,
+    estatus: o.estatus,
+  };
+}
+
+export function compraFromRow(row: Record<string, unknown>): Compra {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    proveedorId: row.proveedor_id as string,
+    folioFiscalUuid: (row.folio_fiscal_uuid as string) ?? '',
+    serieDocumento: (row.serie_documento as string) ?? '',
+    numeroDocumento: (row.numero_documento as string) ?? '',
+    fechaRecibido: (row.fecha_recibido as string) ?? '',
+    fechaVencimiento: (row.fecha_vencimiento as string) ?? '',
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    ordenesCompraIds: (row.ordenes_compra_ids as string[] | null) ?? [],
+    lineas: (row.lineas as Compra['lineas'] | null) ?? [],
+    generarPasivo: Boolean(row.generar_pasivo),
+    observaciones: (row.observaciones as string) ?? '',
+    estatus: (row.estatus as Compra['estatus']) ?? 'Aplicada',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function compraToRow(c: Compra) {
+  return {
+    id: c.id,
+    folio: c.folio,
+    fecha: c.fecha,
+    proveedor_id: c.proveedorId,
+    folio_fiscal_uuid: c.folioFiscalUuid,
+    serie_documento: c.serieDocumento,
+    numero_documento: c.numeroDocumento,
+    fecha_recibido: c.fechaRecibido,
+    fecha_vencimiento: c.fechaVencimiento,
+    moneda: c.moneda,
+    tipo_cambio: c.tipoCambio,
+    ordenes_compra_ids: c.ordenesCompraIds,
+    lineas: c.lineas,
+    generar_pasivo: c.generarPasivo,
+    observaciones: c.observaciones,
+    estatus: c.estatus,
+  };
+}
+
+export function movimientoAlmacenFromRow(row: Record<string, unknown>): MovimientoAlmacen {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    tipoMovimientoId: row.tipo_movimiento_id as string,
+    almacenId: row.almacen_id as string,
+    almacenDestinoId: (row.almacen_destino_id as string | null) ?? undefined,
+    proveedorId: (row.proveedor_id as string | null) ?? undefined,
+    referencia: (row.referencia as string) ?? '',
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    lineas: (row.lineas as MovimientoAlmacen['lineas'] | null) ?? [],
+    observaciones: (row.observaciones as string) ?? '',
+    origen: (row.origen as MovimientoAlmacen['origen']) ?? 'Manual',
+    origenId: (row.origen_id as string | null) ?? undefined,
+    estatus: (row.estatus as MovimientoAlmacen['estatus']) ?? 'Aplicado',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function movimientoAlmacenToRow(m: MovimientoAlmacen) {
+  return {
+    id: m.id,
+    folio: m.folio,
+    fecha: m.fecha,
+    tipo_movimiento_id: m.tipoMovimientoId,
+    almacen_id: m.almacenId,
+    almacen_destino_id: m.almacenDestinoId || null,
+    proveedor_id: m.proveedorId || null,
+    referencia: m.referencia,
+    moneda: m.moneda,
+    tipo_cambio: m.tipoCambio,
+    lineas: m.lineas,
+    observaciones: m.observaciones,
+    origen: m.origen,
+    origen_id: m.origenId || null,
+    estatus: m.estatus,
   };
 }

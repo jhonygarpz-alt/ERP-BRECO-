@@ -19,6 +19,7 @@ const modulos: Modulo[] = [
   'Cobranza',
   'Banco',
   'Mantenimiento',
+  'Almacen',
   'Programa',
   'Monitoreo',
   'Reportes',

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { hoyISO } from '../../lib/fechas';
 import { uid } from '../../lib/storage';
-import { gastosPendientesDePago, nextFolioBanco, saldoCuenta } from '../../lib/banco';
+import { comprasPendientesDePago, gastosPendientesDePago, montoPagadoCompra, nextFolioBanco, saldoCuenta } from '../../lib/banco';
 import type { AplicacionGasto, PagoProveedor, Proveedor } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
@@ -27,7 +27,7 @@ export function RegistrarPagoProveedorModal({
   onClose: () => void;
   onGuardar: (datos: Omit<PagoProveedor, 'id'>) => void;
 }) {
-  const { proveedores, gastosViaje, pagosProveedor, cuentasBancarias, movimientosBancarios } = useData();
+  const { proveedores, gastosViaje, compras, pagosProveedor, cuentasBancarias, movimientosBancarios } = useData();
 
   const [proveedorId, setProveedorId] = useState(editing?.proveedorId ?? '');
   const [fecha, setFecha] = useState(editing?.fecha ?? hoyISO());
@@ -37,7 +37,16 @@ export function RegistrarPagoProveedorModal({
   const [concepto, setConcepto] = useState(editing?.concepto ?? 'PAGO A PROVEEDOR');
   const [importesPorGasto, setImportesPorGasto] = useState<Record<string, number>>(() => {
     const inicial: Record<string, number> = {};
-    editing?.aplicaciones.forEach((a) => (inicial[a.gastoId] = a.importe));
+    editing?.aplicaciones.forEach((a) => {
+      if (a.gastoId) inicial[a.gastoId] = a.importe;
+    });
+    return inicial;
+  });
+  const [importesPorCompra, setImportesPorCompra] = useState<Record<string, number>>(() => {
+    const inicial: Record<string, number> = {};
+    editing?.aplicaciones.forEach((a) => {
+      if (a.compraId) inicial[a.compraId] = a.importe;
+    });
     return inicial;
   });
   const [proveedorPickerOpen, setProveedorPickerOpen] = useState(false);
@@ -57,11 +66,28 @@ export function RegistrarPagoProveedorModal({
     [gastosViaje.items, pagosProveedor.items, proveedorId, editing?.id],
   );
 
+  const pendientesCompras = useMemo(
+    () =>
+      proveedorId
+        ? comprasPendientesDePago(compras.items, pagosProveedor.items.filter((p) => p.id !== editing?.id), proveedorId)
+        : [],
+    [compras.items, pagosProveedor.items, proveedorId, editing?.id],
+  );
+
   function toggleGasto(gastoId: string, saldo: number) {
     setImportesPorGasto((actual) => {
       const copia = { ...actual };
       if (gastoId in copia) delete copia[gastoId];
       else copia[gastoId] = saldo;
+      return copia;
+    });
+  }
+
+  function toggleCompra(compraId: string, saldo: number) {
+    setImportesPorCompra((actual) => {
+      const copia = { ...actual };
+      if (compraId in copia) delete copia[compraId];
+      else copia[compraId] = saldo;
       return copia;
     });
   }
@@ -125,10 +151,13 @@ export function RegistrarPagoProveedorModal({
     });
     setProveedorId(nuevoId);
     setImportesPorGasto({});
+    setImportesPorCompra({});
     setNuevoProveedorOpen(false);
   }
 
-  const importeAPagar = Object.values(importesPorGasto).reduce((acc, v) => acc + v, 0);
+  const importeAPagar =
+    Object.values(importesPorGasto).reduce((acc, v) => acc + v, 0) +
+    Object.values(importesPorCompra).reduce((acc, v) => acc + v, 0);
   const saldoCuentaSeleccionada = cuentaBancariaId ? saldoCuenta(cuentaBancariaId, movimientosBancarios.items) : 0;
 
   function handleSubmit(e: React.FormEvent) {
@@ -142,13 +171,18 @@ export function RegistrarPagoProveedorModal({
       return;
     }
     if (importeAPagar <= 0) {
-      setError('Selecciona al menos un gasto y captura el importe a pagar.');
+      setError('Selecciona al menos un gasto o compra pendiente y captura el importe a pagar.');
       return;
     }
     setError('');
-    const aplicaciones: AplicacionGasto[] = Object.entries(importesPorGasto)
-      .filter(([, importe]) => importe > 0)
-      .map(([gastoId, importe]) => ({ gastoId, importe }));
+    const aplicaciones: AplicacionGasto[] = [
+      ...Object.entries(importesPorGasto)
+        .filter(([, importe]) => importe > 0)
+        .map(([gastoId, importe]) => ({ gastoId, importe })),
+      ...Object.entries(importesPorCompra)
+        .filter(([, importe]) => importe > 0)
+        .map(([compraId, importe]) => ({ compraId, importe })),
+    ];
 
     onGuardar({
       folio: editing?.folio ?? nextFolioBanco(pagosProveedor.items, 'PPV-'),
@@ -261,6 +295,63 @@ export function RegistrarPagoProveedorModal({
           </div>
 
           <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">
+              Compras de Almacen pendientes de pago {proveedorSeleccionado ? `de ${proveedorSeleccionado.nombre}` : '(selecciona un proveedor)'}
+            </h3>
+            <div className="max-h-56 overflow-auto rounded-xl border border-line-800">
+              {!proveedorSeleccionado ? (
+                <p className="p-4 text-center text-sm text-ink-600">Selecciona un proveedor para ver sus compras pendientes.</p>
+              ) : pendientesCompras.length === 0 ? (
+                <p className="p-4 text-center text-sm text-ink-600">Este proveedor no tiene compras pendientes de pago (con "Genera pasivo").</p>
+              ) : (
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+                    <tr>
+                      <th className="w-8 px-3 py-2" />
+                      <th className="px-3 py-2">Folio</th>
+                      <th className="px-3 py-2">Fecha</th>
+                      <th className="px-3 py-2 text-right">Total</th>
+                      <th className="px-3 py-2 text-right">Saldo</th>
+                      <th className="px-3 py-2 text-right">Importe a Pagar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendientesCompras.map(({ compra: c, saldo }) => (
+                      <tr key={c.id} className="border-t border-line-800/70 hover:bg-bg-800">
+                        <td className="px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={c.id in importesPorCompra}
+                            onChange={() => toggleCompra(c.id, saldo)}
+                            className="h-4 w-4 accent-breco-500"
+                          />
+                        </td>
+                        <td className="px-3 py-2 font-mono text-xs font-semibold text-ink-100">{c.folio}</td>
+                        <td className="px-3 py-2 text-ink-300">{c.fecha}</td>
+                        <td className="px-3 py-2 text-right text-ink-300">
+                          {money(saldo + montoPagadoCompra(c.id, pagosProveedor.items.filter((p) => p.id !== editing?.id)))}
+                        </td>
+                        <td className="px-3 py-2 text-right text-ink-300">{money(saldo)}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            disabled={!(c.id in importesPorCompra)}
+                            value={importesPorCompra[c.id] ?? 0}
+                            onChange={(e) => setImportesPorCompra((a) => ({ ...a, [c.id]: Number(e.target.value) || 0 }))}
+                            className="w-28 text-right"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          <div>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-breco-500">
               Resumen de Saldos Bancarios -- elige de que cuenta se pagara
             </h3>
@@ -343,6 +434,7 @@ export function RegistrarPagoProveedorModal({
           onSelect={(p) => {
             setProveedorId(p.id);
             setImportesPorGasto({});
+            setImportesPorCompra({});
             setProveedorPickerOpen(false);
           }}
           onClose={() => setProveedorPickerOpen(false)}
