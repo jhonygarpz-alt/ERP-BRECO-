@@ -20,3 +20,14 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// PWA: registra el service worker solo para que el navegador considere la
+// app instalable ("Agregar a pantalla de inicio"). No cachea datos -- la
+// app sigue siendo 100% online/tiempo real, igual que en el navegador.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.error('No se pudo registrar el service worker:', err);
+    });
+  });
+}

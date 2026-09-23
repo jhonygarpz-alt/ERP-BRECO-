@@ -4,6 +4,7 @@ import { Bell, Check, CheckCheck, LogOut, Search, Settings } from 'lucide-react'
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { useAlertas } from '../../lib/alertas';
+import { InstallPwaButton } from './InstallPwaButton';
 
 function iniciales(nombre: string) {
   const partes = nombre.trim().split(/\s+/);
@@ -39,6 +40,7 @@ export function Topbar() {
 
       <div className="flex items-center gap-2">
         <span className="hidden pr-2 text-sm text-ink-500 md:inline">{today}</span>
+        <InstallPwaButton />
         {hasPermission('Configuracion', 'ver') && (
           <Link
             to="/configuracion"
