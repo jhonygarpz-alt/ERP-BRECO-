@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { hoyISO } from '../../lib/fechas';
+import { uid } from '../../lib/storage';
 import { gastosPendientesDePago, nextFolioBanco, saldoCuenta } from '../../lib/banco';
-import type { AplicacionGasto, PagoProveedor } from '../../types';
+import type { AplicacionGasto, PagoProveedor, Proveedor } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Select, ToolbarButton } from '../ui/form';
@@ -12,6 +13,8 @@ function money(n: number) {
 }
 
 const FORMAS_PAGO = ['TRANSFERENCIA', 'CHEQUE', 'EFECTIVO', 'TARJETA'];
+
+const emptyNuevoProveedor = { nombre: '', rfc: '', tipo: 'Nacional' as Proveedor['tipo'] };
 
 export function RegistrarPagoProveedorModal({
   editing,
@@ -38,6 +41,9 @@ export function RegistrarPagoProveedorModal({
     return inicial;
   });
   const [proveedorPickerOpen, setProveedorPickerOpen] = useState(false);
+  const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
+  const [nuevoProveedorForm, setNuevoProveedorForm] = useState(emptyNuevoProveedor);
+  const [nuevoProveedorError, setNuevoProveedorError] = useState('');
   const [error, setError] = useState('');
 
   const proveedorSeleccionado = proveedores.items.find((p) => p.id === proveedorId);
@@ -58,6 +64,68 @@ export function RegistrarPagoProveedorModal({
       else copia[gastoId] = saldo;
       return copia;
     });
+  }
+
+  function abrirNuevoProveedor() {
+    setNuevoProveedorForm(emptyNuevoProveedor);
+    setNuevoProveedorError('');
+    setProveedorPickerOpen(false);
+    setNuevoProveedorOpen(true);
+  }
+
+  function guardarNuevoProveedor() {
+    const nombre = nuevoProveedorForm.nombre.trim();
+    const rfc = nuevoProveedorForm.rfc.trim().toUpperCase();
+    if (!nombre) {
+      setNuevoProveedorError('Falta el Nombre.');
+      return;
+    }
+    if (rfc && proveedores.items.some((p) => p.rfc.trim().toUpperCase() === rfc)) {
+      setNuevoProveedorError(`Ya existe un proveedor con el RFC ${rfc}.`);
+      return;
+    }
+    const nuevoId = uid('prv');
+    proveedores.add({
+      id: nuevoId,
+      numero: '',
+      fecha: hoyISO(),
+      estatus: 'activo',
+      tipo: nuevoProveedorForm.tipo,
+      rfc,
+      nombre,
+      nombreCorto: '',
+      esProveedorCombustible: false,
+      proveedorBienes: false,
+      proveedorServicios: false,
+      grupo: '',
+      tipoOperacion: '',
+      tipoTercero: '',
+      shortNameSap: '',
+      pais: 'Mexico',
+      estado: '',
+      cp: '',
+      municipio: '',
+      colonia: '',
+      localidad: '',
+      calle: '',
+      numeroExterior: '',
+      numeroInterior: '',
+      correo: '',
+      telefonos: '',
+      celular: '',
+      nextel: '',
+      formaPago: 'Efectivo',
+      diasCredito: 0,
+      limiteCreditoMxn: 0,
+      limiteCreditoUsd: 0,
+      banco: '',
+      cuentaClabe: '',
+      noCuenta: '',
+      documentos: [],
+    });
+    setProveedorId(nuevoId);
+    setImportesPorGasto({});
+    setNuevoProveedorOpen(false);
   }
 
   const importeAPagar = Object.values(importesPorGasto).reduce((acc, v) => acc + v, 0);
@@ -278,7 +346,51 @@ export function RegistrarPagoProveedorModal({
             setProveedorPickerOpen(false);
           }}
           onClose={() => setProveedorPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Proveedor', onClick: abrirNuevoProveedor }}
         />
+      )}
+
+      {nuevoProveedorOpen && (
+        <Modal title="Agregando Proveedor" onClose={() => setNuevoProveedorOpen(false)}>
+          <div className="space-y-4">
+            <Field label="Nombre">
+              <Input
+                required
+                autoFocus
+                value={nuevoProveedorForm.nombre}
+                onChange={(e) => setNuevoProveedorForm({ ...nuevoProveedorForm, nombre: e.target.value })}
+              />
+            </Field>
+            <Field label="RFC">
+              <Input
+                value={nuevoProveedorForm.rfc}
+                onChange={(e) => setNuevoProveedorForm({ ...nuevoProveedorForm, rfc: e.target.value.toUpperCase() })}
+              />
+            </Field>
+            <Field label="Tipo Proveedor">
+              <Select
+                value={nuevoProveedorForm.tipo}
+                onChange={(e) => setNuevoProveedorForm({ ...nuevoProveedorForm, tipo: e.target.value as Proveedor['tipo'] })}
+              >
+                <option value="Nacional">Nacional</option>
+                <option value="Extranjero">Extranjero</option>
+              </Select>
+            </Field>
+            <p className="text-xs text-ink-500">
+              El resto de los datos del proveedor (domicilio, credito, cuenta bancaria, etc.) se pueden completar despues desde el catalogo de
+              Proveedores.
+            </p>
+            <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
+              {nuevoProveedorError && <p className="flex-1 text-sm text-breco-500">{nuevoProveedorError}</p>}
+              <GhostButton type="button" onClick={() => setNuevoProveedorOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="button" onClick={guardarNuevoProveedor}>
+                Aceptar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
       )}
     </Modal>
   );
