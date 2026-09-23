@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Check, CheckCheck, LogOut, Search, Settings } from 'lucide-react';
+import { Bell, Check, CheckCheck, LogOut, Menu, Search, Settings } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { useAlertas } from '../../lib/alertas';
@@ -11,7 +11,7 @@ function iniciales(nombre: string) {
   return ((partes[0]?.[0] ?? '') + (partes[1]?.[0] ?? '')).toUpperCase();
 }
 
-export function Topbar() {
+export function Topbar({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const { empresa } = useData();
   const { usuarioActual, rolActual, hasPermission, logout } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +29,15 @@ export function Topbar() {
   }
 
   return (
-    <header className="flex h-16 flex-shrink-0 items-center justify-between border-b border-line-800 bg-bg-900/80 px-6 backdrop-blur">
+    <header className="flex h-16 flex-shrink-0 items-center justify-between gap-2 border-b border-line-800 bg-bg-900/80 px-4 backdrop-blur sm:px-6">
+      <button
+        onClick={onOpenMenu}
+        title="Abrir menu"
+        className="rounded-lg p-2 text-ink-500 transition hover:bg-bg-800 hover:text-ink-100 md:hidden"
+      >
+        <Menu size={20} />
+      </button>
+
       <div className="relative hidden max-w-md flex-1 sm:block">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-600" />
         <input

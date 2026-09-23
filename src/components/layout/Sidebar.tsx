@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -42,6 +42,7 @@ import {
   PackagePlus,
   ShoppingBasket,
   PackageSearch,
+  X,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -183,9 +184,16 @@ const bancoRoutes = ['/banco'];
 const mantenimientoRoutes = ['/mantenimiento'];
 const almacenRoutes = ['/almacen'];
 
-export function Sidebar() {
+export function Sidebar({
+  mobileOpen = false,
+  onCloseMobile,
+}: {
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}) {
   const { empresa } = useData();
   const { hasPermission } = useAuth();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('breco-sidebar-collapsed') === '1');
 
   function toggleCollapsed() {
@@ -194,6 +202,16 @@ export function Sidebar() {
       return !c;
     });
   }
+
+  // En movil el menu es un panel deslizable: se cierra solo al navegar.
+  useEffect(() => {
+    onCloseMobile?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // El colapsado a solo-iconos es una preferencia de escritorio; en el panel
+  // deslizable de movil siempre se muestran las etiquetas completas.
+  const effectiveCollapsed = collapsed && !mobileOpen;
 
   const puedeCatalogos = hasPermission('Catalogos', 'ver');
   const puedeViajes = hasPermission('Viajes', 'ver');
@@ -276,12 +294,16 @@ export function Sidebar() {
     : [];
 
   return (
-    <aside
-      className={`flex h-full flex-shrink-0 flex-col border-r border-sb-border bg-sb-bg transition-[width] duration-200 ${
-        collapsed ? 'w-20' : 'w-72'
-      }`}
-    >
-      <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-5 ${collapsed ? 'justify-center px-3' : ''}`}>
+    <>
+      {mobileOpen && (
+        <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={onCloseMobile} aria-hidden="true" />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex h-full w-72 flex-shrink-0 flex-col border-r border-sb-border bg-sb-bg transition-transform duration-200 md:static md:z-auto md:translate-x-0 md:transition-[width] ${
+          collapsed ? 'md:w-20' : 'md:w-72'
+        } ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-5 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
         {empresa.value.logoDataUrl ? (
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sb-bg-active">
             <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
@@ -291,25 +313,30 @@ export function Sidebar() {
             B
           </div>
         )}
-        {!collapsed && (
-          <div className="min-w-0 leading-tight">
-            <div className="truncate text-[15px] font-semibold tracking-tight text-sb-text">
-              <BrandName nombre={empresa.value.nombre} />
-            </div>
-            <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
+        <div className={`min-w-0 flex-1 leading-tight ${collapsed ? 'md:hidden' : ''}`}>
+          <div className="truncate text-[15px] font-semibold tracking-tight text-sb-text">
+            <BrandName nombre={empresa.value.nombre} />
           </div>
-        )}
+          <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
+        </div>
+        <button
+          onClick={onCloseMobile}
+          title="Cerrar menu"
+          className="rounded-lg p-1.5 text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text md:hidden"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden scrollbar-none px-3 py-4">
         <NavGroup>
-          <NavRow to="/" end label="Resumen" icon={LayoutDashboard} collapsed={collapsed} />
+          <NavRow to="/" end label="Resumen" icon={LayoutDashboard} collapsed={effectiveCollapsed} />
         </NavGroup>
 
         {puedeCatalogos && (
           <NavGroup>
-            <NavRow to="/catalogos" label="Catalogos" icon={Boxes} collapsed={collapsed} />
-            <NavRow to="/parque-vehicular" label="Parque Vehicular" icon={Truck} collapsed={collapsed} />
+            <NavRow to="/catalogos" label="Catalogos" icon={Boxes} collapsed={effectiveCollapsed} />
+            <NavRow to="/parque-vehicular" label="Parque Vehicular" icon={Truck} collapsed={effectiveCollapsed} />
           </NavGroup>
         )}
 
@@ -318,7 +345,7 @@ export function Sidebar() {
           icon={Route}
           routes={traficoRoutes}
           links={traficoLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
@@ -327,7 +354,7 @@ export function Sidebar() {
           icon={Radar}
           routes={monitoreoRoutes}
           links={monitoreoLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
@@ -336,7 +363,7 @@ export function Sidebar() {
           icon={Receipt}
           routes={facturacionRoutes}
           links={facturacionLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
@@ -345,7 +372,7 @@ export function Sidebar() {
           icon={HandCoins}
           routes={cobranzaRoutes}
           links={cobranzaLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
@@ -354,7 +381,7 @@ export function Sidebar() {
           icon={Landmark}
           routes={bancoRoutes}
           links={bancoLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
@@ -363,7 +390,7 @@ export function Sidebar() {
           icon={Wrench}
           routes={mantenimientoRoutes}
           links={mantenimientoLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
@@ -372,23 +399,23 @@ export function Sidebar() {
           icon={Warehouse}
           routes={almacenRoutes}
           links={almacenLinks}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
         {puedeReportes && (
           <NavGroup>
-            <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} collapsed={collapsed} />
-            <NavRow to="/reportes-operativos" label="Reportes Operativos" icon={BarChart3} collapsed={collapsed} />
+            <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} collapsed={effectiveCollapsed} />
+            <NavRow to="/reportes-operativos" label="Reportes Operativos" icon={BarChart3} collapsed={effectiveCollapsed} />
           </NavGroup>
         )}
       </nav>
 
       <div className="space-y-2 border-t border-sb-border px-3 py-3">
-        {puedeConfiguracion && <NavRow to="/configuracion" label="Configuracion" icon={Settings} collapsed={collapsed} />}
+        {puedeConfiguracion && <NavRow to="/configuracion" label="Configuracion" icon={Settings} collapsed={effectiveCollapsed} />}
         <button
           onClick={toggleCollapsed}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-sb-border bg-sb-bg-active px-3 py-2 text-xs font-medium text-sb-text-muted hover:text-sb-text"
+          className="hidden w-full items-center justify-center gap-2 rounded-xl border border-sb-border bg-sb-bg-active px-3 py-2 text-xs font-medium text-sb-text-muted hover:text-sb-text md:flex"
         >
           {collapsed ? <ChevronsRight size={15} /> : <ChevronsLeft size={15} />}
           {!collapsed && 'Colapsar menu'}
@@ -401,6 +428,7 @@ export function Sidebar() {
           </div>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
