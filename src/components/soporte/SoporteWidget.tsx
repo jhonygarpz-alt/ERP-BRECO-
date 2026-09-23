@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 
-const WHATSAPP_NUMERO = '17204765054';
+const WHATSAPP_NUMERO = '527204765054';
 
 function construirMensaje(nombre: string, empresa: string, telefono: string, problema: string) {
   return [
