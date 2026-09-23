@@ -7,6 +7,7 @@ import { mensajeDeError } from '../../lib/errors';
 import type { FacturaSistema } from '../../types';
 import { Modal } from '../ui/Modal';
 import { GhostButton, Input, PrimaryButton } from '../ui/form';
+import { hoyISO } from '../../lib/fechas';
 
 type Modo = 'excel' | 'imagen';
 
@@ -114,7 +115,7 @@ export function ImportarFacturacionModal({
         );
         return;
       }
-      const hoy = new Date().toISOString().slice(0, 10);
+      const hoy = hoyISO();
       const numOrVacio = (s: string) => {
         const n = Number(s.replace(',', '.'));
         return Number.isFinite(n) ? n : 0;

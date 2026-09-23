@@ -5,8 +5,9 @@ import { useAlertas } from '../lib/alertas';
 import { StatCard } from '../components/ui/StatCard';
 import { DonutChart } from '../components/ui/charts';
 import { StatusBadge, type Tone } from '../components/ui/Badge';
+import { hoyISO, fechaLocal } from '../lib/fechas';
 
-const todayStr = new Date().toISOString().slice(0, 10);
+const todayStr = hoyISO();
 
 const ESTATUS_UNIDAD_COLOR: Record<string, string> = {
   Disponible: '#34d399',
@@ -22,7 +23,7 @@ function ultimosNDias(n: number): string[] {
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    dias.push(d.toISOString().slice(0, 10));
+    dias.push(fechaLocal(d));
   }
   return dias;
 }

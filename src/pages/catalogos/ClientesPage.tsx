@@ -17,6 +17,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
+import { hoyISO } from '../../lib/fechas';
 
 // Mismos nombres oficiales que usa el Catalogo Nacional de Codigos Postales
 // (Correos de Mexico), para que el autocompletado por C.P. siempre calce con
@@ -35,7 +36,7 @@ const emptyForm: Omit<Cliente, 'id'> = {
   numeroCliente: '',
   nombre: '',
   nombreCorto: '',
-  fechaAlta: new Date().toISOString().slice(0, 10),
+  fechaAlta: hoyISO(),
   rfc: '',
   tipo: 'Nacional',
   moneda: 'MXN',

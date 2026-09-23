@@ -25,6 +25,7 @@ import {
   normalizarEstatus,
 } from '../../lib/monitoreoViajes';
 import { calcularAlertas } from '../../lib/monitoreoAlertas';
+import { fechaLocal } from '../../lib/fechas';
 
 const ICONO_ALERTA = { retraso: Clock3, sin_actualizacion: WifiOff } as const;
 
@@ -40,7 +41,7 @@ export function MonitoreoCentroControlPage() {
   const colorEstatus = (nombre: string): Tone | null =>
     (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
-  const hoy = ahora.toISOString().slice(0, 10);
+  const hoy = fechaLocal(ahora);
 
   const viajesActivos = useMemo(() => viajes.items.filter(viajeActivo), [viajes.items]);
   const viajesEnTransito = useMemo(() => viajesActivos.filter(viajeEnTransito), [viajesActivos]);

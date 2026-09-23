@@ -2,6 +2,7 @@ import { clienteToRow } from './mappers';
 import { uid } from './storage';
 import { booleano, descargarPlantilla, guardarEnLotes, leerFilasHoja, numero, texto, type FilaImport } from './excelImportShared';
 import type { Cliente } from '../types';
+import { hoyISO } from './fechas';
 
 const COLUMNAS: { clave: string; campo: string }[] = [
   { clave: 'numero cliente', campo: 'numeroCliente' },
@@ -114,7 +115,7 @@ export async function leerClientesExcel(file: File): Promise<{ totalFilasHoja: n
       numeroCliente: texto(col('numeroCliente', fila)),
       nombre,
       nombreCorto: texto(col('nombreCorto', fila)),
-      fechaAlta: new Date().toISOString().slice(0, 10),
+      fechaAlta: hoyISO(),
       rfc,
       tipo: (texto(col('tipo', fila)) as Cliente['tipo']) || 'Nacional',
       moneda: (texto(col('moneda', fila)).toUpperCase() as Cliente['moneda']) || 'MXN',

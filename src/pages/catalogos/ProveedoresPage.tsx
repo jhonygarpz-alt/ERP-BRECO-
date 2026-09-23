@@ -20,6 +20,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
+import { hoyISO } from '../../lib/fechas';
 
 const BUCKET = 'proveedor-documentos';
 
@@ -33,7 +34,7 @@ const ESTADOS_MEXICO = [
 
 const emptyForm: Omit<Proveedor, 'id'> = {
   numero: '',
-  fecha: new Date().toISOString().slice(0, 10),
+  fecha: hoyISO(),
   estatus: 'activo',
   tipo: 'Nacional',
   rfc: '',

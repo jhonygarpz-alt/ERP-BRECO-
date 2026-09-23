@@ -5,11 +5,12 @@ import { useAuth } from '../lib/AuthContext';
 import type { Viaje } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { GhostButton, inputClass } from '../components/ui/form';
+import { hoyISO, fechaLocal } from '../lib/fechas';
 
 function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10);
+  return fechaLocal(d);
 }
 
 function servicioTexto(v: Viaje): string {
@@ -65,7 +66,7 @@ export function ViajesDelDiaPage() {
   const { viajes, clientes, unidades, operadores } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Viajes', 'editar');
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(hoyISO());
 
   const clienteNombre = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
@@ -101,7 +102,7 @@ export function ViajesDelDiaPage() {
         >
           <ChevronRight size={16} />
         </button>
-        <GhostButton type="button" onClick={() => setFecha(new Date().toISOString().slice(0, 10))}>
+        <GhostButton type="button" onClick={() => setFecha(hoyISO())}>
           Hoy
         </GhostButton>
       </div>

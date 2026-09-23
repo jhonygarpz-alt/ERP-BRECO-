@@ -11,6 +11,7 @@ import { StatusBadge } from '../components/ui/Badge';
 import { StatCard } from '../components/ui/StatCard';
 import { Receipt, CheckCircle2, Clock } from 'lucide-react';
 import { ImportarFacturacionModal } from '../components/reportes/ImportarFacturacionModal';
+import { hoyISO } from '../lib/fechas';
 
 function formatearMXN(n: number): string {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -33,7 +34,7 @@ export function FacturacionPage() {
   const puedeEditar = hasPermission('Facturacion', 'editar');
   const puedeEliminar = hasPermission('Facturacion', 'eliminar');
   const puedeImportar = hasPermission('Reportes', 'crear');
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(hoyISO());
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Factura | null>(null);
   const [importarOpen, setImportarOpen] = useState(false);

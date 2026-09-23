@@ -10,6 +10,7 @@ import { Modal } from '../components/ui/Modal';
 import { ComboBoxCodigo } from '../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, ToolbarButton } from '../components/ui/form';
 import { StatusBadge } from '../components/ui/Badge';
+import { hoyISO } from '../lib/fechas';
 
 const TIPOS_GASTO = ['Peajes', 'Combustible', 'Viaticos / Anticipo', 'Otro'];
 const TIPOS_COMBUSTIBLE: TipoCombustible[] = ['Diesel', 'Gasolina'];
@@ -24,7 +25,7 @@ const emptyForm: Omit<GastoViaje, 'id'> = {
   tipo: 'Peajes',
   concepto: '',
   proveedorId: undefined,
-  fecha: new Date().toISOString().slice(0, 10),
+  fecha: hoyISO(),
   numeroReferencia: '',
   moneda: 'PESOS',
   monto: 0,

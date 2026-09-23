@@ -3,16 +3,17 @@ import { ChevronLeft, ChevronRight, MapPin, Truck, IdCard, PackageSearch, Boxes 
 import { useData } from '../lib/DataContext';
 import { StatusBadge, type Tone } from '../components/ui/Badge';
 import { inputClass } from '../components/ui/form';
+import { hoyISO, fechaLocal } from '../lib/fechas';
 
 function shiftDate(date: string, days: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return fechaLocal(d);
 }
 
 export function ProgramaPage() {
   const { viajes, clientes, unidades, operadores, estatusViajes } = useData();
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(hoyISO());
 
   const clienteNombre = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
@@ -62,7 +63,7 @@ export function ProgramaPage() {
             <ChevronRight size={16} />
           </button>
           <button
-            onClick={() => setFecha(new Date().toISOString().slice(0, 10))}
+            onClick={() => setFecha(hoyISO())}
             className="rounded-lg border border-line-700 bg-bg-800 px-3 py-2 text-sm text-ink-300 hover:text-ink-100"
           >
             Hoy

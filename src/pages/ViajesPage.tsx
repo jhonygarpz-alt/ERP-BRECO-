@@ -13,6 +13,7 @@ import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea,
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
+import { hoyISO, fechaLocal } from '../lib/fechas';
 
 const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
@@ -29,7 +30,7 @@ function nextFolio(viajes: Viaje[]) {
 function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10);
+  return fechaLocal(d);
 }
 
 function money(n: number) {
@@ -67,7 +68,7 @@ export function ViajesPage() {
   const [soloLectura, setSoloLectura] = useState(false);
   const [viajeSeleccionadoId, setViajeSeleccionadoId] = useState<string | null>(null);
   const [imprimirFormatoOpen, setImprimirFormatoOpen] = useState(false);
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(hoyISO());
   const [todasLasFechas, setTodasLasFechas] = useState(false);
   const [nuevoEstatusOpen, setNuevoEstatusOpen] = useState(false);
   const [nuevoEstatusNombre, setNuevoEstatusNombre] = useState('');
@@ -77,7 +78,7 @@ export function ViajesPage() {
 
   const emptyForm = (): Omit<Viaje, 'id'> => ({
     folio: nextFolio(viajes.items),
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: hoyISO(),
     clienteId: '',
     unidadId: '',
     operadorId: '',
@@ -106,7 +107,7 @@ export function ViajesPage() {
     planta: '',
     convenio: '',
     candadoOficial: '',
-    estatusFecha: new Date().toISOString().slice(0, 10),
+    estatusFecha: hoyISO(),
     estatusHora: new Date().toTimeString().slice(0, 5),
     fechaCarga: '',
     horaCarga: '',
@@ -256,7 +257,7 @@ export function ViajesPage() {
       folio: nextFolio(viajes.items),
       loadNumber: '',
       estatus: 'Programado',
-      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusFecha: hoyISO(),
       estatusHora: new Date().toTimeString().slice(0, 5),
       trayectos: resto.trayectos.map((t) => ({ ...t, id: uid('tr') })),
       materialesCarga: resto.materialesCarga.map((m) => ({ ...m, id: uid('mat') })),
@@ -273,7 +274,7 @@ export function ViajesPage() {
     if (!confirm(`Cancelar el viaje "${viajeSeleccionado.folio}"? Su estatus quedara como Cancelado.`)) return;
     viajes.update(viajeSeleccionado.id, {
       estatus: 'Cancelado',
-      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusFecha: hoyISO(),
       estatusHora: new Date().toTimeString().slice(0, 5),
     });
     setViajeSeleccionadoId(null);
@@ -347,7 +348,7 @@ export function ViajesPage() {
     setForm((f) => ({
       ...f,
       estatus: nombre,
-      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusFecha: hoyISO(),
       estatusHora: new Date().toTimeString().slice(0, 5),
     }));
     setNuevoEstatusOpen(false);
@@ -364,7 +365,7 @@ export function ViajesPage() {
     setForm((f) => ({
       ...f,
       estatus: nombre,
-      estatusFecha: new Date().toISOString().slice(0, 10),
+      estatusFecha: hoyISO(),
       estatusHora: new Date().toTimeString().slice(0, 5),
     }));
   }
@@ -500,7 +501,7 @@ export function ViajesPage() {
       numeroCliente: '',
       nombre,
       nombreCorto: '',
-      fechaAlta: new Date().toISOString().slice(0, 10),
+      fechaAlta: hoyISO(),
       rfc,
       tipo: nuevoClienteForm.tipo,
       moneda: nuevoClienteForm.moneda,
@@ -834,7 +835,7 @@ export function ViajesPage() {
         <ToolbarButton
           type="button"
           disabled={todasLasFechas}
-          onClick={() => setFecha(new Date().toISOString().slice(0, 10))}
+          onClick={() => setFecha(hoyISO())}
         >
           Hoy
         </ToolbarButton>

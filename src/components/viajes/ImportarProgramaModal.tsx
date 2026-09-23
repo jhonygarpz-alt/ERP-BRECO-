@@ -9,6 +9,7 @@ import { mensajeDeError } from '../../lib/errors';
 import type { EstatusViaje } from '../../types';
 import { Modal } from '../ui/Modal';
 import { GhostButton, Input, PrimaryButton, Select } from '../ui/form';
+import { hoyISO } from '../../lib/fechas';
 
 type Modo = 'excel' | 'imagen';
 
@@ -182,7 +183,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
 
   function guardarTodo() {
     if (!filas) return;
-    const hoy = new Date().toISOString().slice(0, 10);
+    const hoy = hoyISO();
     let contadorFolio = viajes.items.reduce((acc, v) => {
       const n = Number(v.folio.split('-')[1] ?? 0);
       return Number.isFinite(n) ? Math.max(acc, n) : acc;

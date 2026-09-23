@@ -2,6 +2,7 @@ import { proveedorToRow } from './mappers';
 import { uid } from './storage';
 import { booleano, descargarPlantilla, guardarEnLotes, leerFilasHoja, numero, texto, type FilaImport } from './excelImportShared';
 import type { Proveedor } from '../types';
+import { hoyISO } from './fechas';
 
 const COLUMNAS: { clave: string; campo: string }[] = [
   { clave: 'numero', campo: 'numero' },
@@ -116,7 +117,7 @@ export async function leerProveedoresExcel(file: File): Promise<{ totalFilasHoja
     const item: Proveedor = {
       id: uid('prov'),
       numero: texto(col('numero', fila)),
-      fecha: new Date().toISOString().slice(0, 10),
+      fecha: hoyISO(),
       estatus: col('activo', fila) === null ? 'activo' : booleano(col('activo', fila)) ? 'activo' : 'inactivo',
       tipo: (texto(col('tipo', fila)) as Proveedor['tipo']) || 'Nacional',
       rfc,

@@ -20,17 +20,18 @@ import { StatCard } from '../components/ui/StatCard';
 import { inputClass, GhostButton } from '../components/ui/form';
 import { ImportarFacturacionModal } from '../components/reportes/ImportarFacturacionModal';
 import type { Cliente, Factura, FacturaSistema, Operador, Unidad, Viaje } from '../types';
+import { hoyISO, fechaLocal } from '../lib/fechas';
 
 type Area = 'viajes' | 'facturacion' | 'programa' | 'catalogos';
 
 function isoHoy(): string {
-  return new Date().toISOString().slice(0, 10);
+  return hoyISO();
 }
 
 function sumarDias(fecha: string, dias: number): string {
   const d = new Date(`${fecha}T00:00:00`);
   d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10);
+  return fechaLocal(d);
 }
 
 function inicioDeMes(): string {

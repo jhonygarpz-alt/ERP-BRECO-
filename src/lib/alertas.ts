@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useData } from './DataContext';
+import { hoyISO } from './fechas';
 
 export interface Alerta {
   id: string;
@@ -16,7 +17,7 @@ export interface Alerta {
  */
 export function useAlertas(): Alerta[] {
   const { unidades, operadores, facturas, viajes, estatusViajes } = useData();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyISO();
 
   return useMemo(() => {
     const alertas: Alerta[] = [];

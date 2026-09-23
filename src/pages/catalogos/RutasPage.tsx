@@ -22,6 +22,7 @@ import { ComboBoxCodigo } from '../../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, ToolbarButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 import { TrazarRutaModal } from '../../components/viajes/TrazarRutaModal';
+import { hoyISO } from '../../lib/fechas';
 
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
 const UNIDADES_PESO = ['KILOGRAMOS', 'TONELADAS', 'LIBRAS'];
@@ -224,7 +225,7 @@ export function RutasPage() {
       numeroCliente: '',
       nombre,
       nombreCorto: '',
-      fechaAlta: new Date().toISOString().slice(0, 10),
+      fechaAlta: hoyISO(),
       rfc,
       tipo: nuevoClienteForm.tipo,
       moneda: nuevoClienteForm.moneda,

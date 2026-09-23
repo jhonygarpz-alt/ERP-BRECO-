@@ -4,6 +4,7 @@
 // pantalla, exportar a Excel o imprimir en PDF -- la MISMA funcion se usa en
 // las tres pantallas para que los tres numeros siempre coincidan.
 import type { Cliente, Factura, Operador, Unidad, Viaje } from '../types';
+import { hoyISO, fechaLocal } from './fechas';
 
 export interface FiltroFechas {
   desde: string;
@@ -15,7 +16,7 @@ export function money(n: number): string {
 }
 
 export function rangoHoy(): FiltroFechas {
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyISO();
   return { desde: hoy, hasta: hoy };
 }
 
@@ -23,25 +24,25 @@ export function rangoUltimosDias(dias: number): FiltroFechas {
   const hasta = new Date();
   const desde = new Date();
   desde.setDate(desde.getDate() - (dias - 1));
-  return { desde: desde.toISOString().slice(0, 10), hasta: hasta.toISOString().slice(0, 10) };
+  return { desde: fechaLocal(desde), hasta: fechaLocal(hasta) };
 }
 
 export function rangoMesActual(): FiltroFechas {
   const hoy = new Date();
   const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  return { desde: desde.toISOString().slice(0, 10), hasta: hoy.toISOString().slice(0, 10) };
+  return { desde: fechaLocal(desde), hasta: fechaLocal(hoy) };
 }
 
 export function rangoAnioActual(): FiltroFechas {
   const hoy = new Date();
   const desde = new Date(hoy.getFullYear(), 0, 1);
-  return { desde: desde.toISOString().slice(0, 10), hasta: hoy.toISOString().slice(0, 10) };
+  return { desde: fechaLocal(desde), hasta: fechaLocal(hoy) };
 }
 
 // Sin limite de historico: una fecha lo bastante vieja para incluir
 // cualquier dato real capturado en el sistema.
 export function rangoTodo(): FiltroFechas {
-  return { desde: '2000-01-01', hasta: new Date().toISOString().slice(0, 10) };
+  return { desde: '2000-01-01', hasta: hoyISO() };
 }
 
 export function viajesEnRango(viajes: Viaje[], filtro: FiltroFechas): Viaje[] {

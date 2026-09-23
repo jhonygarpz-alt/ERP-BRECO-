@@ -30,11 +30,12 @@ import {
   limiteTransito,
   normalizarEstatus,
 } from '../lib/monitoreoViajes';
+import { fechaLocal, hoyISO } from '../lib/fechas';
 
 function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10);
+  return fechaLocal(d);
 }
 
 const TONE_TEXT: Record<Tone, string> = {
@@ -412,7 +413,7 @@ export function AeropuertoPage() {
   const { viajes, unidades, estatusViajes, rutas } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Viajes', 'editar');
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(hoyISO());
   const [ahora, setAhora] = useState(new Date());
   const [viajeAvance, setViajeAvance] = useState<Viaje | null>(null);
 
@@ -451,7 +452,7 @@ export function AeropuertoPage() {
   function darLlegada(v: Viaje) {
     viajes.update(v.id, {
       estatus: 'Entregado',
-      fechaEntrega: new Date().toISOString().slice(0, 10),
+      fechaEntrega: hoyISO(),
       horaEntregaReal: new Date().toTimeString().slice(0, 5),
     });
   }
@@ -494,7 +495,7 @@ export function AeropuertoPage() {
           >
             <ChevronRight size={16} />
           </button>
-          <ToolbarButton type="button" onClick={() => setFecha(new Date().toISOString().slice(0, 10))}>
+          <ToolbarButton type="button" onClick={() => setFecha(hoyISO())}>
             Hoy
           </ToolbarButton>
         </div>
