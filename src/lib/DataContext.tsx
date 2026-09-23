@@ -25,6 +25,12 @@ import {
   pagoClienteToRow,
   notaCreditoFromRow,
   notaCreditoToRow,
+  movimientoBancarioFromRow,
+  movimientoBancarioToRow,
+  pagoProveedorFromRow,
+  pagoProveedorToRow,
+  conciliacionBancariaFromRow,
+  conciliacionBancariaToRow,
   estatusUnidadFromRow,
   estatusUnidadToRow,
   estatusViajeFromRow,
@@ -82,9 +88,12 @@ import type {
   GastoViaje,
   GrupoUnidad,
   IncidenciaViaje,
+  ConciliacionBancaria,
   MensajeViaje,
+  MovimientoBancario,
   NotaCredito,
   PagoCliente,
+  PagoProveedor,
   Operador,
   ParqueHistorial,
   ParqueNota,
@@ -126,6 +135,9 @@ interface DataContextValue {
   facturasSistema: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FacturaSistema>>;
   pagosCliente: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, PagoCliente>>;
   notasCredito: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, NotaCredito>>;
+  movimientosBancarios: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MovimientoBancario>>;
+  pagosProveedor: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, PagoProveedor>>;
+  conciliacionesBancarias: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ConciliacionBancaria>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
   formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
@@ -249,6 +261,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     notaCreditoFromRow,
     notaCreditoToRow,
   );
+  const movimientosBancarios = useSupabaseCollection<Record<string, unknown>, MovimientoBancario>(
+    'movimientos_bancarios',
+    movimientoBancarioFromRow,
+    movimientoBancarioToRow,
+  );
+  const pagosProveedor = useSupabaseCollection<Record<string, unknown>, PagoProveedor>(
+    'pagos_proveedor',
+    pagoProveedorFromRow,
+    pagoProveedorToRow,
+  );
+  const conciliacionesBancarias = useSupabaseCollection<Record<string, unknown>, ConciliacionBancaria>(
+    'conciliaciones_bancarias',
+    conciliacionBancariaFromRow,
+    conciliacionBancariaToRow,
+  );
   const reportes = useSupabaseCollection<Record<string, unknown>, ReporteExterno>(
     'reportes',
     reporteFromRow,
@@ -304,6 +331,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         facturasSistema,
         pagosCliente,
         notasCredito,
+        movimientosBancarios,
+        pagosProveedor,
+        conciliacionesBancarias,
         reportes,
         empresas,
         empresa,

@@ -11,7 +11,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
-const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Cobranza', 'Programa', 'Monitoreo', 'Reportes', 'Configuracion'];
+const modulos: Modulo[] = ['Catalogos', 'Viajes', 'Facturacion', 'Cobranza', 'Banco', 'Programa', 'Monitoreo', 'Reportes', 'Configuracion'];
 
 function permisos(...habilitados: Modulo[]): Record<Modulo, PermisoModulo> {
   return modulos.reduce(

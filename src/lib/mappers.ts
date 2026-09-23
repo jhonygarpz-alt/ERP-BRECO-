@@ -15,9 +15,12 @@ import type {
   GastoViaje,
   GrupoUnidad,
   IncidenciaViaje,
+  ConciliacionBancaria,
   MensajeViaje,
+  MovimientoBancario,
   NotaCredito,
   PagoCliente,
+  PagoProveedor,
   ParqueHistorial,
   ParqueNota,
   Operador,
@@ -1258,5 +1261,97 @@ export function notaCreditoToRow(n: NotaCredito) {
     subtotal: n.subtotal,
     total: n.total,
     estatus: n.estatus,
+  };
+}
+
+export function movimientoBancarioFromRow(row: Record<string, unknown>): MovimientoBancario {
+  return {
+    id: row.id as string,
+    cuentaBancariaId: row.cuenta_bancaria_id as string,
+    fecha: row.fecha as string,
+    tipo: row.tipo as MovimientoBancario['tipo'],
+    concepto: (row.concepto as string) ?? '',
+    beneficiario: (row.beneficiario as string) ?? '',
+    importe: Number(row.importe) || 0,
+    referencia: (row.referencia as string) ?? '',
+    observaciones: (row.observaciones as string) ?? '',
+    origen: (row.origen as MovimientoBancario['origen']) ?? 'Manual',
+    origenId: (row.origen_id as string | null) ?? undefined,
+    conciliado: Boolean(row.conciliado),
+    estatus: (row.estatus as MovimientoBancario['estatus']) ?? 'Activo',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function movimientoBancarioToRow(m: MovimientoBancario) {
+  return {
+    id: m.id,
+    cuenta_bancaria_id: m.cuentaBancariaId,
+    fecha: m.fecha,
+    tipo: m.tipo,
+    concepto: m.concepto,
+    beneficiario: m.beneficiario,
+    importe: m.importe,
+    referencia: m.referencia,
+    observaciones: m.observaciones,
+    origen: m.origen,
+    origen_id: m.origenId || null,
+    conciliado: m.conciliado,
+    estatus: m.estatus,
+  };
+}
+
+export function pagoProveedorFromRow(row: Record<string, unknown>): PagoProveedor {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    proveedorId: row.proveedor_id as string,
+    fecha: row.fecha as string,
+    cuentaBancariaId: (row.cuenta_bancaria_id as string | null) ?? undefined,
+    formaPago: (row.forma_pago as string) ?? '',
+    referencia: (row.referencia as string) ?? '',
+    concepto: (row.concepto as string) ?? '',
+    aplicaciones: (row.aplicaciones as PagoProveedor['aplicaciones'] | null) ?? [],
+    importe: Number(row.importe) || 0,
+    estatus: (row.estatus as PagoProveedor['estatus']) ?? 'Aplicado',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function pagoProveedorToRow(p: PagoProveedor) {
+  return {
+    id: p.id,
+    folio: p.folio,
+    proveedor_id: p.proveedorId,
+    fecha: p.fecha,
+    cuenta_bancaria_id: p.cuentaBancariaId || null,
+    forma_pago: p.formaPago,
+    referencia: p.referencia,
+    concepto: p.concepto,
+    aplicaciones: p.aplicaciones,
+    importe: p.importe,
+    estatus: p.estatus,
+  };
+}
+
+export function conciliacionBancariaFromRow(row: Record<string, unknown>): ConciliacionBancaria {
+  return {
+    id: row.id as string,
+    cuentaBancariaId: row.cuenta_bancaria_id as string,
+    desde: row.desde as string,
+    hasta: row.hasta as string,
+    archivoNombre: (row.archivo_nombre as string) ?? '',
+    saldoFinalBanco: Number(row.saldo_final_banco) || 0,
+    lineas: (row.lineas as ConciliacionBancaria['lineas'] | null) ?? [],
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function conciliacionBancariaToRow(c: ConciliacionBancaria) {
+  return {
+    id: c.id,
+    cuenta_bancaria_id: c.cuentaBancariaId,
+    desde: c.desde,
+    hasta: c.hasta,
+    archivo_nombre: c.archivoNombre,
+    saldo_final_banco: c.saldoFinalBanco,
+    lineas: c.lineas,
   };
 }

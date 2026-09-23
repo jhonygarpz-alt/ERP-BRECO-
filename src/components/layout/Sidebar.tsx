@@ -31,6 +31,9 @@ import {
   HandCoins,
   FileMinus,
   ScrollText,
+  Landmark,
+  FileClock,
+  GitCompareArrows,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -168,6 +171,7 @@ const traficoRoutes = ['/viajes', '/gastos-viaje', '/viajes-del-dia', '/aeropuer
 const monitoreoRoutes = ['/monitoreo'];
 const facturacionRoutes = ['/facturacion'];
 const cobranzaRoutes = ['/cobranza'];
+const bancoRoutes = ['/banco'];
 
 export function Sidebar() {
   const { empresa } = useData();
@@ -187,6 +191,7 @@ export function Sidebar() {
   const puedePrograma = hasPermission('Programa', 'ver');
   const puedeMonitoreo = hasPermission('Monitoreo', 'ver');
   const puedeCobranza = hasPermission('Cobranza', 'ver');
+  const puedeBanco = hasPermission('Banco', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
@@ -225,6 +230,14 @@ export function Sidebar() {
         { to: '/cobranza/complementos-pago', label: 'Complementos de Pago', icon: HandCoins },
         { to: '/cobranza/notas-credito', label: 'Notas de Credito', icon: FileMinus },
         { to: '/cobranza/estados-cuenta', label: 'Estados de Cuenta', icon: ScrollText },
+      ]
+    : [];
+
+  const bancoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeBanco
+    ? [
+        { to: '/banco/movimientos', label: 'Movimientos Bancarios', icon: Landmark },
+        { to: '/banco/cuentas-por-pagar', label: 'Cuentas por Pagar', icon: FileClock },
+        { to: '/banco/conciliaciones', label: 'Conciliaciones', icon: GitCompareArrows },
       ]
     : [];
 
@@ -298,6 +311,15 @@ export function Sidebar() {
           icon={HandCoins}
           routes={cobranzaRoutes}
           links={cobranzaLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
+
+        <NavCollapsibleGroup
+          label="Banco"
+          icon={Landmark}
+          routes={bancoRoutes}
+          links={bancoLinks}
           collapsed={collapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />

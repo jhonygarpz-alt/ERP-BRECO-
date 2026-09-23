@@ -545,7 +545,7 @@ export interface Empresa {
   csfImportadaEn?: string;
 }
 
-export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Cobranza' | 'Programa' | 'Monitoreo' | 'Reportes' | 'Configuracion';
+export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Cobranza' | 'Banco' | 'Programa' | 'Monitoreo' | 'Reportes' | 'Configuracion';
 
 export interface ReporteExterno {
   id: string;
@@ -884,5 +884,85 @@ export interface NotaCredito {
   subtotal: number;
   total: number;
   estatus: EstatusNotaCredito;
+  creadoEn?: string;
+}
+
+// ============================================================================
+// Banco: Movimientos Bancarios, Cuentas por Pagar y Conciliaciones.
+// ============================================================================
+
+export type TipoMovimientoBancario = 'Ingreso' | 'Egreso';
+
+/** Como se origino un Movimiento Bancario: capturado a mano, o generado automaticamente por otro modulo. */
+export type OrigenMovimientoBancario = 'Manual' | 'ComplementoPago' | 'PagoProveedor';
+
+export type EstatusMovimientoBancario = 'Activo' | 'Cancelado';
+
+/** Un movimiento (ingreso o egreso) de una cuenta bancaria. Su saldo NUNCA se guarda: se calcula sumando estos movimientos. */
+export interface MovimientoBancario {
+  id: string;
+  cuentaBancariaId: string;
+  fecha: string;
+  tipo: TipoMovimientoBancario;
+  concepto: string;
+  beneficiario: string;
+  importe: number;
+  referencia: string;
+  observaciones: string;
+  origen: OrigenMovimientoBancario;
+  /** Id del PagoCliente/PagoProveedor que genero este movimiento, cuando origen no es 'Manual'. */
+  origenId?: string;
+  conciliado: boolean;
+  estatus: EstatusMovimientoBancario;
+  creadoEn?: string;
+}
+
+/** Cuanto de un Pago a Proveedor se aplico a un gasto especifico (un pago puede cubrir varios gastos). */
+export interface AplicacionGasto {
+  gastoId: string;
+  importe: number;
+}
+
+export type EstatusPagoProveedor = 'Aplicado' | 'Cancelado';
+
+/** Un pago a proveedor (Banco > Cuentas por Pagar) que liquida uno o mas gastos de viaje marcados "Genera pasivo". */
+export interface PagoProveedor {
+  id: string;
+  folio: string;
+  proveedorId: string;
+  fecha: string;
+  cuentaBancariaId?: string;
+  formaPago: string;
+  referencia: string;
+  concepto: string;
+  aplicaciones: AplicacionGasto[];
+  importe: number;
+  estatus: EstatusPagoProveedor;
+  creadoEn?: string;
+}
+
+export type EstatusLineaConciliacion = 'Conciliado' | 'Pendiente' | 'Sin coincidencia';
+
+/** Un renglon del archivo de movimientos del banco que se importo para conciliar, ya emparejado (o no) con un Movimiento Bancario del sistema. */
+export interface LineaConciliacion {
+  id: string;
+  fecha: string;
+  descripcion: string;
+  referencia: string;
+  importe: number;
+  tipo: TipoMovimientoBancario;
+  movimientoBancarioId?: string;
+  estatus: EstatusLineaConciliacion;
+}
+
+/** Una conciliacion bancaria guardada (Banco > Conciliaciones): que movimientos del banco se emparejaron con cuales del sistema. */
+export interface ConciliacionBancaria {
+  id: string;
+  cuentaBancariaId: string;
+  desde: string;
+  hasta: string;
+  archivoNombre: string;
+  saldoFinalBanco: number;
+  lineas: LineaConciliacion[];
   creadoEn?: string;
 }

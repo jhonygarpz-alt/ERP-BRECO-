@@ -1,48 +1,55 @@
 import { useMemo, useState } from 'react';
-import { Ban, Eye, Plus, Printer, Search } from 'lucide-react';
+import { AlertTriangle, Ban, Eye, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { hoyISO } from '../../lib/fechas';
 import { uid } from '../../lib/storage';
-import { nuevoPagoId } from '../../lib/cobranza';
-import type { PagoCliente } from '../../types';
+import { gastosPendientesDePago } from '../../lib/banco';
+import type { PagoProveedor } from '../../types';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Input, ToolbarButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
-import { RegistrarPagoModal } from '../../components/cobranza/RegistrarPagoModal';
+import { RegistrarPagoProveedorModal } from '../../components/banco/RegistrarPagoProveedorModal';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
-export function CobranzaComplementosPagoPage() {
-  const { pagosCliente, clientes, movimientosBancarios } = useData();
+export function CuentasPorPagarPage() {
+  const { pagosProveedor, proveedores, gastosViaje, movimientosBancarios } = useData();
   const { hasPermission } = useAuth();
-  const puedeCrear = hasPermission('Cobranza', 'crear');
-  const puedeEditar = hasPermission('Cobranza', 'editar');
+  const puedeCrear = hasPermission('Banco', 'crear');
+  const puedeEditar = hasPermission('Banco', 'editar');
 
   const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
   const [hasta, setHasta] = useState(hoyISO());
   const [busqueda, setBusqueda] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<PagoCliente | null>(null);
+  const [editing, setEditing] = useState<PagoProveedor | null>(null);
   const [soloLectura, setSoloLectura] = useState(false);
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null);
 
-  function nombreCliente(id: string) {
-    return clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
+  function nombreProveedor(id: string) {
+    return proveedores.items.find((p) => p.id === id)?.nombre ?? 'N/D';
   }
+
+  const pendientesTotales = useMemo(() => {
+    return proveedores.items.reduce((acc, p) => {
+      const pendientes = gastosPendientesDePago(gastosViaje.items, pagosProveedor.items, p.id);
+      return acc + pendientes.reduce((a, gc) => a + gc.saldo, 0);
+    }, 0);
+  }, [proveedores.items, gastosViaje.items, pagosProveedor.items]);
 
   const filtered = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
-    return pagosCliente.items
-      .filter((p) => p.fechaCobro >= desde && p.fechaCobro <= hasta)
-      .filter((p) => !termino || p.folio.toLowerCase().includes(termino) || nombreCliente(p.clienteId).toLowerCase().includes(termino))
+    return pagosProveedor.items
+      .filter((p) => p.fecha >= desde && p.fecha <= hasta)
+      .filter((p) => !termino || p.folio.toLowerCase().includes(termino) || nombreProveedor(p.proveedorId).toLowerCase().includes(termino))
       .slice()
       .sort((a, b) => b.folio.localeCompare(a.folio));
-  }, [pagosCliente.items, desde, hasta, busqueda, clientes.items]);
+  }, [pagosProveedor.items, desde, hasta, busqueda, proveedores.items]);
 
-  const seleccionado = pagosCliente.items.find((p) => p.id === seleccionadoId) ?? null;
+  const seleccionado = pagosProveedor.items.find((p) => p.id === seleccionadoId) ?? null;
 
   function openNew() {
     setEditing(null);
@@ -59,31 +66,31 @@ export function CobranzaComplementosPagoPage() {
 
   function cancelar() {
     if (!seleccionado) return;
-    if (confirm(`Cancelar el pago "${seleccionado.folio}"? Las facturas que abono volveran a tener ese saldo pendiente.`)) {
-      pagosCliente.update(seleccionado.id, { estatus: 'Cancelado' });
-      const movimiento = movimientosBancarios.items.find((m) => m.origen === 'ComplementoPago' && m.origenId === seleccionado.id);
+    if (confirm(`Cancelar el pago "${seleccionado.folio}"? Los gastos que liquido volveran a estar pendientes de pago.`)) {
+      pagosProveedor.update(seleccionado.id, { estatus: 'Cancelado' });
+      const movimiento = movimientosBancarios.items.find((m) => m.origen === 'PagoProveedor' && m.origenId === seleccionado.id);
       if (movimiento) movimientosBancarios.update(movimiento.id, { estatus: 'Cancelado' });
     }
   }
 
-  function guardar(datos: Omit<PagoCliente, 'id'>) {
+  function guardar(datos: Omit<PagoProveedor, 'id'>) {
     if (editing) {
-      pagosCliente.update(editing.id, datos);
+      pagosProveedor.update(editing.id, datos);
     } else {
-      const nuevoId = nuevoPagoId();
-      pagosCliente.add({ id: nuevoId, ...datos });
+      const nuevoId = uid('ppv');
+      pagosProveedor.add({ id: nuevoId, ...datos });
       if (datos.cuentaBancariaId) {
         movimientosBancarios.add({
           id: uid('mov'),
           cuentaBancariaId: datos.cuentaBancariaId,
-          fecha: datos.fechaCobro,
-          tipo: 'Ingreso',
-          concepto: 'DEPOSITO CLIENTE',
-          beneficiario: nombreCliente(datos.clienteId),
-          importe: datos.importeDepositado,
-          referencia: datos.referenciaBancaria,
-          observaciones: `Complemento de pago ${datos.folio}`,
-          origen: 'ComplementoPago',
+          fecha: datos.fecha,
+          tipo: 'Egreso',
+          concepto: datos.concepto || 'PAGO A PROVEEDOR',
+          beneficiario: nombreProveedor(datos.proveedorId),
+          importe: datos.importe,
+          referencia: datos.referencia,
+          observaciones: `Pago a proveedor ${datos.folio}`,
+          origen: 'PagoProveedor',
           origenId: nuevoId,
           conciliado: false,
           estatus: 'Activo',
@@ -95,27 +102,31 @@ export function CobranzaComplementosPagoPage() {
 
   function imprimir() {
     if (!seleccionado) return;
-    window.open(`#/cobranza/complementos-pago/imprimir/${seleccionado.id}`, '_blank');
+    window.open(`#/banco/cuentas-por-pagar/imprimir/${seleccionado.id}`, '_blank');
   }
 
-  const columns: Column<PagoCliente>[] = [
+  const columns: Column<PagoProveedor>[] = [
     { header: 'Folio', render: (p) => <span className="font-mono text-xs font-semibold text-ink-100">{p.folio}</span> },
-    { header: 'Fecha Cobro', render: (p) => p.fechaCobro },
-    { header: 'Cliente', render: (p) => nombreCliente(p.clienteId) },
+    { header: 'Fecha', render: (p) => p.fecha },
+    { header: 'Proveedor', render: (p) => nombreProveedor(p.proveedorId) },
     { header: 'Forma Pago', render: (p) => p.formaPago },
-    {
-      header: 'Importe',
-      render: (p) => <span className="font-semibold text-ink-100">{money(p.importeDepositado)}</span>,
-      className: 'text-right',
-    },
+    { header: 'Importe', render: (p) => <span className="font-semibold text-ink-100">{money(p.importe)}</span>, className: 'text-right' },
     { header: 'Estatus', render: (p) => <StatusBadge status={p.estatus} tone={p.estatus === 'Cancelado' ? 'red' : 'green'} /> },
   ];
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Complementos de Pago</h1>
-        <p className="mt-1 text-sm text-ink-500">Registra los pagos/abonos de tus clientes y repartelos entre sus facturas pendientes.</p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-ink-100">Cuentas por Pagar</h1>
+          <p className="mt-1 text-sm text-ink-500">Registra los pagos a proveedor que liquidan gastos marcados "Genera pasivo".</p>
+        </div>
+        {pendientesTotales > 0 && (
+          <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-400">
+            <AlertTriangle size={16} />
+            Pendiente de pagar a proveedores: <span className="font-bold">{money(pendientesTotales)}</span>
+          </div>
+        )}
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-line-800 bg-bg-900 p-2">
@@ -124,7 +135,7 @@ export function CobranzaComplementosPagoPage() {
         </span>
         {puedeCrear && (
           <ToolbarButton type="button" onClick={openNew}>
-            <Plus size={16} /> Agregar
+            <Plus size={16} /> Registrar Pago
           </ToolbarButton>
         )}
         <ToolbarButton type="button" disabled={!seleccionado} onClick={abrirConsultar}>
@@ -153,7 +164,7 @@ export function CobranzaComplementosPagoPage() {
           <input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Folio o cliente..."
+            placeholder="Folio o proveedor..."
             className="w-full rounded-lg border border-line-700 bg-bg-900 py-2 pl-9 pr-3 text-sm text-ink-100 outline-none focus:border-breco-500"
           />
         </div>
@@ -167,13 +178,13 @@ export function CobranzaComplementosPagoPage() {
         onDelete={() => {}}
         canEdit={false}
         canDelete={false}
-        emptyMessage="Sin pagos registrados en el rango seleccionado."
+        emptyMessage="Sin pagos a proveedor registrados en el rango seleccionado."
         selectedKey={seleccionadoId}
         onRowClick={(p) => setSeleccionadoId((actual) => (actual === p.id ? null : p.id))}
       />
 
       {modalOpen && (
-        <RegistrarPagoModal editing={editing} soloLectura={soloLectura} onClose={() => setModalOpen(false)} onGuardar={guardar} />
+        <RegistrarPagoProveedorModal editing={editing} soloLectura={soloLectura} onClose={() => setModalOpen(false)} onGuardar={guardar} />
       )}
     </div>
   );

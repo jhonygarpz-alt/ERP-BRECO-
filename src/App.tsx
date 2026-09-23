@@ -43,6 +43,10 @@ import { CobranzaNotasCreditoPage } from './pages/cobranza/CobranzaNotasCreditoP
 import { ImprimirNotaCreditoPage } from './pages/cobranza/ImprimirNotaCreditoPage';
 import { CobranzaEstadosCuentaPage } from './pages/cobranza/CobranzaEstadosCuentaPage';
 import { ImprimirEstadoCuentaPage } from './pages/cobranza/ImprimirEstadoCuentaPage';
+import { MovimientosBancariosPage } from './pages/banco/MovimientosBancariosPage';
+import { CuentasPorPagarPage } from './pages/banco/CuentasPorPagarPage';
+import { ImprimirPagoProveedorPage } from './pages/banco/ImprimirPagoProveedorPage';
+import { ConciliacionesPage } from './pages/banco/ConciliacionesPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
 import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
@@ -131,6 +135,12 @@ function App() {
                   <Route path="/cobranza/estados-cuenta" element={<CobranzaEstadosCuentaPage />} />
                 </Route>
 
+                <Route element={<RequirePermission modulo="Banco" />}>
+                  <Route path="/banco/movimientos" element={<MovimientosBancariosPage />} />
+                  <Route path="/banco/cuentas-por-pagar" element={<CuentasPorPagarPage />} />
+                  <Route path="/banco/conciliaciones" element={<ConciliacionesPage />} />
+                </Route>
+
                 <Route element={<RequirePermission modulo="Programa" />}>
                   <Route path="/programa" element={<ProgramaPage />} />
                 </Route>
@@ -165,6 +175,7 @@ function App() {
               <Route path="/cobranza/complementos-pago/imprimir/:id" element={<ImprimirPagoClientePage />} />
               <Route path="/cobranza/notas-credito/imprimir/:id" element={<ImprimirNotaCreditoPage />} />
               <Route path="/cobranza/estados-cuenta/imprimir/:clienteId" element={<ImprimirEstadoCuentaPage />} />
+              <Route path="/banco/cuentas-por-pagar/imprimir/:id" element={<ImprimirPagoProveedorPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
               <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>
