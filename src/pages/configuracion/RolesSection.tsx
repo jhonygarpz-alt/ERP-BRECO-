@@ -66,13 +66,20 @@ export function RolesSection() {
   }
 
   function toggle(modulo: Modulo, accion: keyof PermisoModulo) {
-    setForm((f) => ({
-      ...f,
-      permisos: {
-        ...f.permisos,
-        [modulo]: { ...f.permisos[modulo], [accion]: !f.permisos[modulo][accion] },
-      },
-    }));
+    setForm((f) => {
+      // Un rol guardado antes de que existiera este modulo (ej. "Monitoreo"
+      // reemplazando a "EntregaTurno") no trae esa llave en su JSON de
+      // permisos -- sin este respaldo, f.permisos[modulo] es undefined y
+      // leer [accion] de ahi tronaba toda la pantalla.
+      const actual = f.permisos[modulo] ?? { ver: false, crear: false, editar: false, eliminar: false };
+      return {
+        ...f,
+        permisos: {
+          ...f.permisos,
+          [modulo]: { ...actual, [accion]: !actual[accion] },
+        },
+      };
+    });
   }
 
   const columns: Column<Rol>[] = [
