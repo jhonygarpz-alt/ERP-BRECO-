@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { CheckCheck, MessageSquareText, RotateCcw } from 'lucide-react';
+import { MessageSquareText, Send } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
-import type { TicketSoporte } from '../../types';
+import { uid } from '../../lib/storage';
+import type { MensajeTicketSoporte, TicketSoporte } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { StatusBadge } from '../../components/ui/Badge';
-import { ToolbarButton } from '../../components/ui/form';
 
 const FILTROS = ['Todos', 'Nuevo', 'Atendido'] as const;
 
@@ -13,10 +13,16 @@ export function SoporteTecnicoSection() {
   const { ticketsSoporte, empresas } = useData();
   const [filtro, setFiltro] = useState<(typeof FILTROS)[number]>('Todos');
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null);
+  const [respuesta, setRespuesta] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   function empresaNombre(t: TicketSoporte) {
     const real = empresas.items.find((e) => e.id === t.empresaId)?.nombre;
     return real || t.empresaTexto || 'N/D';
+  }
+
+  function ultimoMensaje(t: TicketSoporte) {
+    return t.mensajes[t.mensajes.length - 1]?.texto ?? '';
   }
 
   const filtrados = useMemo(() => {
@@ -29,8 +35,21 @@ export function SoporteTecnicoSection() {
   const nuevos = ticketsSoporte.items.filter((t) => t.estatus === 'Nuevo').length;
   const seleccionado = ticketsSoporte.items.find((t) => t.id === seleccionadoId) ?? null;
 
-  function alternarEstatus(t: TicketSoporte) {
-    ticketsSoporte.update(t.id, { estatus: t.estatus === 'Nuevo' ? 'Atendido' : 'Nuevo' });
+  async function enviarRespuesta() {
+    if (!seleccionado || !respuesta.trim()) return;
+    setEnviando(true);
+    const nuevoMensaje: MensajeTicketSoporte = {
+      id: uid('msg'),
+      autor: 'soporte',
+      texto: respuesta.trim(),
+      fecha: new Date().toISOString(),
+    };
+    await ticketsSoporte.update(seleccionado.id, {
+      mensajes: [...seleccionado.mensajes, nuevoMensaje],
+      estatus: 'Atendido',
+    });
+    setRespuesta('');
+    setEnviando(false);
   }
 
   const columns: Column<TicketSoporte>[] = [
@@ -41,7 +60,7 @@ export function SoporteTecnicoSection() {
     { header: 'Empresa', render: (t) => <span className="font-medium text-ink-100">{empresaNombre(t)}</span> },
     { header: 'Nombre', render: (t) => t.nombre },
     { header: 'Telefono', render: (t) => t.telefono || 'N/D' },
-    { header: 'Problema', render: (t) => <span className="line-clamp-1 max-w-sm">{t.problema}</span> },
+    { header: 'Ultimo mensaje', render: (t) => <span className="line-clamp-1 max-w-sm">{ultimoMensaje(t)}</span> },
     { header: 'Estatus', render: (t) => <StatusBadge status={t.estatus} tone={t.estatus === 'Nuevo' ? 'amber' : 'green'} /> },
   ];
 
@@ -49,7 +68,7 @@ export function SoporteTecnicoSection() {
     <div>
       <PageHeader
         title="Soporte Tecnico"
-        subtitle="Mensajes enviados desde el widget de soporte del ERP por usuarios de cualquier empresa."
+        subtitle="Conversaciones iniciadas desde el widget de soporte del ERP por usuarios de cualquier empresa."
         extra={
           <div className="flex items-center gap-1 rounded-lg border border-line-800 bg-bg-900 p-1">
             {FILTROS.map((f) => (
@@ -84,50 +103,62 @@ export function SoporteTecnicoSection() {
           />
         </div>
 
-        <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">
+        <div className="flex h-[560px] flex-col rounded-2xl border border-line-800 bg-bg-800">
           {seleccionado ? (
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-ink-500">Empresa</p>
-                  <p className="font-semibold text-ink-100">{empresaNombre(seleccionado)}</p>
+            <>
+              <div className="flex flex-shrink-0 items-start justify-between gap-2 border-b border-line-800 p-4">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-ink-100">{empresaNombre(seleccionado)}</p>
+                  <p className="text-xs text-ink-500">
+                    {seleccionado.nombre} · {seleccionado.telefono || 'N/D'}
+                  </p>
                 </div>
                 <StatusBadge status={seleccionado.estatus} tone={seleccionado.estatus === 'Nuevo' ? 'amber' : 'green'} />
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Nombre</p>
-                <p className="text-sm text-ink-100">{seleccionado.nombre}</p>
+
+              <div className="flex-1 space-y-2 overflow-y-auto p-4">
+                {seleccionado.mensajes.map((m) => (
+                  <div key={m.id} className={`flex ${m.autor === 'soporte' ? 'justify-end' : 'justify-start'}`}>
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                        m.autor === 'soporte'
+                          ? 'rounded-br-sm bg-breco-500 text-white'
+                          : 'rounded-bl-sm border border-line-700 bg-bg-900 text-ink-100'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{m.texto}</p>
+                      <p className={`mt-1 text-[10px] ${m.autor === 'soporte' ? 'text-white/70' : 'text-ink-500'}`}>
+                        {new Date(m.fecha).toLocaleString('es-MX')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Telefono</p>
-                <p className="text-sm text-ink-100">{seleccionado.telefono || 'N/D'}</p>
+
+              <div className="flex flex-shrink-0 items-center gap-2 border-t border-line-800 p-3">
+                <input
+                  value={respuesta}
+                  onChange={(e) => setRespuesta(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') enviarRespuesta();
+                  }}
+                  placeholder="Escribe tu respuesta..."
+                  className="flex-1 rounded-lg border border-line-700 bg-bg-900 px-3 py-2 text-sm text-ink-100 outline-none focus:border-breco-500"
+                />
+                <button
+                  type="button"
+                  disabled={!respuesta.trim() || enviando}
+                  onClick={enviarRespuesta}
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Send size={15} />
+                </button>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Problema</p>
-                <p className="whitespace-pre-wrap text-sm text-ink-100">{seleccionado.problema}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Recibido</p>
-                <p className="text-sm text-ink-100">
-                  {seleccionado.creadoEn ? new Date(seleccionado.creadoEn).toLocaleString('es-MX') : 'N/D'}
-                </p>
-              </div>
-              <ToolbarButton type="button" onClick={() => alternarEstatus(seleccionado)} className="w-full justify-center">
-                {seleccionado.estatus === 'Nuevo' ? (
-                  <>
-                    <CheckCheck size={16} /> Marcar como atendido
-                  </>
-                ) : (
-                  <>
-                    <RotateCcw size={16} /> Reabrir
-                  </>
-                )}
-              </ToolbarButton>
-            </div>
+            </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 py-10 text-center text-ink-500">
               <MessageSquareText size={28} />
-              <p className="text-sm">Selecciona un mensaje de la tabla para ver el detalle.</p>
+              <p className="text-sm">Selecciona una conversacion de la tabla para ver el detalle.</p>
             </div>
           )}
         </div>

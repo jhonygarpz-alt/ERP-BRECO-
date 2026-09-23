@@ -573,15 +573,28 @@ export interface Empresa {
 
 export type EstatusTicketSoporte = 'Nuevo' | 'Atendido';
 
-/** Mensaje enviado desde el widget de soporte del ERP. Solo el super admin de la plataforma los ve. */
+export interface MensajeTicketSoporte {
+  id: string;
+  autor: 'cliente' | 'soporte';
+  texto: string;
+  fecha: string;
+}
+
+/**
+ * Conversacion de soporte iniciada desde el widget del ERP. Solo el usuario
+ * que la abrio y el super admin de la plataforma pueden verla/responderla.
+ * "Nuevo" = el cliente espera respuesta; "Atendido" = el ultimo mensaje lo
+ * escribio soporte.
+ */
 export interface TicketSoporte {
   id: string;
-  /** La asigna el trigger de la base de datos; nunca se envia al insertar. */
+  /** Las asignan triggers de la base de datos; nunca se envian al insertar. */
   empresaId?: string;
+  usuarioId?: string;
   nombre: string;
   empresaTexto: string;
   telefono: string;
-  problema: string;
+  mensajes: MensajeTicketSoporte[];
   estatus: EstatusTicketSoporte;
   creadoEn?: string;
 }

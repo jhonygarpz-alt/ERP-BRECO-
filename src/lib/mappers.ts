@@ -1550,10 +1550,11 @@ export function ticketSoporteFromRow(row: Record<string, unknown>): TicketSoport
   return {
     id: row.id as string,
     empresaId: row.empresa_id as string,
+    usuarioId: (row.usuario_id as string | null) ?? undefined,
     nombre: (row.nombre as string) ?? '',
     empresaTexto: (row.empresa_texto as string) ?? '',
     telefono: (row.telefono as string) ?? '',
-    problema: (row.problema as string) ?? '',
+    mensajes: (row.mensajes as TicketSoporte['mensajes'] | null) ?? [],
     estatus: (row.estatus as TicketSoporte['estatus']) ?? 'Nuevo',
     creadoEn: (row.creado_en as string | null) ?? '',
   };
@@ -1564,7 +1565,7 @@ export function ticketSoporteToRow(t: TicketSoporte) {
     nombre: t.nombre,
     empresa_texto: t.empresaTexto,
     telefono: t.telefono,
-    problema: t.problema,
+    mensajes: t.mensajes,
     estatus: t.estatus,
   };
 }
