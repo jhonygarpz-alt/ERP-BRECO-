@@ -34,6 +34,8 @@ import {
   Landmark,
   FileClock,
   GitCompareArrows,
+  Wrench,
+  ClipboardCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -172,6 +174,7 @@ const monitoreoRoutes = ['/monitoreo'];
 const facturacionRoutes = ['/facturacion'];
 const cobranzaRoutes = ['/cobranza'];
 const bancoRoutes = ['/banco'];
+const mantenimientoRoutes = ['/mantenimiento'];
 
 export function Sidebar() {
   const { empresa } = useData();
@@ -192,6 +195,7 @@ export function Sidebar() {
   const puedeMonitoreo = hasPermission('Monitoreo', 'ver');
   const puedeCobranza = hasPermission('Cobranza', 'ver');
   const puedeBanco = hasPermission('Banco', 'ver');
+  const puedeMantenimiento = hasPermission('Mantenimiento', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
@@ -238,6 +242,16 @@ export function Sidebar() {
         { to: '/banco/movimientos', label: 'Movimientos Bancarios', icon: Landmark },
         { to: '/banco/cuentas-por-pagar', label: 'Cuentas por Pagar', icon: FileClock },
         { to: '/banco/conciliaciones', label: 'Conciliaciones', icon: GitCompareArrows },
+      ]
+    : [];
+
+  const mantenimientoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeMantenimiento
+    ? [
+        { to: '/mantenimiento/catalogos', label: 'Catalogos', icon: Boxes },
+        { to: '/mantenimiento/reportes-falla', label: 'Reportes de Fallas', icon: AlertTriangle },
+        { to: '/mantenimiento/ordenes-servicio', label: 'Ordenes de Servicios', icon: Wrench },
+        { to: '/mantenimiento/servicios-programados', label: 'Servicios Programados', icon: CalendarClock },
+        { to: '/mantenimiento/checklist', label: 'Checklist Fisicomecanico Rapido', icon: ClipboardCheck },
       ]
     : [];
 
@@ -320,6 +334,15 @@ export function Sidebar() {
           icon={Landmark}
           routes={bancoRoutes}
           links={bancoLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
+
+        <NavCollapsibleGroup
+          label="Mantenimiento"
+          icon={Wrench}
+          routes={mantenimientoRoutes}
+          links={mantenimientoLinks}
           collapsed={collapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />

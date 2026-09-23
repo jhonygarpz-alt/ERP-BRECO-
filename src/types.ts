@@ -168,6 +168,8 @@ export interface Unidad {
   /** Ubicacion actual en texto libre (ej. "Patios Empresa", una direccion); la actualiza el boton "Ubicacion Unidad" de Parque Vehicular. */
   ubicacion: string;
   estadoCarga: EstadoCarga;
+  /** Kilometraje/odometro actual, capturado a mano; lo usa Mantenimiento > Servicios Programados para calcular vencimientos por km. */
+  kilometrajeActual: number;
 }
 
 export type EstadoCarga = 'Cargado' | 'Vacio';
@@ -545,7 +547,17 @@ export interface Empresa {
   csfImportadaEn?: string;
 }
 
-export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Cobranza' | 'Banco' | 'Programa' | 'Monitoreo' | 'Reportes' | 'Configuracion';
+export type Modulo =
+  | 'Catalogos'
+  | 'Viajes'
+  | 'Facturacion'
+  | 'Cobranza'
+  | 'Banco'
+  | 'Mantenimiento'
+  | 'Programa'
+  | 'Monitoreo'
+  | 'Reportes'
+  | 'Configuracion';
 
 export interface ReporteExterno {
   id: string;
@@ -964,5 +976,155 @@ export interface ConciliacionBancaria {
   archivoNombre: string;
   saldoFinalBanco: number;
   lineas: LineaConciliacion[];
+  creadoEn?: string;
+}
+
+// ============================================================================
+// Mantenimiento: Catalogos, Reportes de Fallas, Ordenes de Servicio,
+// Servicios Programados y Checklist Fisicomecanico Rapido.
+// ============================================================================
+
+/** Catalogo "Clasificaciones de Servicio" (ej. Motor, Frenos, Electrico, Suspension, Llantas). */
+export interface ClasificacionServicio {
+  id: string;
+  codigo: string;
+  clasificacion: string;
+  activo: boolean;
+}
+
+/** Catalogo "Servicios" con codigo, usado como renglon en una Orden de Servicio (ej. Cambio de aceite, Balanceo). */
+export interface CatalogoServicio {
+  id: string;
+  codigo: string;
+  descripcion: string;
+  tiempoEstandarHoras: number;
+  activo: boolean;
+}
+
+export type TipoMecanico = 'Mecanico' | 'Ayudante';
+
+/** Catalogo "Mecanicos/Ayudantes": roster interno de quien realiza las reparaciones. */
+export interface Mecanico {
+  id: string;
+  numero: string;
+  nombre: string;
+  tipo: TipoMecanico;
+  activo: boolean;
+}
+
+/** Catalogo "Planes de Servicio": intervalos de mantenimiento preventivo (ej. Cambio de aceite cada 10,000 km o 6 meses). */
+export interface PlanServicio {
+  id: string;
+  codigo: string;
+  nombre: string;
+  /** Aplica a un grupo de unidades especifico, o 'Todas'. */
+  aplicaA: string;
+  intervaloKm: number | null;
+  intervaloMeses: number | null;
+  activo: boolean;
+}
+
+export interface ReporteFallaDocumento {
+  id: string;
+  descripcion: string;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn: string;
+}
+
+export type EstatusReporteFalla = 'Abierto' | 'Atendido' | 'Cancelado';
+
+/** Un reporte de falla capturado sobre una unidad (Mantenimiento > Reportes de Fallas). */
+export interface ReporteFalla {
+  id: string;
+  folio: string;
+  fecha: string;
+  codigoFalla: string;
+  sucursal: string;
+  unidadId: string;
+  operadorId?: string;
+  clasificacionServicioId?: string;
+  descripcion: string;
+  documentos: ReporteFallaDocumento[];
+  estatus: EstatusReporteFalla;
+  /** Se llena cuando el reporte se atiende dentro de una Orden de Servicio. */
+  ordenServicioId?: string;
+  creadoEn?: string;
+}
+
+/** Un renglon de servicio dentro de una Orden de Servicio. */
+export interface OrdenServicioLinea {
+  id: string;
+  catalogoServicioId?: string;
+  codigo: string;
+  descripcion: string;
+  manoObra: number;
+  fechaInicio: string;
+  horaInicio: string;
+  fechaFinal: string;
+  horaFinal: string;
+  tiempoServicioHoras: number;
+}
+
+export interface OrdenServicioFoto {
+  id: string;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn: string;
+}
+
+export type TipoOrdenServicio = 'Interno' | 'Externo';
+export type TipoServicioMantenimiento = 'Preventivo' | 'Correctivo';
+export type EstatusOrdenServicio = 'Abierta' | 'En Proceso' | 'Concluida' | 'Cancelada';
+
+/** Orden de Servicio (Mantenimiento > Ordenes de Servicio): repara/da mantenimiento a una unidad, interno o con un proveedor externo. */
+export interface OrdenServicio {
+  id: string;
+  folio: string;
+  fecha: string;
+  tipo: TipoOrdenServicio;
+  moneda: string;
+  tipoCambio: number;
+  tipoServicio: TipoServicioMantenimiento;
+  unidadId: string;
+  estatus: EstatusOrdenServicio;
+  proveedorId?: string;
+  proveedorNota: string;
+  lugarReparacion: string;
+  notas: string;
+  noChecklist: string;
+  vidaProbableAnios: number | null;
+  vidaProbableKm: number | null;
+  quienRealizaId?: string;
+  mecanicosIds: string[];
+  observaciones: string;
+  reporteFallaIds: string[];
+  planesServicioIds: string[];
+  /** Kilometraje de la unidad al momento de esta orden -- base para calcular el proximo vencimiento por km en Servicios Programados. */
+  kilometrajeAlMomento: number;
+  lineas: OrdenServicioLinea[];
+  fotos: OrdenServicioFoto[];
+  creadoEn?: string;
+}
+
+export type ResultadoChecklistItem = 'Bien' | 'Regular' | 'Malo' | 'N/A';
+
+export interface ChecklistFisicomecanicoItem {
+  id: string;
+  seccion: string;
+  concepto: string;
+  resultado: ResultadoChecklistItem;
+  observaciones: string;
+}
+
+/** Checklist Fisicomecanico Rapido: inspeccion visual de una unidad, ligada o no a un viaje. */
+export interface ChecklistFisicomecanico {
+  id: string;
+  folio: string;
+  fecha: string;
+  unidadId: string;
+  operadorId?: string;
+  items: ChecklistFisicomecanicoItem[];
+  observacionesGenerales: string;
   creadoEn?: string;
 }

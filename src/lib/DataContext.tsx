@@ -31,6 +31,20 @@ import {
   pagoProveedorToRow,
   conciliacionBancariaFromRow,
   conciliacionBancariaToRow,
+  clasificacionServicioFromRow,
+  clasificacionServicioToRow,
+  catalogoServicioFromRow,
+  catalogoServicioToRow,
+  mecanicoFromRow,
+  mecanicoToRow,
+  planServicioFromRow,
+  planServicioToRow,
+  reporteFallaFromRow,
+  reporteFallaToRow,
+  ordenServicioFromRow,
+  ordenServicioToRow,
+  checklistFisicomecanicoFromRow,
+  checklistFisicomecanicoToRow,
   estatusUnidadFromRow,
   estatusUnidadToRow,
   estatusViajeFromRow,
@@ -73,7 +87,10 @@ import {
 import { seedEmpresa } from './seed';
 import type {
   Caja,
+  CatalogoServicio,
+  ChecklistFisicomecanico,
   ClasificacionOperador,
+  ClasificacionServicio,
   ClasificacionViaje,
   Cliente,
   ConceptoFacturacion,
@@ -89,16 +106,20 @@ import type {
   GrupoUnidad,
   IncidenciaViaje,
   ConciliacionBancaria,
+  Mecanico,
   MensajeViaje,
   MovimientoBancario,
   NotaCredito,
+  OrdenServicio,
   PagoCliente,
   PagoProveedor,
   Operador,
   ParqueHistorial,
   ParqueNota,
+  PlanServicio,
   Proveedor,
   ReporteExterno,
+  ReporteFalla,
   Rol,
   Ruta,
   TipoViaje,
@@ -138,6 +159,13 @@ interface DataContextValue {
   movimientosBancarios: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MovimientoBancario>>;
   pagosProveedor: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, PagoProveedor>>;
   conciliacionesBancarias: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ConciliacionBancaria>>;
+  clasificacionesServicio: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ClasificacionServicio>>;
+  catalogoServicios: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, CatalogoServicio>>;
+  mecanicos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Mecanico>>;
+  planesServicio: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, PlanServicio>>;
+  reportesFalla: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteFalla>>;
+  ordenesServicio: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, OrdenServicio>>;
+  checklistsFisicomecanicos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ChecklistFisicomecanico>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
   formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
@@ -276,6 +304,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
     conciliacionBancariaFromRow,
     conciliacionBancariaToRow,
   );
+  const clasificacionesServicio = useSupabaseCollection<Record<string, unknown>, ClasificacionServicio>(
+    'clasificaciones_servicio',
+    clasificacionServicioFromRow,
+    clasificacionServicioToRow,
+  );
+  const catalogoServicios = useSupabaseCollection<Record<string, unknown>, CatalogoServicio>(
+    'catalogo_servicios',
+    catalogoServicioFromRow,
+    catalogoServicioToRow,
+  );
+  const mecanicos = useSupabaseCollection<Record<string, unknown>, Mecanico>('mecanicos', mecanicoFromRow, mecanicoToRow);
+  const planesServicio = useSupabaseCollection<Record<string, unknown>, PlanServicio>(
+    'planes_servicio',
+    planServicioFromRow,
+    planServicioToRow,
+  );
+  const reportesFalla = useSupabaseCollection<Record<string, unknown>, ReporteFalla>(
+    'reportes_falla',
+    reporteFallaFromRow,
+    reporteFallaToRow,
+  );
+  const ordenesServicio = useSupabaseCollection<Record<string, unknown>, OrdenServicio>(
+    'ordenes_servicio',
+    ordenServicioFromRow,
+    ordenServicioToRow,
+  );
+  const checklistsFisicomecanicos = useSupabaseCollection<Record<string, unknown>, ChecklistFisicomecanico>(
+    'checklists_fisicomecanicos',
+    checklistFisicomecanicoFromRow,
+    checklistFisicomecanicoToRow,
+  );
   const reportes = useSupabaseCollection<Record<string, unknown>, ReporteExterno>(
     'reportes',
     reporteFromRow,
@@ -334,6 +393,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         movimientosBancarios,
         pagosProveedor,
         conciliacionesBancarias,
+        clasificacionesServicio,
+        catalogoServicios,
+        mecanicos,
+        planesServicio,
+        reportesFalla,
+        ordenesServicio,
+        checklistsFisicomecanicos,
         reportes,
         empresas,
         empresa,

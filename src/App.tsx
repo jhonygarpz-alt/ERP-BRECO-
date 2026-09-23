@@ -47,6 +47,15 @@ import { MovimientosBancariosPage } from './pages/banco/MovimientosBancariosPage
 import { CuentasPorPagarPage } from './pages/banco/CuentasPorPagarPage';
 import { ImprimirPagoProveedorPage } from './pages/banco/ImprimirPagoProveedorPage';
 import { ConciliacionesPage } from './pages/banco/ConciliacionesPage';
+import { MantenimientoCatalogosHubPage } from './pages/mantenimiento/MantenimientoCatalogosHubPage';
+import { ClasificacionesServicioPage } from './pages/mantenimiento/ClasificacionesServicioPage';
+import { CatalogoServiciosPage } from './pages/mantenimiento/CatalogoServiciosPage';
+import { MecanicosPage } from './pages/mantenimiento/MecanicosPage';
+import { PlanesServicioPage } from './pages/mantenimiento/PlanesServicioPage';
+import { ReportesFallaPage } from './pages/mantenimiento/ReportesFallaPage';
+import { OrdenesServicioPage } from './pages/mantenimiento/OrdenesServicioPage';
+import { ServiciosProgramadosPage } from './pages/mantenimiento/ServiciosProgramadosPage';
+import { ChecklistFisicomecanicoPage } from './pages/mantenimiento/ChecklistFisicomecanicoPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
 import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
@@ -139,6 +148,18 @@ function App() {
                   <Route path="/banco/movimientos" element={<MovimientosBancariosPage />} />
                   <Route path="/banco/cuentas-por-pagar" element={<CuentasPorPagarPage />} />
                   <Route path="/banco/conciliaciones" element={<ConciliacionesPage />} />
+                </Route>
+
+                <Route element={<RequirePermission modulo="Mantenimiento" />}>
+                  <Route path="/mantenimiento/catalogos" element={<MantenimientoCatalogosHubPage />} />
+                  <Route path="/mantenimiento/catalogos/clasificaciones-servicio" element={<ClasificacionesServicioPage />} />
+                  <Route path="/mantenimiento/catalogos/servicios" element={<CatalogoServiciosPage />} />
+                  <Route path="/mantenimiento/catalogos/mecanicos" element={<MecanicosPage />} />
+                  <Route path="/mantenimiento/catalogos/planes-servicio" element={<PlanesServicioPage />} />
+                  <Route path="/mantenimiento/reportes-falla" element={<ReportesFallaPage />} />
+                  <Route path="/mantenimiento/ordenes-servicio" element={<OrdenesServicioPage />} />
+                  <Route path="/mantenimiento/servicios-programados" element={<ServiciosProgramadosPage />} />
+                  <Route path="/mantenimiento/checklist" element={<ChecklistFisicomecanicoPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Programa" />}>

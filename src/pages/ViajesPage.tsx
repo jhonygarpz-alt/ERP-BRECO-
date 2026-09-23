@@ -668,6 +668,7 @@ export function ViajesPage() {
       propietario: '',
       ubicacion: '',
       estadoCarga: 'Vacio',
+      kilometrajeActual: 0,
     });
     setTrayectoForm((f) => ({ ...f, unidadId: nuevoId }));
     setNuevaUnidadOpen(false);

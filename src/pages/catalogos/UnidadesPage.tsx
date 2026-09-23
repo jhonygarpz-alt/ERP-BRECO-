@@ -73,6 +73,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
   propietario: '',
   ubicacion: '',
   estadoCarga: 'Vacio',
+  kilometrajeActual: 0,
 };
 
 export function UnidadesPage() {
@@ -446,6 +447,13 @@ export function UnidadesPage() {
                 </Field>
                 <Field label="Peso Tara (Ton)">
                   <Input type="number" step="0.01" value={form.pesoTaraTon || ''} onChange={(e) => setForm({ ...form, pesoTaraTon: Number(e.target.value) })} />
+                </Field>
+                <Field label="Kilometraje Actual">
+                  <Input
+                    type="number"
+                    value={form.kilometrajeActual || ''}
+                    onChange={(e) => setForm({ ...form, kilometrajeActual: Number(e.target.value) })}
+                  />
                 </Field>
                 <Field label="Tipo transmisión">
                   <Select value={form.tipoTransmision} onChange={(e) => setForm({ ...form, tipoTransmision: e.target.value })}>

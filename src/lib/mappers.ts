@@ -1,6 +1,9 @@
 import type {
   Caja,
+  CatalogoServicio,
+  ChecklistFisicomecanico,
   ClasificacionOperador,
+  ClasificacionServicio,
   ClasificacionViaje,
   Cliente,
   ConceptoFacturacion,
@@ -16,16 +19,20 @@ import type {
   GrupoUnidad,
   IncidenciaViaje,
   ConciliacionBancaria,
+  Mecanico,
   MensajeViaje,
   MovimientoBancario,
   NotaCredito,
+  OrdenServicio,
   PagoCliente,
   PagoProveedor,
   ParqueHistorial,
   ParqueNota,
+  PlanServicio,
   Operador,
   Proveedor,
   ReporteExterno,
+  ReporteFalla,
   Rol,
   Ruta,
   TipoViaje,
@@ -170,6 +177,7 @@ export function unidadFromRow(row: Record<string, unknown>): Unidad {
     propietario: (row.propietario as string | null) ?? '',
     ubicacion: (row.ubicacion as string | null) ?? '',
     estadoCarga: ((row.estado_carga as string | null) ?? 'Vacio') as Unidad['estadoCarga'],
+    kilometrajeActual: Number(row.kilometraje_actual) || 0,
   };
 }
 export function unidadToRow(u: Unidad) {
@@ -219,6 +227,7 @@ export function unidadToRow(u: Unidad) {
     propietario: u.propietario,
     ubicacion: u.ubicacion,
     estado_carga: u.estadoCarga,
+    kilometraje_actual: u.kilometrajeActual,
   };
 }
 
@@ -1353,5 +1362,182 @@ export function conciliacionBancariaToRow(c: ConciliacionBancaria) {
     archivo_nombre: c.archivoNombre,
     saldo_final_banco: c.saldoFinalBanco,
     lineas: c.lineas,
+  };
+}
+
+export function clasificacionServicioFromRow(row: Record<string, unknown>): ClasificacionServicio {
+  return {
+    id: row.id as string,
+    codigo: (row.codigo as string) ?? '',
+    clasificacion: (row.clasificacion as string) ?? '',
+    activo: (row.activo as boolean) ?? true,
+  };
+}
+export function clasificacionServicioToRow(c: ClasificacionServicio) {
+  return { id: c.id, codigo: c.codigo, clasificacion: c.clasificacion, activo: c.activo };
+}
+
+export function catalogoServicioFromRow(row: Record<string, unknown>): CatalogoServicio {
+  return {
+    id: row.id as string,
+    codigo: (row.codigo as string) ?? '',
+    descripcion: (row.descripcion as string) ?? '',
+    tiempoEstandarHoras: Number(row.tiempo_estandar_horas) || 0,
+    activo: (row.activo as boolean) ?? true,
+  };
+}
+export function catalogoServicioToRow(c: CatalogoServicio) {
+  return { id: c.id, codigo: c.codigo, descripcion: c.descripcion, tiempo_estandar_horas: c.tiempoEstandarHoras, activo: c.activo };
+}
+
+export function mecanicoFromRow(row: Record<string, unknown>): Mecanico {
+  return {
+    id: row.id as string,
+    numero: (row.numero as string) ?? '',
+    nombre: (row.nombre as string) ?? '',
+    tipo: (row.tipo as Mecanico['tipo']) ?? 'Mecanico',
+    activo: (row.activo as boolean) ?? true,
+  };
+}
+export function mecanicoToRow(m: Mecanico) {
+  return { id: m.id, numero: m.numero, nombre: m.nombre, tipo: m.tipo, activo: m.activo };
+}
+
+export function planServicioFromRow(row: Record<string, unknown>): PlanServicio {
+  return {
+    id: row.id as string,
+    codigo: (row.codigo as string) ?? '',
+    nombre: (row.nombre as string) ?? '',
+    aplicaA: (row.aplica_a as string) ?? 'Todas',
+    intervaloKm: row.intervalo_km === null || row.intervalo_km === undefined ? null : Number(row.intervalo_km),
+    intervaloMeses: row.intervalo_meses === null || row.intervalo_meses === undefined ? null : Number(row.intervalo_meses),
+    activo: (row.activo as boolean) ?? true,
+  };
+}
+export function planServicioToRow(p: PlanServicio) {
+  return {
+    id: p.id,
+    codigo: p.codigo,
+    nombre: p.nombre,
+    aplica_a: p.aplicaA,
+    intervalo_km: p.intervaloKm,
+    intervalo_meses: p.intervaloMeses,
+    activo: p.activo,
+  };
+}
+
+export function reporteFallaFromRow(row: Record<string, unknown>): ReporteFalla {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    codigoFalla: (row.codigo_falla as string) ?? '',
+    sucursal: (row.sucursal as string) ?? '',
+    unidadId: row.unidad_id as string,
+    operadorId: (row.operador_id as string | null) ?? undefined,
+    clasificacionServicioId: (row.clasificacion_servicio_id as string | null) ?? undefined,
+    descripcion: (row.descripcion as string) ?? '',
+    documentos: (row.documentos as ReporteFalla['documentos'] | null) ?? [],
+    estatus: (row.estatus as ReporteFalla['estatus']) ?? 'Abierto',
+    ordenServicioId: (row.orden_servicio_id as string | null) ?? undefined,
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function reporteFallaToRow(r: ReporteFalla) {
+  return {
+    id: r.id,
+    folio: r.folio,
+    fecha: r.fecha,
+    codigo_falla: r.codigoFalla,
+    sucursal: r.sucursal,
+    unidad_id: r.unidadId,
+    operador_id: r.operadorId || null,
+    clasificacion_servicio_id: r.clasificacionServicioId || null,
+    descripcion: r.descripcion,
+    documentos: r.documentos,
+    estatus: r.estatus,
+    orden_servicio_id: r.ordenServicioId || null,
+  };
+}
+
+export function ordenServicioFromRow(row: Record<string, unknown>): OrdenServicio {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    tipo: (row.tipo as OrdenServicio['tipo']) ?? 'Interno',
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    tipoServicio: (row.tipo_servicio as OrdenServicio['tipoServicio']) ?? 'Correctivo',
+    unidadId: row.unidad_id as string,
+    estatus: (row.estatus as OrdenServicio['estatus']) ?? 'Abierta',
+    proveedorId: (row.proveedor_id as string | null) ?? undefined,
+    proveedorNota: (row.proveedor_nota as string) ?? '',
+    lugarReparacion: (row.lugar_reparacion as string) ?? '',
+    notas: (row.notas as string) ?? '',
+    noChecklist: (row.no_checklist as string) ?? '',
+    vidaProbableAnios: row.vida_probable_anios === null || row.vida_probable_anios === undefined ? null : Number(row.vida_probable_anios),
+    vidaProbableKm: row.vida_probable_km === null || row.vida_probable_km === undefined ? null : Number(row.vida_probable_km),
+    quienRealizaId: (row.quien_realiza_id as string | null) ?? undefined,
+    mecanicosIds: (row.mecanicos_ids as string[] | null) ?? [],
+    observaciones: (row.observaciones as string) ?? '',
+    reporteFallaIds: (row.reporte_falla_ids as string[] | null) ?? [],
+    planesServicioIds: (row.planes_servicio_ids as string[] | null) ?? [],
+    kilometrajeAlMomento: Number(row.kilometraje_al_momento) || 0,
+    lineas: (row.lineas as OrdenServicio['lineas'] | null) ?? [],
+    fotos: (row.fotos as OrdenServicio['fotos'] | null) ?? [],
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function ordenServicioToRow(o: OrdenServicio) {
+  return {
+    id: o.id,
+    folio: o.folio,
+    fecha: o.fecha,
+    tipo: o.tipo,
+    moneda: o.moneda,
+    tipo_cambio: o.tipoCambio,
+    tipo_servicio: o.tipoServicio,
+    unidad_id: o.unidadId,
+    estatus: o.estatus,
+    proveedor_id: o.proveedorId || null,
+    proveedor_nota: o.proveedorNota,
+    lugar_reparacion: o.lugarReparacion,
+    notas: o.notas,
+    no_checklist: o.noChecklist,
+    vida_probable_anios: o.vidaProbableAnios,
+    vida_probable_km: o.vidaProbableKm,
+    quien_realiza_id: o.quienRealizaId || null,
+    mecanicos_ids: o.mecanicosIds,
+    observaciones: o.observaciones,
+    reporte_falla_ids: o.reporteFallaIds,
+    planes_servicio_ids: o.planesServicioIds,
+    kilometraje_al_momento: o.kilometrajeAlMomento,
+    lineas: o.lineas,
+    fotos: o.fotos,
+  };
+}
+
+export function checklistFisicomecanicoFromRow(row: Record<string, unknown>): ChecklistFisicomecanico {
+  return {
+    id: row.id as string,
+    folio: (row.folio as string) ?? '',
+    fecha: row.fecha as string,
+    unidadId: row.unidad_id as string,
+    operadorId: (row.operador_id as string | null) ?? undefined,
+    items: (row.items as ChecklistFisicomecanico['items'] | null) ?? [],
+    observacionesGenerales: (row.observaciones_generales as string) ?? '',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function checklistFisicomecanicoToRow(c: ChecklistFisicomecanico) {
+  return {
+    id: c.id,
+    folio: c.folio,
+    fecha: c.fecha,
+    unidad_id: c.unidadId,
+    operador_id: c.operadorId || null,
+    items: c.items,
+    observaciones_generales: c.observacionesGenerales,
   };
 }
