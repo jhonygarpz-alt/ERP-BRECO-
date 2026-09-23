@@ -226,6 +226,27 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:#f
 .cta h2{font-size:32px;margin-bottom:10px}
 .cta p{color:#526f7e;line-height:1.7;margin:0}
 
+/* ---------- precios ---------- */
+.pricing-wrap{overflow-x:auto;margin-top:44px;border-radius:20px;box-shadow:0 24px 55px #112b4a1a}
+.pricing-table{width:100%;min-width:700px;border-collapse:separate;border-spacing:0;background:#fff}
+.pricing-table th,.pricing-table td{padding:14px 18px}
+.pricing-table tbody th{text-align:left;font-weight:700;font-size:14px;color:#17334a;white-space:nowrap}
+.pricing-table td{text-align:center;font-size:18px}
+.pricing-table tbody tr:nth-child(even) th,.pricing-table tbody tr:nth-child(even) td{background:#f5f8fb}
+.pricing-table tbody tr:last-child th,.pricing-table tbody tr:last-child td{padding-bottom:20px}
+.plan-head{text-align:center;color:#fff;vertical-align:top;padding:22px 18px}
+.plan-head b{display:block;font:800 15px Manrope,sans-serif;letter-spacing:.05em;margin-bottom:10px}
+.plan-price{display:block;font:800 24px Manrope,sans-serif}
+.plan-price small{display:block;font-size:10.5px;font-weight:600;letter-spacing:.02em;opacity:.9;margin-top:3px}
+.plan-lite{background:linear-gradient(150deg,#0aa7c9,#0b4f6e)}
+.plan-premium{background:linear-gradient(150deg,#b83fb0,#57157a)}
+.plan-pro{background:linear-gradient(150deg,#e0a413,#7a5a06)}
+.pricing-table thead th:first-child{background:#0b2740}
+.pricing-table .ok{color:#0aa76e;font-size:19px;font-weight:900}
+.pricing-table .no{color:#e2493d;font-size:19px;font-weight:900}
+.pricing-cta{text-align:center;margin-top:30px}
+.pricing-note{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+
 /* ---------- contact ---------- */
 .field{display:grid;gap:7px}
 .field.wide{grid-column:1/-1}
@@ -320,7 +341,7 @@ footer strong{color:#fff}
       <div><strong>FLOTA <span>SEGURA</span></strong><small>SOFTWARE ERP</small></div>
     </a>
     <nav id="navlinks" class="navlinks">
-      <a href="#beneficios">Beneficios</a><a href="#modulos">Módulos</a><a href="#plataforma">Plataforma</a><a href="#ecosistema">Ecosistema</a><a href="#experiencia">Experiencia digital</a><a href="#ia">Flota IA</a><a href="#implementacion">Implementación</a><a href="#contacto">Contacto</a>
+      <a href="#beneficios">Beneficios</a><a href="#modulos">Módulos</a><a href="#plataforma">Plataforma</a><a href="#ecosistema">Ecosistema</a><a href="#experiencia">Experiencia digital</a><a href="#ia">Flota IA</a><a href="#implementacion">Implementación</a><a href="#precios">Precios</a><a href="#contacto">Contacto</a>
     </nav>
     <a class="btn dark" href="#contacto">Solicitar demostración ↗</a>
     <button class="menu" id="menu" aria-label="Abrir menú">☰</button>
@@ -551,6 +572,46 @@ footer strong{color:#fff}
       <article class="step reveal"><b>03</b><h3>Capacitación</h3><p>Acompañamos a los responsables de cada área en el uso del sistema.</p></article>
       <article class="step reveal"><b>04</b><h3>Puesta en marcha</h3><p>Revisamos el arranque y los ajustes necesarios para operar.</p></article>
     </div>
+  </div>
+</section>
+
+<section id="precios" class="section alt">
+  <div class="techblob techblob-cyan" style="width:400px;height:400px;top:-130px;right:-110px"></div>
+  <div class="techblob techblob-green" style="width:360px;height:360px;bottom:-140px;left:-100px"></div>
+  <div class="container">
+    <div class="center reveal">
+      <div class="eyebrow">PLANES Y PRECIOS</div>
+      <h2 class="title">Elige la versión que se ajusta a tu operación.</h2>
+      <p class="lede">Compara los módulos incluidos en cada versión de Flota Segura ERP.<br>Precios más IVA, por licencia.</p>
+    </div>
+    <div class="pricing-wrap reveal">
+      <table class="pricing-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="plan-head plan-lite"><b>LITE</b><span class="plan-price">$890<small>+ IVA / licencia</small></span></th>
+            <th class="plan-head plan-premium"><b>PREMIUM</b><span class="plan-price">$1,100<small>+ IVA / licencia</small></span></th>
+            <th class="plan-head plan-pro"><b>PRO</b><span class="plan-price">$1,400<small>+ IVA / licencia</small></span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>Tráfico y viajes</th><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Facturación</th><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Cobranza</th><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Parque vehicular</th><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Configuración</th><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Mantenimiento</th><td class="no">✗</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Almacén y compras</th><td class="no">✗</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Operadores</th><td class="no">✗</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Combustible y casetas</th><td class="no">✗</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          <tr><th>Monitoreo</th><td class="no">✗</td><td class="no">✗</td><td class="ok">✓</td></tr>
+          <tr><th>Bancos</th><td class="no">✗</td><td class="no">✗</td><td class="ok">✓</td></tr>
+          <tr><th>Reportes</th><td class="no">✗</td><td class="no">✗</td><td class="ok">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="pricing-note">La disponibilidad de módulos puede ajustarse según la configuración de tu implementación.</p>
+    <div class="pricing-cta reveal"><a href="#contacto" class="btn primary">Solicitar una demostración ↗</a></div>
   </div>
 </section>
 
