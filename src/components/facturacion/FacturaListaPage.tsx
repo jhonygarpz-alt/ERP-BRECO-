@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Ban, Eye, Pencil, Plus, Printer, Search } from 'lucide-react';
+import { Ban, ChevronDown, Download, Eye, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
+import { descargarFacturaPdf, descargarFacturasZip } from '../../lib/facturaPdf';
 import type { Factura, TipoFactura } from '../../types';
 import { CrudTable, type Column } from '../ui/CrudTable';
 import { Input, ToolbarButton } from '../ui/form';
@@ -15,7 +16,7 @@ function money(n: number) {
 }
 
 export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactura; titulo: string; subtitulo: string }) {
-  const { facturas, clientes } = useData();
+  const { facturas, clientes, viajes, empresa } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Facturacion', 'crear');
   const puedeEditar = hasPermission('Facturacion', 'editar');
@@ -28,6 +29,7 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
   const [editing, setEditing] = useState<Factura | null>(null);
   const [soloLectura, setSoloLectura] = useState(false);
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
+  const [descargarAbierto, setDescargarAbierto] = useState(false);
 
   function nombreCliente(id: string) {
     return clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
@@ -95,6 +97,31 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
     window.open(`#/facturacion/imprimir/${f.id}`, '_blank');
   }
 
+  function viajesDeFactura(f: Factura) {
+    return f.viajeIds.map((vid) => viajes.items.find((v) => v.id === vid)).filter((v): v is (typeof viajes.items)[number] => Boolean(v));
+  }
+
+  function descargarSeleccionada() {
+    if (!seleccionada) return;
+    descargarFacturaPdf(seleccionada, clientes.items.find((c) => c.id === seleccionada.clienteId), viajesDeFactura(seleccionada), empresa.value);
+    setDescargarAbierto(false);
+  }
+
+  async function descargarMasiva() {
+    setDescargarAbierto(false);
+    for (const f of filtered) {
+      descargarFacturaPdf(f, clientes.items.find((c) => c.id === f.clienteId), viajesDeFactura(f), empresa.value);
+      // Pequena pausa entre descargas: el navegador bloquea multiples
+      // descargas disparadas en el mismo instante como si fueran popups.
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+
+  async function descargarZip() {
+    setDescargarAbierto(false);
+    await descargarFacturasZip(filtered, clientes.items, viajes.items, empresa.value, `Facturas-${tipo}-${desde}-a-${hasta}.zip`);
+  }
+
   const columns: Column<Factura>[] = [
     { header: 'Folio', render: (f) => <span className="font-mono text-xs font-semibold text-ink-100">{f.folio}</span> },
     { header: 'Fecha', render: (f) => f.fecha },
@@ -129,6 +156,37 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
         <ToolbarButton type="button" disabled={!seleccionada} onClick={() => seleccionada && imprimir(seleccionada)}>
           <Printer size={16} /> Imprimir
         </ToolbarButton>
+        <div className="relative">
+          <ToolbarButton type="button" disabled={filtered.length === 0} onClick={() => setDescargarAbierto((v) => !v)}>
+            <Download size={16} /> Descargar <ChevronDown size={14} />
+          </ToolbarButton>
+          {descargarAbierto && (
+            <div className="absolute z-20 mt-1 w-48 overflow-hidden rounded-lg border border-line-700 bg-bg-800 shadow-xl">
+              <button
+                type="button"
+                disabled={!seleccionada}
+                onClick={descargarSeleccionada}
+                className="block w-full px-3 py-2 text-left text-sm text-ink-200 hover:bg-bg-700 disabled:cursor-not-allowed disabled:text-ink-600"
+              >
+                Descargar (seleccionada)
+              </button>
+              <button
+                type="button"
+                onClick={descargarMasiva}
+                className="block w-full px-3 py-2 text-left text-sm text-ink-200 hover:bg-bg-700"
+              >
+                Descarga Masiva ({filtered.length})
+              </button>
+              <button
+                type="button"
+                onClick={descargarZip}
+                className="block w-full px-3 py-2 text-left text-sm text-ink-200 hover:bg-bg-700"
+              >
+                Descargar Zip ({filtered.length})
+              </button>
+            </div>
+          )}
+        </div>
         <ToolbarButton
           type="button"
           disabled={!seleccionada || !puedeEditar || seleccionada?.estatus === 'Cancelado'}
