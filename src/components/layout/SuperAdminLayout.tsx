@@ -1,6 +1,11 @@
-import { Outlet } from 'react-router-dom';
-import { ShieldCheck, LogOut } from 'lucide-react';
+import { NavLink, Outlet } from 'react-router-dom';
+import { ShieldCheck, LogOut, Building2, LifeBuoy } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
+
+const TABS = [
+  { to: '/superadmin/empresas', label: 'Empresas', icon: Building2 },
+  { to: '/superadmin/soporte', label: 'Soporte Tecnico', icon: LifeBuoy },
+];
 
 export function SuperAdminLayout() {
   const { usuarioActual, logout } = useAuth();
@@ -25,6 +30,22 @@ export function SuperAdminLayout() {
           Cerrar sesion
         </button>
       </header>
+      <nav className="flex flex-shrink-0 items-center gap-1 border-b border-line-800 bg-bg-900 px-6">
+        {TABS.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            className={({ isActive }) =>
+              `flex items-center gap-1.5 border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
+                isActive ? 'border-breco-500 text-ink-100' : 'border-transparent text-ink-500 hover:text-ink-100'
+              }`
+            }
+          >
+            <tab.icon size={15} />
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <Outlet />
       </main>

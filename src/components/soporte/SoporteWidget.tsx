@@ -1,20 +1,10 @@
 import { useEffect, useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
-
-const WHATSAPP_NUMERO = '527204765054';
-
-function construirMensaje(nombre: string, empresa: string, telefono: string, problema: string) {
-  return [
-    `Hola, soy ${nombre}, de la empresa ${empresa}.`,
-    `Telefono de contacto: ${telefono}.`,
-    '',
-    problema,
-    '',
-    '— Enviado desde Soporte Flota Segura (ERP)',
-  ].join('\n');
-}
+import { useData } from '../../lib/DataContext';
+import { uid } from '../../lib/storage';
 
 export function SoporteWidget() {
+  const { ticketsSoporte } = useData();
   const [open, setOpen] = useState(false);
   const [bubbleCerrada, setBubbleCerrada] = useState(false);
   const [hover, setHover] = useState(false);
@@ -25,6 +15,7 @@ export function SoporteWidget() {
     return () => clearTimeout(t);
   }, []);
   const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState('');
   const [empresa, setEmpresa] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -37,10 +28,18 @@ export function SoporteWidget() {
     setBubbleCerrada(true);
   }
 
-  function enviarWhatsApp() {
+  async function enviarTicket() {
     if (!listoParaEnviar) return;
-    const mensaje = construirMensaje(nombre.trim(), empresa.trim(), telefono.trim(), problema.trim());
-    window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`, '_blank', 'noopener,noreferrer');
+    setEnviando(true);
+    await ticketsSoporte.add({
+      id: uid('tkt'),
+      nombre: nombre.trim(),
+      empresaTexto: empresa.trim(),
+      telefono: telefono.trim(),
+      problema: problema.trim(),
+      estatus: 'Nuevo',
+    });
+    setEnviando(false);
     setEnviado(true);
   }
 
@@ -85,8 +84,8 @@ export function SoporteWidget() {
                 <div className="rounded-full bg-emerald-100 p-3">
                   <Send size={22} className="text-emerald-600" />
                 </div>
-                <p className="text-sm font-semibold text-slate-800">Se abrio WhatsApp con tu mensaje</p>
-                <p className="text-xs text-slate-500">Nuestro equipo te respondera a la brevedad.</p>
+                <p className="text-sm font-semibold text-slate-800">Tu mensaje fue enviado</p>
+                <p className="text-xs text-slate-500">Nuestro equipo de soporte lo recibio y te respondera a la brevedad.</p>
                 <button
                   type="button"
                   onClick={cerrarPanel}
@@ -136,11 +135,11 @@ export function SoporteWidget() {
                 </label>
                 <button
                   type="button"
-                  disabled={!listoParaEnviar}
-                  onClick={enviarWhatsApp}
+                  disabled={!listoParaEnviar || enviando}
+                  onClick={enviarTicket}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0d9488] to-[#0a3a7a] py-2.5 text-sm font-semibold text-white shadow-md transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <Send size={15} /> Iniciar Chat
+                  <Send size={15} /> {enviando ? 'Enviando...' : 'Iniciar Chat'}
                 </button>
                 <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
                   <span>Nuestro equipo te respondera a la brevedad.</span>

@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { DataProvider } from './lib/DataContext';
 import { AuthProvider } from './lib/AuthContext';
 import { ThemeProvider } from './lib/ThemeContext';
@@ -10,6 +10,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RestablecerPasswordPage } from './pages/RestablecerPasswordPage';
 import { Dashboard } from './pages/Dashboard';
 import { EmpresasSection } from './pages/superadmin/EmpresasSection';
+import { SoporteTecnicoSection } from './pages/superadmin/SoporteTecnicoSection';
 import { CatalogosHubPage } from './pages/catalogos/CatalogosHubPage';
 import { ClientesPage } from './pages/catalogos/ClientesPage';
 import { DestinatariosPage } from './pages/catalogos/DestinatariosPage';
@@ -95,7 +96,9 @@ function App() {
             <Route path="/restablecer-password" element={<RestablecerPasswordPage />} />
             <Route element={<RequireAuth />}>
               <Route element={<SuperAdminLayout />}>
-                <Route path="/superadmin" element={<EmpresasSection />} />
+                <Route path="/superadmin" element={<Navigate to="/superadmin/empresas" replace />} />
+                <Route path="/superadmin/empresas" element={<EmpresasSection />} />
+                <Route path="/superadmin/soporte" element={<SoporteTecnicoSection />} />
               </Route>
 
               <Route element={<AppLayout />}>

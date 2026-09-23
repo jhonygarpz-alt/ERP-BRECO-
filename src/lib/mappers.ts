@@ -36,6 +36,7 @@ import type {
   ReporteFalla,
   Rol,
   Ruta,
+  TicketSoporte,
   TipoViaje,
   Unidad,
   Usuario,
@@ -1542,5 +1543,28 @@ export function checklistFisicomecanicoToRow(c: ChecklistFisicomecanico) {
     operador_id: c.operadorId || null,
     items: c.items,
     observaciones_generales: c.observacionesGenerales,
+  };
+}
+
+export function ticketSoporteFromRow(row: Record<string, unknown>): TicketSoporte {
+  return {
+    id: row.id as string,
+    empresaId: row.empresa_id as string,
+    nombre: (row.nombre as string) ?? '',
+    empresaTexto: (row.empresa_texto as string) ?? '',
+    telefono: (row.telefono as string) ?? '',
+    problema: (row.problema as string) ?? '',
+    estatus: (row.estatus as TicketSoporte['estatus']) ?? 'Nuevo',
+    creadoEn: (row.creado_en as string | null) ?? '',
+  };
+}
+export function ticketSoporteToRow(t: TicketSoporte) {
+  return {
+    id: t.id,
+    nombre: t.nombre,
+    empresa_texto: t.empresaTexto,
+    telefono: t.telefono,
+    problema: t.problema,
+    estatus: t.estatus,
   };
 }

@@ -45,6 +45,8 @@ import {
   ordenServicioToRow,
   checklistFisicomecanicoFromRow,
   checklistFisicomecanicoToRow,
+  ticketSoporteFromRow,
+  ticketSoporteToRow,
   estatusUnidadFromRow,
   estatusUnidadToRow,
   estatusViajeFromRow,
@@ -122,6 +124,7 @@ import type {
   ReporteFalla,
   Rol,
   Ruta,
+  TicketSoporte,
   TipoViaje,
   Unidad,
   Usuario,
@@ -166,6 +169,7 @@ interface DataContextValue {
   reportesFalla: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteFalla>>;
   ordenesServicio: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, OrdenServicio>>;
   checklistsFisicomecanicos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ChecklistFisicomecanico>>;
+  ticketsSoporte: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TicketSoporte>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
   formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
@@ -335,6 +339,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     checklistFisicomecanicoFromRow,
     checklistFisicomecanicoToRow,
   );
+  const ticketsSoporte = useSupabaseCollection<Record<string, unknown>, TicketSoporte>(
+    'tickets_soporte',
+    ticketSoporteFromRow,
+    ticketSoporteToRow,
+  );
   const reportes = useSupabaseCollection<Record<string, unknown>, ReporteExterno>(
     'reportes',
     reporteFromRow,
@@ -400,6 +409,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         reportesFalla,
         ordenesServicio,
         checklistsFisicomecanicos,
+        ticketsSoporte,
         reportes,
         empresas,
         empresa,

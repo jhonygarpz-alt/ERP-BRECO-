@@ -571,6 +571,21 @@ export interface Empresa {
   alertasVencimientos: AlertasVencimientosConfig;
 }
 
+export type EstatusTicketSoporte = 'Nuevo' | 'Atendido';
+
+/** Mensaje enviado desde el widget de soporte del ERP. Solo el super admin de la plataforma los ve. */
+export interface TicketSoporte {
+  id: string;
+  /** La asigna el trigger de la base de datos; nunca se envia al insertar. */
+  empresaId?: string;
+  nombre: string;
+  empresaTexto: string;
+  telefono: string;
+  problema: string;
+  estatus: EstatusTicketSoporte;
+  creadoEn?: string;
+}
+
 export type Modulo =
   | 'Catalogos'
   | 'Viajes'
