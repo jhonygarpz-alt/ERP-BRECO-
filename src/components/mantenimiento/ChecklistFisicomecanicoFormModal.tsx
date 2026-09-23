@@ -168,13 +168,15 @@ export function ChecklistFisicomecanicoFormModal({
                             <span className="block text-xs text-ink-500">{i.descripcion}</span>
                           </span>
                         </label>
-                        <div className={`my-3 flex h-20 items-center justify-center rounded-lg ${meta.icono}`}>
-                          {tieneIlustracion(i.concepto) ? (
-                            <ChecklistIlustracion concepto={i.concepto} className="h-14 w-14" />
-                          ) : (
+                        {tieneIlustracion(i.concepto) ? (
+                          <div className="my-3 overflow-hidden rounded-lg">
+                            <ChecklistIlustracion concepto={i.concepto} className="h-28 w-full" />
+                          </div>
+                        ) : (
+                          <div className={`my-3 flex h-20 items-center justify-center rounded-lg ${meta.icono}`}>
                             <Icon size={32} strokeWidth={1.5} />
-                          )}
-                        </div>
+                          </div>
+                        )}
                         <div className="relative">
                           <MessageSquare size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-600" />
                           <input
