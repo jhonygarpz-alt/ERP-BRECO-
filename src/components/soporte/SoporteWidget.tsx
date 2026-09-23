@@ -6,7 +6,24 @@ import { debeAutoCerrarse, MINUTOS_AUTO_CIERRE } from '../../lib/soporte';
 import type { MensajeTicketSoporte } from '../../types';
 
 const TICKET_ACTIVO_KEY = 'breco-soporte-ticket-activo';
+const OCULTO_KEY = 'breco-soporte-oculto';
 const vistosKey = (ticketId: string) => `breco-soporte-vistos-${ticketId}`;
+
+function leerOculto(): boolean {
+  try {
+    return localStorage.getItem(OCULTO_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+function guardarOculto(oculto: boolean) {
+  try {
+    if (oculto) localStorage.setItem(OCULTO_KEY, '1');
+    else localStorage.removeItem(OCULTO_KEY);
+  } catch {
+    // ver leerVistos/marcarVistos arriba.
+  }
+}
 
 function leerTicketActivoId(): string | null {
   try {
@@ -41,6 +58,7 @@ function marcarVistos(ticketId: string, cantidad: number) {
 export function SoporteWidget() {
   const { ticketsSoporte } = useData();
   const [open, setOpen] = useState(false);
+  const [oculto, setOculto] = useState(() => leerOculto());
   const [bubbleCerrada, setBubbleCerrada] = useState(false);
   const [hover, setHover] = useState(false);
   const [autoShow, setAutoShow] = useState(false);
@@ -90,6 +108,16 @@ export function SoporteWidget() {
   function abrirPanel() {
     setOpen(true);
     setBubbleCerrada(true);
+  }
+
+  function ocultarWidget() {
+    setOculto(true);
+    guardarOculto(true);
+  }
+
+  function mostrarWidget() {
+    setOculto(false);
+    guardarOculto(false);
   }
 
   async function enviarTicket() {
@@ -303,7 +331,23 @@ export function SoporteWidget() {
         </div>
       )}
 
-      {!open && (
+      {!open && oculto && (
+        <button
+          type="button"
+          onClick={mostrarWidget}
+          title="Mostrar chat de soporte"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#0a1a3d]/80 text-white shadow-lg transition hover:bg-[#0a1a3d]"
+        >
+          <MessageCircle size={16} />
+          {noLeidos > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-red-500 text-[9px] font-bold text-white">
+              {noLeidos}
+            </span>
+          )}
+        </button>
+      )}
+
+      {!open && !oculto && (
         <div className="relative flex flex-col items-end">
           {!bubbleCerrada && (hover || autoShow) && (
             <div className="mb-2 mr-1 w-64 rounded-2xl rounded-br-sm border border-line-800 bg-white p-3 text-slate-800 shadow-xl">
@@ -329,34 +373,47 @@ export function SoporteWidget() {
               </p>
             </div>
           )}
-          <button
-            type="button"
-            onClick={abrirPanel}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-            className="flex animate-[soporte-flotar_3s_ease-in-out_infinite] items-center gap-2 rounded-full bg-[#0a1a3d] py-1.5 pl-1.5 pr-4 shadow-2xl transition-transform hover:scale-105"
-          >
-            <span className="relative">
-              <img
-                src="/soporte/avatar-face.png"
-                alt="Chat en linea"
-                className="h-11 w-11 animate-[soporte-saludo_6s_ease-in-out_infinite] rounded-full border-2 border-white/40 object-cover"
-              />
-              {noLeidos > 0 ? (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#0a1a3d] bg-red-500 text-[9px] font-bold text-white">
-                  {noLeidos}
-                </span>
-              ) : (
-                <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-[#0a1a3d] bg-emerald-500" />
-                </span>
-              )}
-            </span>
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-white">
-              <MessageCircle size={15} /> Chat en linea
-            </span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                ocultarWidget();
+              }}
+              title="Ocultar chat de soporte"
+              className="absolute -right-1.5 -top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-slate-500 text-white shadow hover:bg-slate-600"
+            >
+              <X size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={abrirPanel}
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
+              className="flex animate-[soporte-flotar_3s_ease-in-out_infinite] items-center gap-2 rounded-full bg-[#0a1a3d] py-1.5 pl-1.5 pr-4 shadow-2xl transition-transform hover:scale-105"
+            >
+              <span className="relative">
+                <img
+                  src="/soporte/avatar-face.png"
+                  alt="Chat en linea"
+                  className="h-11 w-11 animate-[soporte-saludo_6s_ease-in-out_infinite] rounded-full border-2 border-white/40 object-cover"
+                />
+                {noLeidos > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#0a1a3d] bg-red-500 text-[9px] font-bold text-white">
+                    {noLeidos}
+                  </span>
+                ) : (
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-[#0a1a3d] bg-emerald-500" />
+                  </span>
+                )}
+              </span>
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                <MessageCircle size={15} /> Chat en linea
+              </span>
+            </button>
+          </div>
         </div>
       )}
     </div>
