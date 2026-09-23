@@ -571,7 +571,7 @@ export interface Empresa {
   alertasVencimientos: AlertasVencimientosConfig;
 }
 
-export type EstatusTicketSoporte = 'Nuevo' | 'Atendido';
+export type EstatusTicketSoporte = 'Nuevo' | 'Atendido' | 'Cerrado';
 
 export interface MensajeTicketSoporte {
   id: string;

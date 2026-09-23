@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { MessageCircle, Send, SquarePen, X } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
+import { debeAutoCerrarse, MINUTOS_AUTO_CIERRE } from '../../lib/soporte';
 import type { MensajeTicketSoporte } from '../../types';
 
 const TICKET_ACTIVO_KEY = 'breco-soporte-ticket-activo';
@@ -73,6 +74,16 @@ export function SoporteWidget() {
       setNoLeidos(Math.max(0, ticketActivo.mensajes.length - vistos));
     }
   }, [ticketActivo, open]);
+
+  // Si soporte respondio y el cliente no contesta, el chat se cierra solo.
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (ticketActivo && debeAutoCerrarse(ticketActivo)) {
+        ticketsSoporte.update(ticketActivo.id, { estatus: 'Cerrado' });
+      }
+    }, 30_000);
+    return () => clearInterval(t);
+  }, [ticketActivo, ticketsSoporte]);
 
   const listoParaEnviar = nombre.trim() && empresa.trim() && telefono.trim() && problema.trim();
 
@@ -191,26 +202,44 @@ export function SoporteWidget() {
                 {ticketActivo.estatus === 'Nuevo' && (
                   <p className="text-center text-[11px] text-slate-400">Nuestro equipo te respondera a la brevedad.</p>
                 )}
+                {ticketActivo.estatus === 'Atendido' && (
+                  <p className="text-center text-[11px] text-amber-600">
+                    Si no respondes en {MINUTOS_AUTO_CIERRE} minutos, este chat se cerrara automaticamente.
+                  </p>
+                )}
               </div>
-              <div className="flex flex-shrink-0 items-center gap-2 border-t border-slate-100 bg-white p-3">
-                <input
-                  value={respuesta}
-                  onChange={(e) => setRespuesta(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') enviarRespuesta();
-                  }}
-                  placeholder="Escribe un mensaje..."
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#0a3a7a]"
-                />
-                <button
-                  type="button"
-                  disabled={!respuesta.trim() || enviando}
-                  onClick={enviarRespuesta}
-                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-[#0d9488] to-[#0a3a7a] text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Send size={15} />
-                </button>
-              </div>
+              {ticketActivo.estatus === 'Cerrado' ? (
+                <div className="flex-shrink-0 space-y-2 border-t border-slate-100 bg-white p-3 text-center">
+                  <p className="text-xs text-slate-500">Esta conversacion fue finalizada.</p>
+                  <button
+                    type="button"
+                    onClick={nuevaConsulta}
+                    className="w-full rounded-lg bg-gradient-to-r from-[#0d9488] to-[#0a3a7a] py-2 text-sm font-semibold text-white"
+                  >
+                    Iniciar nueva consulta
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-shrink-0 items-center gap-2 border-t border-slate-100 bg-white p-3">
+                  <input
+                    value={respuesta}
+                    onChange={(e) => setRespuesta(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') enviarRespuesta();
+                    }}
+                    placeholder="Escribe un mensaje..."
+                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#0a3a7a]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!respuesta.trim() || enviando}
+                    onClick={enviarRespuesta}
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-[#0d9488] to-[#0a3a7a] text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Send size={15} />
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="flex-1 space-y-3 overflow-y-auto p-4">
@@ -291,9 +320,11 @@ export function SoporteWidget() {
               <p className="text-sm font-bold">¡Hola! 👋</p>
               <p className="text-sm">
                 {ticketActivo
-                  ? noLeidos > 0
-                    ? 'Tienes una respuesta nueva de soporte.'
-                    : 'Continua tu conversacion con soporte.'
+                  ? ticketActivo.estatus === 'Cerrado'
+                    ? 'Tu conversacion anterior finalizo. ¿Necesitas algo mas?'
+                    : noLeidos > 0
+                      ? 'Tienes una respuesta nueva de soporte.'
+                      : 'Continua tu conversacion con soporte.'
                   : 'Estoy aqui para ayudarte. ¿En que podemos apoyarte hoy?'}
               </p>
             </div>

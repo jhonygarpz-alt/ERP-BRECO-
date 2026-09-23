@@ -1,13 +1,19 @@
-import { useMemo, useState } from 'react';
-import { MessageSquareText, Send } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { CircleSlash, MessageSquareText, RotateCcw, Send } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
+import { debeAutoCerrarse } from '../../lib/soporte';
 import type { MensajeTicketSoporte, TicketSoporte } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { StatusBadge } from '../../components/ui/Badge';
+import { ToolbarButton } from '../../components/ui/form';
 
-const FILTROS = ['Todos', 'Nuevo', 'Atendido'] as const;
+const FILTROS = ['Todos', 'Nuevo', 'Atendido', 'Cerrado'] as const;
+
+function tonoEstatus(estatus: TicketSoporte['estatus']) {
+  return estatus === 'Nuevo' ? 'amber' : estatus === 'Atendido' ? 'green' : 'gray';
+}
 
 export function SoporteTecnicoSection() {
   const { ticketsSoporte, empresas } = useData();
@@ -35,6 +41,26 @@ export function SoporteTecnicoSection() {
   const nuevos = ticketsSoporte.items.filter((t) => t.estatus === 'Nuevo').length;
   const seleccionado = ticketsSoporte.items.find((t) => t.id === seleccionadoId) ?? null;
 
+  // Cierre automatico: si el cliente no contesta 5 minutos despues de que
+  // soporte respondio, el chat se cierra solo (revisa mientras esta pantalla
+  // este abierta, igual que el widget del cliente).
+  useEffect(() => {
+    const t = setInterval(() => {
+      ticketsSoporte.items.filter(debeAutoCerrarse).forEach((tk) => ticketsSoporte.update(tk.id, { estatus: 'Cerrado' }));
+    }, 30_000);
+    return () => clearInterval(t);
+  }, [ticketsSoporte]);
+
+  function finalizarChat() {
+    if (!seleccionado) return;
+    ticketsSoporte.update(seleccionado.id, { estatus: 'Cerrado' });
+  }
+
+  function reabrirChat() {
+    if (!seleccionado) return;
+    ticketsSoporte.update(seleccionado.id, { estatus: 'Atendido' });
+  }
+
   async function enviarRespuesta() {
     if (!seleccionado || !respuesta.trim()) return;
     setEnviando(true);
@@ -61,7 +87,7 @@ export function SoporteTecnicoSection() {
     { header: 'Nombre', render: (t) => t.nombre },
     { header: 'Telefono', render: (t) => t.telefono || 'N/D' },
     { header: 'Ultimo mensaje', render: (t) => <span className="line-clamp-1 max-w-sm">{ultimoMensaje(t)}</span> },
-    { header: 'Estatus', render: (t) => <StatusBadge status={t.estatus} tone={t.estatus === 'Nuevo' ? 'amber' : 'green'} /> },
+    { header: 'Estatus', render: (t) => <StatusBadge status={t.estatus} tone={tonoEstatus(t.estatus)} /> },
   ];
 
   return (
@@ -113,7 +139,18 @@ export function SoporteTecnicoSection() {
                     {seleccionado.nombre} · {seleccionado.telefono || 'N/D'}
                   </p>
                 </div>
-                <StatusBadge status={seleccionado.estatus} tone={seleccionado.estatus === 'Nuevo' ? 'amber' : 'green'} />
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  <StatusBadge status={seleccionado.estatus} tone={tonoEstatus(seleccionado.estatus)} />
+                  {seleccionado.estatus === 'Cerrado' ? (
+                    <ToolbarButton type="button" onClick={reabrirChat} className="px-2 py-1 text-xs">
+                      <RotateCcw size={13} /> Reabrir
+                    </ToolbarButton>
+                  ) : (
+                    <ToolbarButton type="button" onClick={finalizarChat} className="px-2 py-1 text-xs">
+                      <CircleSlash size={13} /> Finalizar chat
+                    </ToolbarButton>
+                  )}
+                </div>
               </div>
 
               <div className="flex-1 space-y-2 overflow-y-auto p-4">
@@ -135,25 +172,31 @@ export function SoporteTecnicoSection() {
                 ))}
               </div>
 
-              <div className="flex flex-shrink-0 items-center gap-2 border-t border-line-800 p-3">
-                <input
-                  value={respuesta}
-                  onChange={(e) => setRespuesta(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') enviarRespuesta();
-                  }}
-                  placeholder="Escribe tu respuesta..."
-                  className="flex-1 rounded-lg border border-line-700 bg-bg-900 px-3 py-2 text-sm text-ink-100 outline-none focus:border-breco-500"
-                />
-                <button
-                  type="button"
-                  disabled={!respuesta.trim() || enviando}
-                  onClick={enviarRespuesta}
-                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Send size={15} />
-                </button>
-              </div>
+              {seleccionado.estatus === 'Cerrado' ? (
+                <div className="flex-shrink-0 border-t border-line-800 p-3 text-center text-xs text-ink-500">
+                  Esta conversacion esta finalizada. Usa "Reabrir" para seguir escribiendo.
+                </div>
+              ) : (
+                <div className="flex flex-shrink-0 items-center gap-2 border-t border-line-800 p-3">
+                  <input
+                    value={respuesta}
+                    onChange={(e) => setRespuesta(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') enviarRespuesta();
+                    }}
+                    placeholder="Escribe tu respuesta..."
+                    className="flex-1 rounded-lg border border-line-700 bg-bg-900 px-3 py-2 text-sm text-ink-100 outline-none focus:border-breco-500"
+                  />
+                  <button
+                    type="button"
+                    disabled={!respuesta.trim() || enviando}
+                    onClick={enviarRespuesta}
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Send size={15} />
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 py-10 text-center text-ink-500">
