@@ -4,7 +4,6 @@ import { rangoMesActual, type FiltroFechas } from '../../lib/reportesTrafico';
 import { estadoCuentaCliente } from '../../lib/cobranza';
 import { exportarExcel } from '../../lib/exportarExcel';
 import { ReporteFiltros } from '../../components/reportes-trafico/ReporteFiltros';
-import { ReporteTabla } from '../../components/reportes-trafico/ReporteTabla';
 import { ListaSeleccionModal } from '../../components/ui/ListaSeleccionModal';
 import { Field, Input, ToolbarButton } from '../../components/ui/form';
 
@@ -25,12 +24,25 @@ export function CobranzaEstadosCuentaPage() {
     return estadoCuentaCliente(cliente, facturas.items, pagosCliente.items, notasCredito.items, filtro.desde, filtro.hasta);
   }, [cliente, facturas.items, pagosCliente.items, notasCredito.items, filtro]);
 
+  const movimientos = resultado?.movimientos ?? [];
+  const facturasVencidas = movimientos.filter((m) => m.vencida);
+
   function handleExportarExcel() {
     if (!cliente || !resultado) return;
     exportarExcel(
       `estado-de-cuenta-${cliente.numeroCliente}`,
-      ['Fecha', 'Tipo', 'Documento', 'Cargo', 'Abono', 'Saldo'],
-      resultado.movimientos.map((m) => [m.fecha, m.tipo, m.documento, money(m.cargo), money(m.abono), money(m.saldo)]),
+      ['Fecha', 'Tipo', 'Documento', 'Cargo', 'Abono', 'Saldo', 'Dias Transcurridos', 'Vencimiento', 'Estatus'],
+      movimientos.map((m) => [
+        m.fecha,
+        m.tipo,
+        m.documento,
+        money(m.cargo),
+        money(m.abono),
+        money(m.saldo),
+        m.tipo === 'Factura' ? String(m.diasTranscurridos ?? 0) : '',
+        m.tipo === 'Factura' ? (m.fechaVencimiento ?? '') : '',
+        m.tipo === 'Factura' ? (m.vencida ? 'VENCIDA' : 'VIGENTE') : '',
+      ]),
     );
   }
 
@@ -46,7 +58,7 @@ export function CobranzaEstadosCuentaPage() {
         <p className="mt-1 text-sm text-ink-500">Movimientos de facturas, pagos y notas de credito de un cliente, con saldo corrido.</p>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-line-800 bg-bg-800 p-4">
+      <div className="mb-4 flex flex-wrap items-end gap-6 rounded-2xl border border-line-800 bg-bg-800 p-4">
         <Field label="Cliente">
           <div className="flex items-center gap-2">
             <Input readOnly value={cliente ? `${cliente.numeroCliente} - ${cliente.nombre}` : ''} placeholder="Sin cliente seleccionado" className="max-w-md" />
@@ -55,6 +67,12 @@ export function CobranzaEstadosCuentaPage() {
             </ToolbarButton>
           </div>
         </Field>
+        {cliente && (
+          <div className="text-sm">
+            <span className="block text-xs uppercase tracking-wide text-ink-500">Dias de Credito del Cliente</span>
+            <span className="text-base font-semibold text-ink-100">{cliente.diasCredito} dias</span>
+          </div>
+        )}
       </div>
 
       {!cliente ? (
@@ -65,17 +83,61 @@ export function CobranzaEstadosCuentaPage() {
         <>
           <ReporteFiltros filtro={filtro} onFiltroChange={setFiltro} onExportarExcel={handleExportarExcel} onImprimir={handleImprimir} />
 
-          <ReporteTabla
-            headers={['Fecha', 'Tipo', 'Documento', 'Cargo', 'Abono', 'Saldo']}
-            rows={(resultado?.movimientos ?? []).map((m) => [
-              m.fecha,
-              m.tipo,
-              m.documento,
-              m.cargo > 0 ? money(m.cargo) : '-',
-              m.abono > 0 ? money(m.abono) : '-',
-              money(m.saldo),
-            ])}
-          />
+          {facturasVencidas.length > 0 && (
+            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {facturasVencidas.length} factura{facturasVencidas.length === 1 ? '' : 's'} vencida{facturasVencidas.length === 1 ? '' : 's'} por un
+              total de {money(facturasVencidas.reduce((acc, m) => acc + m.saldo, 0))}.
+            </div>
+          )}
+
+          {movimientos.length === 0 ? (
+            <div className="rounded-2xl border border-line-800 bg-bg-800 py-12 text-center text-sm text-ink-600">
+              Sin movimientos en el rango de fechas seleccionado.
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-line-800 bg-bg-800">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-max text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-line-800 bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+                      <th className="px-4 py-3 font-medium">Fecha</th>
+                      <th className="px-4 py-3 font-medium">Tipo</th>
+                      <th className="px-4 py-3 font-medium">Documento</th>
+                      <th className="px-4 py-3 font-medium">Cargo</th>
+                      <th className="px-4 py-3 font-medium">Abono</th>
+                      <th className="px-4 py-3 font-medium">Saldo</th>
+                      <th className="px-4 py-3 font-medium">Dias de Credito</th>
+                      <th className="px-4 py-3 font-medium">Vencimiento</th>
+                      <th className="px-4 py-3 font-medium">Estatus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {movimientos.map((m, i) => (
+                      <tr key={i} className={`border-b border-line-800/70 last:border-0 hover:bg-bg-700/40 ${m.vencida ? 'bg-red-500/5' : ''}`}>
+                        <td className="px-4 py-3 text-ink-300">{m.fecha}</td>
+                        <td className="px-4 py-3 text-ink-300">{m.tipo}</td>
+                        <td className="px-4 py-3 text-ink-300">{m.documento}</td>
+                        <td className="px-4 py-3 text-ink-300">{m.cargo > 0 ? money(m.cargo) : '-'}</td>
+                        <td className="px-4 py-3 text-ink-300">{m.abono > 0 ? money(m.abono) : '-'}</td>
+                        <td className="px-4 py-3 text-ink-300">{money(m.saldo)}</td>
+                        <td className="px-4 py-3 text-ink-300">{m.tipo === 'Factura' ? `${m.diasTranscurridos} dias` : '-'}</td>
+                        <td className="px-4 py-3 text-ink-300">{m.tipo === 'Factura' ? m.fechaVencimiento : '-'}</td>
+                        <td className="px-4 py-3">
+                          {m.tipo === 'Factura' ? (
+                            <span className={`font-semibold ${m.vencida ? 'text-red-400' : 'text-emerald-400'}`}>
+                              {m.vencida ? 'VENCIDA' : 'VIGENTE'}
+                            </span>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           <p className="mt-3 text-right text-base font-semibold text-ink-100">Saldo final: {money(resultado?.saldoFinal ?? 0)}</p>
         </>
       )}

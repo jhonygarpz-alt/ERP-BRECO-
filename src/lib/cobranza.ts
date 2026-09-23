@@ -1,5 +1,17 @@
 import { uid } from './storage';
+import { hoyISO } from './fechas';
 import type { Cliente, Factura, NotaCredito, NotaCreditoLinea, PagoCliente } from '../types';
+
+function sumarDias(fechaIso: string, dias: number): string {
+  const [y, m, d] = fechaIso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10);
+}
+
+function diferenciaDias(desdeIso: string, hastaIso: string): number {
+  const [y1, m1, d1] = desdeIso.split('-').map(Number);
+  const [y2, m2, d2] = hastaIso.split('-').map(Number);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+}
 
 /** Cuanto se le ha abonado a una factura via pagos ya aplicados (no cancelados). */
 export function abonosAplicadosAFactura(facturaId: string, pagos: PagoCliente[]): number {
@@ -68,6 +80,10 @@ export interface MovimientoEstadoCuenta {
   documento: string;
   cargo: number;
   abono: number;
+  /** Solo para tipo 'Factura': dias transcurridos desde su fecha, su fecha de vencimiento segun los dias de credito del cliente, y si ya vencio con saldo pendiente. */
+  diasTranscurridos?: number;
+  fechaVencimiento?: string;
+  vencida?: boolean;
 }
 
 /** Movimientos de un cliente ordenados por fecha, con saldo corrido -- la base del Estado de Cuenta. */
@@ -78,12 +94,26 @@ export function estadoCuentaCliente(
   notas: NotaCredito[],
   desde: string,
   hasta: string,
+  hoy: string = hoyISO(),
 ): { movimientos: (MovimientoEstadoCuenta & { saldo: number })[]; saldoFinal: number } {
   const movimientos: MovimientoEstadoCuenta[] = [];
 
   facturas
     .filter((f) => f.clienteId === cliente.id && f.estatus !== 'Cancelado')
-    .forEach((f) => movimientos.push({ fecha: f.fecha, tipo: 'Factura', documento: f.folio, cargo: f.importe, abono: 0 }));
+    .forEach((f) => {
+      const saldoFacturaActual = saldoFactura(f, pagos, notas);
+      const fechaVencimiento = sumarDias(f.fecha, cliente.diasCredito);
+      movimientos.push({
+        fecha: f.fecha,
+        tipo: 'Factura',
+        documento: f.folio,
+        cargo: f.importe,
+        abono: 0,
+        diasTranscurridos: Math.max(0, diferenciaDias(f.fecha, hoy)),
+        fechaVencimiento,
+        vencida: saldoFacturaActual > 0 && hoy > fechaVencimiento,
+      });
+    });
 
   pagos
     .filter((p) => p.clienteId === cliente.id && p.estatus === 'Aplicado')

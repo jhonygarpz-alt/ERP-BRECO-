@@ -67,13 +67,14 @@ export function ImprimirEstadoCuentaPage() {
           <p style={{ margin: 0, color: '#555' }}>
             Del {desde} al {hasta}
           </p>
+          <p style={{ margin: 0, color: '#555' }}>Dias de Credito del Cliente: {cliente.diasCredito}</p>
         </div>
       </div>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            {['Fecha', 'Tipo', 'Documento', 'Cargo', 'Abono', 'Saldo'].map((h) => (
+            {['Fecha', 'Tipo', 'Documento', 'Cargo', 'Abono', 'Saldo', 'Dias de Credito', 'Vencimiento', 'Estatus'].map((h) => (
               <th key={h} style={th}>
                 {h}
               </th>
@@ -83,19 +84,24 @@ export function ImprimirEstadoCuentaPage() {
         <tbody>
           {(resultado?.movimientos.length ?? 0) === 0 ? (
             <tr>
-              <td style={td} colSpan={6}>
+              <td style={td} colSpan={9}>
                 Sin movimientos en el rango de fechas seleccionado.
               </td>
             </tr>
           ) : (
             resultado?.movimientos.map((m, i) => (
-              <tr key={i}>
+              <tr key={i} style={m.vencida ? { background: '#fef2f2' } : undefined}>
                 <td style={td}>{m.fecha}</td>
                 <td style={td}>{m.tipo}</td>
                 <td style={td}>{m.documento}</td>
                 <td style={td}>{m.cargo > 0 ? money(m.cargo) : '-'}</td>
                 <td style={td}>{m.abono > 0 ? money(m.abono) : '-'}</td>
                 <td style={td}>{money(m.saldo)}</td>
+                <td style={td}>{m.tipo === 'Factura' ? `${m.diasTranscurridos} dias` : '-'}</td>
+                <td style={td}>{m.tipo === 'Factura' ? m.fechaVencimiento : '-'}</td>
+                <td style={{ ...td, color: m.vencida ? '#b91c1c' : m.tipo === 'Factura' ? '#047857' : '#111', fontWeight: m.tipo === 'Factura' ? 700 : 400 }}>
+                  {m.tipo === 'Factura' ? (m.vencida ? 'VENCIDA' : 'VIGENTE') : '-'}
+                </td>
               </tr>
             ))
           )}
