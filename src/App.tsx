@@ -37,6 +37,12 @@ import { FacturacionPage } from './pages/FacturacionPage';
 import { FacturacionPorViajePage } from './pages/facturacion/FacturacionPorViajePage';
 import { FacturacionPorConceptoPage } from './pages/facturacion/FacturacionPorConceptoPage';
 import { ImprimirFacturaPage } from './pages/facturacion/ImprimirFacturaPage';
+import { CobranzaComplementosPagoPage } from './pages/cobranza/CobranzaComplementosPagoPage';
+import { ImprimirPagoClientePage } from './pages/cobranza/ImprimirPagoClientePage';
+import { CobranzaNotasCreditoPage } from './pages/cobranza/CobranzaNotasCreditoPage';
+import { ImprimirNotaCreditoPage } from './pages/cobranza/ImprimirNotaCreditoPage';
+import { CobranzaEstadosCuentaPage } from './pages/cobranza/CobranzaEstadosCuentaPage';
+import { ImprimirEstadoCuentaPage } from './pages/cobranza/ImprimirEstadoCuentaPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
 import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
@@ -119,6 +125,12 @@ function App() {
                   <Route path="/facturacion/por-concepto" element={<FacturacionPorConceptoPage />} />
                 </Route>
 
+                <Route element={<RequirePermission modulo="Cobranza" />}>
+                  <Route path="/cobranza/complementos-pago" element={<CobranzaComplementosPagoPage />} />
+                  <Route path="/cobranza/notas-credito" element={<CobranzaNotasCreditoPage />} />
+                  <Route path="/cobranza/estados-cuenta" element={<CobranzaEstadosCuentaPage />} />
+                </Route>
+
                 <Route element={<RequirePermission modulo="Programa" />}>
                   <Route path="/programa" element={<ProgramaPage />} />
                 </Route>
@@ -150,6 +162,9 @@ function App() {
               <Route path="/gastos-viaje/imprimir/:id" element={<ImprimirGastoViajePage />} />
               <Route path="/parque-vehicular/imprimir" element={<ImprimirParqueVehicularPage />} />
               <Route path="/facturacion/imprimir/:id" element={<ImprimirFacturaPage />} />
+              <Route path="/cobranza/complementos-pago/imprimir/:id" element={<ImprimirPagoClientePage />} />
+              <Route path="/cobranza/notas-credito/imprimir/:id" element={<ImprimirNotaCreditoPage />} />
+              <Route path="/cobranza/estados-cuenta/imprimir/:clienteId" element={<ImprimirEstadoCuentaPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
               <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>

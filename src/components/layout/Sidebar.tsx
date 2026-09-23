@@ -28,6 +28,9 @@ import {
   MessageSquare,
   FileBarChart,
   FileText,
+  HandCoins,
+  FileMinus,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -164,6 +167,7 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
 const traficoRoutes = ['/viajes', '/gastos-viaje', '/viajes-del-dia', '/aeropuerto', '/programa', '/trafico/reportes'];
 const monitoreoRoutes = ['/monitoreo'];
 const facturacionRoutes = ['/facturacion'];
+const cobranzaRoutes = ['/cobranza'];
 
 export function Sidebar() {
   const { empresa } = useData();
@@ -182,6 +186,7 @@ export function Sidebar() {
   const puedeFacturacion = hasPermission('Facturacion', 'ver');
   const puedePrograma = hasPermission('Programa', 'ver');
   const puedeMonitoreo = hasPermission('Monitoreo', 'ver');
+  const puedeCobranza = hasPermission('Cobranza', 'ver');
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
@@ -212,6 +217,14 @@ export function Sidebar() {
         { to: '/facturacion', label: 'Facturacion Diaria', icon: Receipt },
         { to: '/facturacion/por-viaje', label: 'Por Viaje', icon: Route },
         { to: '/facturacion/por-concepto', label: 'Por Concepto', icon: FileText },
+      ]
+    : [];
+
+  const cobranzaLinks: { to: string; label: string; icon: LucideIcon }[] = puedeCobranza
+    ? [
+        { to: '/cobranza/complementos-pago', label: 'Complementos de Pago', icon: HandCoins },
+        { to: '/cobranza/notas-credito', label: 'Notas de Credito', icon: FileMinus },
+        { to: '/cobranza/estados-cuenta', label: 'Estados de Cuenta', icon: ScrollText },
       ]
     : [];
 
@@ -276,6 +289,15 @@ export function Sidebar() {
           icon={Receipt}
           routes={facturacionRoutes}
           links={facturacionLinks}
+          collapsed={collapsed}
+          onExpandCollapsed={() => setCollapsed(false)}
+        />
+
+        <NavCollapsibleGroup
+          label="Cobranza"
+          icon={HandCoins}
+          routes={cobranzaRoutes}
+          links={cobranzaLinks}
           collapsed={collapsed}
           onExpandCollapsed={() => setCollapsed(false)}
         />

@@ -21,6 +21,10 @@ import {
   incidenciaViajeToRow,
   mensajeViajeFromRow,
   mensajeViajeToRow,
+  pagoClienteFromRow,
+  pagoClienteToRow,
+  notaCreditoFromRow,
+  notaCreditoToRow,
   estatusUnidadFromRow,
   estatusUnidadToRow,
   estatusViajeFromRow,
@@ -79,6 +83,8 @@ import type {
   GrupoUnidad,
   IncidenciaViaje,
   MensajeViaje,
+  NotaCredito,
+  PagoCliente,
   Operador,
   ParqueHistorial,
   ParqueNota,
@@ -118,6 +124,8 @@ interface DataContextValue {
   mensajesViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MensajeViaje>>;
   facturas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Factura>>;
   facturasSistema: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FacturaSistema>>;
+  pagosCliente: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, PagoCliente>>;
+  notasCredito: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, NotaCredito>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
   formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
@@ -231,6 +239,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     facturaSistemaFromRow,
     facturaSistemaToRow,
   );
+  const pagosCliente = useSupabaseCollection<Record<string, unknown>, PagoCliente>(
+    'pagos_cliente',
+    pagoClienteFromRow,
+    pagoClienteToRow,
+  );
+  const notasCredito = useSupabaseCollection<Record<string, unknown>, NotaCredito>(
+    'notas_credito',
+    notaCreditoFromRow,
+    notaCreditoToRow,
+  );
   const reportes = useSupabaseCollection<Record<string, unknown>, ReporteExterno>(
     'reportes',
     reporteFromRow,
@@ -284,6 +302,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         mensajesViaje,
         facturas,
         facturasSistema,
+        pagosCliente,
+        notasCredito,
         reportes,
         empresas,
         empresa,

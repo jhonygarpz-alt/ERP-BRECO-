@@ -545,7 +545,7 @@ export interface Empresa {
   csfImportadaEn?: string;
 }
 
-export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Programa' | 'Monitoreo' | 'Reportes' | 'Configuracion';
+export type Modulo = 'Catalogos' | 'Viajes' | 'Facturacion' | 'Cobranza' | 'Programa' | 'Monitoreo' | 'Reportes' | 'Configuracion';
 
 export interface ReporteExterno {
   id: string;
@@ -817,5 +817,72 @@ export interface ParqueHistorial {
   campo: string;
   valorAnterior: string;
   valorNuevo: string;
+  creadoEn?: string;
+}
+
+// ============================================================================
+// Cobranza: Complementos de Pago, Notas de Credito y Estados de Cuenta.
+// ============================================================================
+
+/** Cuanto de un Pago/Abono se aplico a una factura especifica (un pago puede repartirse entre varias). */
+export interface AplicacionPago {
+  facturaId: string;
+  importe: number;
+}
+
+export type EstatusPago = 'Aplicado' | 'Cancelado';
+
+/** Un pago/abono de un cliente (Cobranza > Complementos de Pago), repartido entre una o mas facturas. */
+export interface PagoCliente {
+  id: string;
+  folio: string;
+  clienteId: string;
+  fechaMovimiento: string;
+  fechaCobro: string;
+  formaPago: string;
+  cuentaBancariaId?: string;
+  importeDepositado: number;
+  moneda: string;
+  tipoCambio: number;
+  referenciaBancaria: string;
+  concepto: string;
+  aplicaciones: AplicacionPago[];
+  /** Parte del deposito que no se aplico a ninguna factura (queda como saldo a favor del cliente). */
+  saldoAFavor: number;
+  estatus: EstatusPago;
+  creadoEn?: string;
+}
+
+/** Un renglon de Nota de Credito (concepto que reduce el saldo de una o mas facturas relacionadas). */
+export interface NotaCreditoLinea {
+  id: string;
+  concepto: string;
+  unidadMedida: string;
+  importe: number;
+  traslada: string;
+  importeIva: number;
+}
+
+export type EstatusNotaCredito = 'Activa' | 'Cancelada';
+
+/** Nota de Credito (Cobranza > Notas de Credito): reduce el saldo pendiente de una o mas facturas de un cliente. */
+export interface NotaCredito {
+  id: string;
+  folio: string;
+  fecha: string;
+  sucursal: string;
+  clienteId: string;
+  /** Facturas a las que esta NC les reduce el saldo. */
+  facturaIds: string[];
+  formaPago: string;
+  metodoPago: string;
+  usoCfdi: string;
+  moneda: string;
+  tipoCambio: number;
+  lineas: NotaCreditoLinea[];
+  observaciones: string;
+  subtotal: number;
+  total: number;
+  estatus: EstatusNotaCredito;
   creadoEn?: string;
 }

@@ -16,6 +16,8 @@ import type {
   GrupoUnidad,
   IncidenciaViaje,
   MensajeViaje,
+  NotaCredito,
+  PagoCliente,
   ParqueHistorial,
   ParqueNota,
   Operador,
@@ -1175,4 +1177,86 @@ export function formatoImpresionFromRow(row: Record<string, unknown>): FormatoIm
 }
 export function formatoImpresionToRow(f: FormatoImpresion) {
   return { id: f.id, area: f.area, clave: f.clave, nombre: f.nombre, descripcion: f.descripcion, activo: f.activo };
+}
+
+export function pagoClienteFromRow(row: Record<string, unknown>): PagoCliente {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    clienteId: row.cliente_id as string,
+    fechaMovimiento: row.fecha_movimiento as string,
+    fechaCobro: row.fecha_cobro as string,
+    formaPago: (row.forma_pago as string) ?? '',
+    cuentaBancariaId: (row.cuenta_bancaria_id as string | null) ?? undefined,
+    importeDepositado: Number(row.importe_depositado) || 0,
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    referenciaBancaria: (row.referencia_bancaria as string) ?? '',
+    concepto: (row.concepto as string) ?? '',
+    aplicaciones: (row.aplicaciones as PagoCliente['aplicaciones'] | null) ?? [],
+    saldoAFavor: Number(row.saldo_a_favor) || 0,
+    estatus: (row.estatus as PagoCliente['estatus']) ?? 'Aplicado',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function pagoClienteToRow(p: PagoCliente) {
+  return {
+    id: p.id,
+    folio: p.folio,
+    cliente_id: p.clienteId,
+    fecha_movimiento: p.fechaMovimiento,
+    fecha_cobro: p.fechaCobro,
+    forma_pago: p.formaPago,
+    cuenta_bancaria_id: p.cuentaBancariaId || null,
+    importe_depositado: p.importeDepositado,
+    moneda: p.moneda,
+    tipo_cambio: p.tipoCambio,
+    referencia_bancaria: p.referenciaBancaria,
+    concepto: p.concepto,
+    aplicaciones: p.aplicaciones,
+    saldo_a_favor: p.saldoAFavor,
+    estatus: p.estatus,
+  };
+}
+
+export function notaCreditoFromRow(row: Record<string, unknown>): NotaCredito {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    fecha: row.fecha as string,
+    sucursal: (row.sucursal as string) ?? '',
+    clienteId: row.cliente_id as string,
+    facturaIds: (row.factura_ids as string[] | null) ?? [],
+    formaPago: (row.forma_pago as string) ?? '',
+    metodoPago: (row.metodo_pago as string) ?? 'PUE',
+    usoCfdi: (row.uso_cfdi as string) ?? 'G02',
+    moneda: (row.moneda as string) ?? 'PESOS',
+    tipoCambio: Number(row.tipo_cambio) || 1,
+    lineas: (row.lineas as NotaCredito['lineas'] | null) ?? [],
+    observaciones: (row.observaciones as string) ?? '',
+    subtotal: Number(row.subtotal) || 0,
+    total: Number(row.total) || 0,
+    estatus: (row.estatus as NotaCredito['estatus']) ?? 'Activa',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function notaCreditoToRow(n: NotaCredito) {
+  return {
+    id: n.id,
+    folio: n.folio,
+    fecha: n.fecha,
+    sucursal: n.sucursal,
+    cliente_id: n.clienteId,
+    factura_ids: n.facturaIds,
+    forma_pago: n.formaPago,
+    metodo_pago: n.metodoPago,
+    uso_cfdi: n.usoCfdi,
+    moneda: n.moneda,
+    tipo_cambio: n.tipoCambio,
+    lineas: n.lineas,
+    observaciones: n.observaciones,
+    subtotal: n.subtotal,
+    total: n.total,
+    estatus: n.estatus,
+  };
 }
