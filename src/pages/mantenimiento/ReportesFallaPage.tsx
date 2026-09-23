@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Ban, Eye, Pencil, Plus, Search } from 'lucide-react';
+import { Ban, Eye, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { hoyISO } from '../../lib/fechas';
@@ -74,6 +74,11 @@ export function ReportesFallaPage() {
     setModalOpen(false);
   }
 
+  function imprimir() {
+    if (!seleccionado) return;
+    window.open(`#/mantenimiento/reportes-falla/imprimir/${seleccionado.id}`, '_blank');
+  }
+
   const columns: Column<ReporteFalla>[] = [
     { header: 'Folio', render: (r) => <span className="font-mono text-xs font-semibold text-ink-100">{r.folio}</span> },
     { header: 'Fecha', render: (r) => r.fecha },
@@ -103,6 +108,9 @@ export function ReportesFallaPage() {
         </ToolbarButton>
         <ToolbarButton type="button" disabled={!seleccionado} onClick={abrirConsultar}>
           <Eye size={16} /> Consultar
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!seleccionado} onClick={imprimir}>
+          <Printer size={16} /> Imprimir
         </ToolbarButton>
         <ToolbarButton type="button" disabled={!seleccionado || !puedeEditar || seleccionado?.estatus === 'Cancelado'} onClick={cancelar}>
           <Ban size={16} /> Cancelar

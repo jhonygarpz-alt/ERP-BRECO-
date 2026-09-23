@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Ban, Eye, Pencil, Plus, Search } from 'lucide-react';
+import { Ban, Eye, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { hoyISO } from '../../lib/fechas';
@@ -79,6 +79,11 @@ export function OrdenesServicioPage() {
     setModalOpen(false);
   }
 
+  function imprimir() {
+    if (!seleccionada) return;
+    window.open(`#/mantenimiento/ordenes-servicio/imprimir/${seleccionada.id}`, '_blank');
+  }
+
   const toneEstatus = (estatus: OrdenServicio['estatus']) =>
     estatus === 'Concluida' ? 'green' : estatus === 'Cancelada' ? 'red' : estatus === 'En Proceso' ? 'blue' : 'amber';
 
@@ -113,6 +118,9 @@ export function OrdenesServicioPage() {
         </ToolbarButton>
         <ToolbarButton type="button" disabled={!seleccionada} onClick={abrirConsultar}>
           <Eye size={16} /> Consultar
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!seleccionada} onClick={imprimir}>
+          <Printer size={16} /> Imprimir
         </ToolbarButton>
         <ToolbarButton type="button" disabled={!seleccionada || !puedeEditar || seleccionada?.estatus === 'Cancelada'} onClick={cancelar}>
           <Ban size={16} /> Cancelar

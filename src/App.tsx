@@ -56,6 +56,9 @@ import { ReportesFallaPage } from './pages/mantenimiento/ReportesFallaPage';
 import { OrdenesServicioPage } from './pages/mantenimiento/OrdenesServicioPage';
 import { ServiciosProgramadosPage } from './pages/mantenimiento/ServiciosProgramadosPage';
 import { ChecklistFisicomecanicoPage } from './pages/mantenimiento/ChecklistFisicomecanicoPage';
+import { ImprimirReporteFallaPage } from './pages/mantenimiento/ImprimirReporteFallaPage';
+import { ImprimirOrdenServicioPage } from './pages/mantenimiento/ImprimirOrdenServicioPage';
+import { ImprimirChecklistFisicomecanicoPage } from './pages/mantenimiento/ImprimirChecklistFisicomecanicoPage';
 import { ProgramaPage } from './pages/ProgramaPage';
 import { MonitoreoCentroControlPage } from './pages/monitoreo/MonitoreoCentroControlPage';
 import { MonitoreoViajesPage } from './pages/monitoreo/MonitoreoViajesPage';
@@ -197,6 +200,9 @@ function App() {
               <Route path="/cobranza/notas-credito/imprimir/:id" element={<ImprimirNotaCreditoPage />} />
               <Route path="/cobranza/estados-cuenta/imprimir/:clienteId" element={<ImprimirEstadoCuentaPage />} />
               <Route path="/banco/cuentas-por-pagar/imprimir/:id" element={<ImprimirPagoProveedorPage />} />
+              <Route path="/mantenimiento/reportes-falla/imprimir/:id" element={<ImprimirReporteFallaPage />} />
+              <Route path="/mantenimiento/ordenes-servicio/imprimir/:id" element={<ImprimirOrdenServicioPage />} />
+              <Route path="/mantenimiento/checklist/imprimir/:id" element={<ImprimirChecklistFisicomecanicoPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
               <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>

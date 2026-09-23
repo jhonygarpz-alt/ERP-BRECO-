@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Eye, Plus, Search } from 'lucide-react';
+import { Ban, Eye, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { hoyISO } from '../../lib/fechas';
@@ -14,6 +14,8 @@ export function ChecklistFisicomecanicoPage() {
   const { checklistsFisicomecanicos, unidades } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Mantenimiento', 'crear');
+  const puedeEditar = hasPermission('Mantenimiento', 'editar');
+  const puedeEliminar = hasPermission('Mantenimiento', 'eliminar');
 
   const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
   const [hasta, setHasta] = useState(hoyISO());
@@ -60,6 +62,21 @@ export function ChecklistFisicomecanicoPage() {
     setModalOpen(true);
   }
 
+  function abrirEditar() {
+    if (!seleccionado) return;
+    setEditing(seleccionado);
+    setSoloLectura(false);
+    setModalOpen(true);
+  }
+
+  function eliminar() {
+    if (!seleccionado) return;
+    if (confirm(`Eliminar el checklist "${seleccionado.folio}"? Esta accion no se puede deshacer.`)) {
+      checklistsFisicomecanicos.remove(seleccionado.id);
+      setSeleccionadoId(null);
+    }
+  }
+
   function guardar(datos: Omit<ChecklistFisicomecanico, 'id'>) {
     if (editing) {
       checklistsFisicomecanicos.update(editing.id, datos);
@@ -67,6 +84,11 @@ export function ChecklistFisicomecanicoPage() {
       checklistsFisicomecanicos.add({ id: uid('chk'), ...datos });
     }
     setModalOpen(false);
+  }
+
+  function imprimir() {
+    if (!seleccionado) return;
+    window.open(`#/mantenimiento/checklist/imprimir/${seleccionado.id}`, '_blank');
   }
 
   const columns: Column<ChecklistFisicomecanico>[] = [
@@ -98,8 +120,17 @@ export function ChecklistFisicomecanicoPage() {
             <Plus size={16} /> Nuevo Checklist
           </ToolbarButton>
         )}
+        <ToolbarButton type="button" disabled={!seleccionado || !puedeEditar} onClick={abrirEditar}>
+          <Pencil size={16} /> Editar
+        </ToolbarButton>
         <ToolbarButton type="button" disabled={!seleccionado} onClick={abrirConsultar}>
           <Eye size={16} /> Consultar
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!seleccionado} onClick={imprimir}>
+          <Printer size={16} /> Imprimir
+        </ToolbarButton>
+        <ToolbarButton type="button" disabled={!seleccionado || !puedeEliminar} onClick={eliminar}>
+          <Ban size={16} /> Eliminar
         </ToolbarButton>
       </div>
 
