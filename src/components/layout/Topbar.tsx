@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, LogOut, Search, Settings } from 'lucide-react';
+import { Bell, Check, CheckCheck, LogOut, Search, Settings } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { useAlertas } from '../../lib/alertas';
@@ -14,7 +14,7 @@ export function Topbar() {
   const { empresa } = useData();
   const { usuarioActual, rolActual, hasPermission, logout } = useAuth();
   const navigate = useNavigate();
-  const alertas = useAlertas();
+  const { alertas, marcarAtendida, marcarTodasAtendidas } = useAlertas();
   const [alertasOpen, setAlertasOpen] = useState(false);
   const today = new Date().toLocaleDateString('es-MX', {
     day: 'numeric',
@@ -64,22 +64,39 @@ export function Topbar() {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setAlertasOpen(false)} />
               <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border border-line-700 bg-bg-800 p-2 shadow-2xl shadow-black/40">
-                <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-500">Alertas</div>
+                <div className="flex items-center justify-between px-2 py-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-ink-500">Alertas</span>
+                  {alertas.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={marcarTodasAtendidas}
+                      className="flex items-center gap-1 text-xs font-medium text-breco-500 hover:underline"
+                    >
+                      <CheckCheck size={13} /> Marcar todas como atendidas
+                    </button>
+                  )}
+                </div>
                 {alertas.length === 0 ? (
                   <p className="px-2 py-4 text-center text-sm text-ink-600">Sin alertas por el momento.</p>
                 ) : (
                   <div className="max-h-80 space-y-1 overflow-y-auto">
                     {alertas.map((a) => (
-                      <div key={a.id} className="rounded-lg px-2 py-2 hover:bg-bg-700/70">
-                        <div className="flex items-start gap-2">
-                          <span
-                            className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${a.nivel === 'alto' ? 'bg-red-500' : 'bg-amber-500'}`}
-                          />
-                          <div>
-                            <div className="text-sm text-ink-100">{a.mensaje}</div>
-                            <div className="text-xs text-ink-500">{a.detalle}</div>
-                          </div>
+                      <div key={a.id} className="group flex items-start gap-2 rounded-lg px-2 py-2 hover:bg-bg-700/70">
+                        <span
+                          className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${a.nivel === 'alto' ? 'bg-red-500' : 'bg-amber-500'}`}
+                        />
+                        <div className="flex-1">
+                          <div className="text-sm text-ink-100">{a.mensaje}</div>
+                          <div className="text-xs text-ink-500">{a.detalle}</div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => marcarAtendida(a)}
+                          title="Marcar como atendida"
+                          className="rounded-lg p-1 text-ink-600 opacity-0 transition hover:bg-bg-700 hover:text-emerald-400 group-hover:opacity-100"
+                        >
+                          <Check size={14} />
+                        </button>
                       </div>
                     ))}
                   </div>

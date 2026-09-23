@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Truck, Route, Receipt, IdCard, ArrowUpRight, AlertTriangle, Clock } from 'lucide-react';
+import { Truck, Route, Receipt, IdCard, ArrowUpRight, AlertTriangle, Check, CheckCheck, Clock } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAlertas } from '../lib/alertas';
 import { StatCard } from '../components/ui/StatCard';
@@ -42,7 +42,7 @@ function tiempoRelativo(iso: string): string {
 
 export function Dashboard() {
   const { viajes, unidades, operadores, facturas, clientes, estatusViajes, empresa } = useData();
-  const alertas = useAlertas();
+  const { alertas, marcarAtendida, marcarTodasAtendidas } = useAlertas();
   const estatusTono = (nombre: string): Tone | null =>
     (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
@@ -175,13 +175,24 @@ export function Dashboard() {
         </div>
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
-          <h2 className="mb-4 text-sm font-semibold text-ink-100">Alertas</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-ink-100">Alertas</h2>
+            {alertas.length > 0 && (
+              <button
+                type="button"
+                onClick={marcarTodasAtendidas}
+                className="flex items-center gap-1 text-xs font-medium text-breco-500 hover:underline"
+              >
+                <CheckCheck size={13} /> Marcar todas como atendidas
+              </button>
+            )}
+          </div>
           <div className="space-y-3">
             {alertas.length === 0 && <p className="py-6 text-center text-sm text-ink-600">Sin alertas activas.</p>}
             {alertas.map((a) => (
               <div
                 key={a.id}
-                className={`flex items-start gap-3 rounded-xl border p-3 ${
+                className={`group flex items-start gap-3 rounded-xl border p-3 ${
                   a.nivel === 'alto' ? 'border-red-500/20 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'
                 }`}
               >
@@ -189,10 +200,18 @@ export function Dashboard() {
                   size={16}
                   className={`mt-0.5 flex-shrink-0 ${a.nivel === 'alto' ? 'text-breco-500' : 'text-amber-400'}`}
                 />
-                <div>
+                <div className="flex-1">
                   <div className="text-xs text-ink-100">{a.mensaje}</div>
                   <div className="text-[11px] text-ink-500">{a.detalle}</div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => marcarAtendida(a)}
+                  title="Marcar como atendida"
+                  className="rounded-lg p-1 text-ink-600 opacity-0 transition hover:bg-bg-700 hover:text-emerald-400 group-hover:opacity-100"
+                >
+                  <Check size={14} />
+                </button>
               </div>
             ))}
           </div>
