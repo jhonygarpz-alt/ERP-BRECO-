@@ -399,6 +399,7 @@ export interface ViajeMaterial {
   materialPeligroso?: boolean;
   /** Clave del catalogo SAT c_MaterialPeligroso (solo si materialPeligroso=true). */
   claveMaterialPeligroso?: string;
+  descripcionMaterialPeligroso?: string;
   // ---- Sector COFEPRIS (solo aplica a mercancia regulada: medicamentos, quimicos, etc.) ----
   aplicaCofepris?: boolean;
   /** Clave del catalogo SAT c_SectorCOFEPRIS. */

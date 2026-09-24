@@ -14,6 +14,8 @@ import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge'
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../components/catalogos/BuscarClaveSatModal';
+import { ClaveSatField } from '../components/catalogos/ClaveSatField';
+import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
 import {
   TIPOS_EMBALAJE_SAT,
   SECTOR_COFEPRIS_SAT,
@@ -69,6 +71,7 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
   descripcionEmbalajeSat: '',
   materialPeligroso: false,
   claveMaterialPeligroso: '',
+  descripcionMaterialPeligroso: '',
   aplicaCofepris: false,
   cofeprisSector: '',
   cofeprisTipoMateria: '',
@@ -1504,22 +1507,33 @@ export function ViajesPage() {
                             Complemento Carta Porte
                           </p>
                           <Field label="Clave SAT - Productos y servicios (Bienes Transp.)">
-                            <div className="flex gap-2">
-                              <Input className="w-24" readOnly value={materialForm.claveProdServCP} placeholder="Clave" />
-                              <Input className="flex-1" readOnly value={materialForm.descripcionProdServCP} placeholder="Descripcion" />
-                              <ToolbarButton type="button" onClick={() => setBuscarProdServCPOpen(true)}>
-                                <ScanLine size={14} />
-                              </ToolbarButton>
-                            </div>
+                            <ClaveSatField
+                              clave={materialForm.claveProdServCP ?? ''}
+                              etiqueta={materialForm.descripcionProdServCP ?? ''}
+                              useCatalogo={useClaveProdServCPSat}
+                              obtenerClave={(r) => r.clave}
+                              obtenerEtiqueta={(r) => r.descripcion}
+                              onSeleccionar={(r) => setMaterialForm((f) => ({ ...f, claveProdServCP: r.clave, descripcionProdServCP: r.descripcion }))}
+                              onLimpiar={() => setMaterialForm((f) => ({ ...f, claveProdServCP: '', descripcionProdServCP: '' }))}
+                              onAbrirBuscador={() => setBuscarProdServCPOpen(true)}
+                              icono={ScanLine}
+                              claveClassName="w-24"
+                            />
                           </Field>
                           <Field label="Clave SAT - Unidad">
-                            <div className="flex gap-2">
-                              <Input className="w-24" readOnly value={materialForm.claveUnidadSat} placeholder="Clave" />
-                              <Input className="flex-1" readOnly value={materialForm.nombreUnidadSat} placeholder="Unidad" />
-                              <ToolbarButton type="button" onClick={() => setBuscarUnidadMercanciaOpen(true)}>
-                                <ScanLine size={14} />
-                              </ToolbarButton>
-                            </div>
+                            <ClaveSatField
+                              clave={materialForm.claveUnidadSat ?? ''}
+                              etiqueta={materialForm.nombreUnidadSat ?? ''}
+                              useCatalogo={useClaveUnidadSat}
+                              obtenerClave={(r) => r.clave}
+                              obtenerEtiqueta={(r) => r.nombre}
+                              onSeleccionar={(r) => setMaterialForm((f) => ({ ...f, claveUnidadSat: r.clave, nombreUnidadSat: r.nombre }))}
+                              onLimpiar={() => setMaterialForm((f) => ({ ...f, claveUnidadSat: '', nombreUnidadSat: '' }))}
+                              onAbrirBuscador={() => setBuscarUnidadMercanciaOpen(true)}
+                              icono={ScanLine}
+                              claveClassName="w-24"
+                              placeholderEtiqueta="Unidad"
+                            />
                           </Field>
                           <Field label="Clave SAT - Tipo de embalaje">
                             <Select
@@ -1549,12 +1563,20 @@ export function ViajesPage() {
                           </label>
                           {materialForm.materialPeligroso && (
                             <Field label="Clave SAT - Material peligroso">
-                              <div className="flex gap-2">
-                                <Input className="flex-1" readOnly value={materialForm.claveMaterialPeligroso} placeholder="Busca la clave..." />
-                                <ToolbarButton type="button" onClick={() => setBuscarMaterialPeligrosoOpen(true)}>
-                                  <ScanLine size={14} />
-                                </ToolbarButton>
-                              </div>
+                              <ClaveSatField
+                                clave={materialForm.claveMaterialPeligroso ?? ''}
+                                etiqueta={materialForm.descripcionMaterialPeligroso ?? ''}
+                                useCatalogo={useClaveMaterialPeligrosoSat}
+                                obtenerClave={(r) => r.clave}
+                                obtenerEtiqueta={(r) => r.descripcion}
+                                onSeleccionar={(r) =>
+                                  setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: r.clave, descripcionMaterialPeligroso: r.descripcion }))
+                                }
+                                onLimpiar={() => setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: '', descripcionMaterialPeligroso: '' }))}
+                                onAbrirBuscador={() => setBuscarMaterialPeligrosoOpen(true)}
+                                icono={ScanLine}
+                                placeholderClave="Clave"
+                              />
                             </Field>
                           )}
                           <label className="flex items-center gap-2 text-sm text-ink-300">
@@ -1896,8 +1918,8 @@ export function ViajesPage() {
       )}
       {buscarMaterialPeligrosoOpen && (
         <BuscarClaveMaterialPeligrosoModal
-          onSelect={(clave) => {
-            setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: clave }));
+          onSelect={(clave, descripcion) => {
+            setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: clave, descripcionMaterialPeligroso: descripcion }));
             setBuscarMaterialPeligrosoOpen(false);
           }}
           onClose={() => setBuscarMaterialPeligrosoOpen(false)}

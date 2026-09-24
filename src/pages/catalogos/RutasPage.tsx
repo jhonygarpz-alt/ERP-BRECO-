@@ -3,7 +3,8 @@ import { MoreHorizontal, Plus, Trash2 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
-import { CONFIG_AUTOTRANSPORTE_SAT } from '../../lib/catalogosSat';
+import { CONFIG_AUTOTRANSPORTE_SAT, TIPOS_EMBALAJE_SAT, SECTOR_COFEPRIS_SAT, TIPO_MATERIA_COFEPRIS_SAT } from '../../lib/catalogosSat';
+import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../../lib/useClaveSat';
 import type {
   Cliente,
   ClasificacionViaje,
@@ -22,6 +23,8 @@ import { ComboBoxCodigo } from '../../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, ToolbarButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 import { TrazarRutaModal } from '../../components/viajes/TrazarRutaModal';
+import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../../components/catalogos/BuscarClaveSatModal';
+import { ClaveSatField } from '../../components/catalogos/ClaveSatField';
 import { hoyISO } from '../../lib/fechas';
 
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
@@ -74,6 +77,20 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
   descripcion: '',
   peso: 0,
   unidadPeso: UNIDADES_PESO[0],
+  claveProdServCP: '',
+  descripcionProdServCP: '',
+  claveUnidadSat: '',
+  nombreUnidadSat: '',
+  claveEmbalajeSat: '',
+  descripcionEmbalajeSat: '',
+  materialPeligroso: false,
+  claveMaterialPeligroso: '',
+  descripcionMaterialPeligroso: '',
+  aplicaCofepris: false,
+  cofeprisSector: '',
+  cofeprisTipoMateria: '',
+  cofeprisDenominacionGenerica: '',
+  cofeprisDenominacionDistintiva: '',
 };
 
 export function RutasPage() {
@@ -96,6 +113,9 @@ export function RutasPage() {
   const [clasificacionPickerOpen, setClasificacionPickerOpen] = useState(false);
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [trazarRutaOpen, setTrazarRutaOpen] = useState(false);
+  const [buscarProdServCPOpen, setBuscarProdServCPOpen] = useState(false);
+  const [buscarUnidadMercanciaOpen, setBuscarUnidadMercanciaOpen] = useState(false);
+  const [buscarMaterialPeligrosoOpen, setBuscarMaterialPeligrosoOpen] = useState(false);
 
   // ---- Alta rapida (sin salir del catalogo de Rutas) ----
   const emptyNuevoCliente = { nombre: '', rfc: '', tipo: 'Nacional' as Cliente['tipo'], moneda: 'MXN' as Cliente['moneda'] };
@@ -957,6 +977,130 @@ export function RutasPage() {
                         </Select>
                       </div>
                     </Field>
+                    <div className="space-y-3 rounded-lg border border-breco-500/30 bg-breco-500/5 p-3">
+                      <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-breco-500">
+                        Complemento Carta Porte
+                      </p>
+                      <p className="text-xs text-ink-500">
+                        Estas claves se guardan en la ruta para que al usarla como plantilla en un Viaje o Carta Porte no haya que
+                        volver a capturarlas.
+                      </p>
+                      <Field label="Clave SAT - Productos y servicios (Bienes Transp.)">
+                        <ClaveSatField
+                          clave={materialForm.claveProdServCP ?? ''}
+                          etiqueta={materialForm.descripcionProdServCP ?? ''}
+                          useCatalogo={useClaveProdServCPSat}
+                          obtenerClave={(r) => r.clave}
+                          obtenerEtiqueta={(r) => r.descripcion}
+                          onSeleccionar={(r) => setMaterialForm((f) => ({ ...f, claveProdServCP: r.clave, descripcionProdServCP: r.descripcion }))}
+                          onLimpiar={() => setMaterialForm((f) => ({ ...f, claveProdServCP: '', descripcionProdServCP: '' }))}
+                          onAbrirBuscador={() => setBuscarProdServCPOpen(true)}
+                          claveClassName="w-24"
+                        />
+                      </Field>
+                      <Field label="Clave SAT - Unidad">
+                        <ClaveSatField
+                          clave={materialForm.claveUnidadSat ?? ''}
+                          etiqueta={materialForm.nombreUnidadSat ?? ''}
+                          useCatalogo={useClaveUnidadSat}
+                          obtenerClave={(r) => r.clave}
+                          obtenerEtiqueta={(r) => r.nombre}
+                          onSeleccionar={(r) => setMaterialForm((f) => ({ ...f, claveUnidadSat: r.clave, nombreUnidadSat: r.nombre }))}
+                          onLimpiar={() => setMaterialForm((f) => ({ ...f, claveUnidadSat: '', nombreUnidadSat: '' }))}
+                          onAbrirBuscador={() => setBuscarUnidadMercanciaOpen(true)}
+                          claveClassName="w-24"
+                          placeholderEtiqueta="Unidad"
+                        />
+                      </Field>
+                      <Field label="Clave SAT - Tipo de embalaje">
+                        <Select
+                          value={materialForm.claveEmbalajeSat}
+                          onChange={(e) => {
+                            const encontrado = TIPOS_EMBALAJE_SAT.find((t) => t.clave === e.target.value);
+                            setMaterialForm({
+                              ...materialForm,
+                              claveEmbalajeSat: e.target.value,
+                              descripcionEmbalajeSat: encontrado?.descripcion ?? '',
+                            });
+                          }}
+                        >
+                          <option value="">Selecciona...</option>
+                          {TIPOS_EMBALAJE_SAT.map((t) => (
+                            <option key={t.clave} value={t.clave}>{t.clave} - {t.descripcion}</option>
+                          ))}
+                        </Select>
+                      </Field>
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={materialForm.materialPeligroso ?? false}
+                          onChange={(e) => setMaterialForm({ ...materialForm, materialPeligroso: e.target.checked })}
+                        />
+                        Material peligroso
+                      </label>
+                      {materialForm.materialPeligroso && (
+                        <Field label="Clave SAT - Material peligroso">
+                          <ClaveSatField
+                            clave={materialForm.claveMaterialPeligroso ?? ''}
+                            etiqueta={materialForm.descripcionMaterialPeligroso ?? ''}
+                            useCatalogo={useClaveMaterialPeligrosoSat}
+                            obtenerClave={(r) => r.clave}
+                            obtenerEtiqueta={(r) => r.descripcion}
+                            onSeleccionar={(r) =>
+                              setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: r.clave, descripcionMaterialPeligroso: r.descripcion }))
+                            }
+                            onLimpiar={() => setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: '', descripcionMaterialPeligroso: '' }))}
+                            onAbrirBuscador={() => setBuscarMaterialPeligrosoOpen(true)}
+                          />
+                        </Field>
+                      )}
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={materialForm.aplicaCofepris ?? false}
+                          onChange={(e) => setMaterialForm({ ...materialForm, aplicaCofepris: e.target.checked })}
+                        />
+                        Aplica Sector COFEPRIS
+                      </label>
+                      {materialForm.aplicaCofepris && (
+                        <div className="space-y-2 rounded-lg border border-line-800 p-2">
+                          <Field label="Sector COFEPRIS">
+                            <Select
+                              value={materialForm.cofeprisSector ?? ''}
+                              onChange={(e) => setMaterialForm({ ...materialForm, cofeprisSector: e.target.value })}
+                            >
+                              <option value="">Selecciona...</option>
+                              {SECTOR_COFEPRIS_SAT.map((s) => (
+                                <option key={s.clave} value={s.clave}>{s.clave} - {s.descripcion}</option>
+                              ))}
+                            </Select>
+                          </Field>
+                          <Field label="Tipo de materia">
+                            <Select
+                              value={materialForm.cofeprisTipoMateria}
+                              onChange={(e) => setMaterialForm({ ...materialForm, cofeprisTipoMateria: e.target.value })}
+                            >
+                              <option value="">Selecciona...</option>
+                              {TIPO_MATERIA_COFEPRIS_SAT.map((t) => (
+                                <option key={t.clave} value={t.clave}>{t.clave} - {t.descripcion}</option>
+                              ))}
+                            </Select>
+                          </Field>
+                          <Field label="Denominacion generica">
+                            <Input
+                              value={materialForm.cofeprisDenominacionGenerica}
+                              onChange={(e) => setMaterialForm({ ...materialForm, cofeprisDenominacionGenerica: e.target.value })}
+                            />
+                          </Field>
+                          <Field label="Denominacion distintiva">
+                            <Input
+                              value={materialForm.cofeprisDenominacionDistintiva}
+                              onChange={(e) => setMaterialForm({ ...materialForm, cofeprisDenominacionDistintiva: e.target.value })}
+                            />
+                          </Field>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex justify-end">
                       <PrimaryButton type="button" onClick={agregarMaterial}>
                         Agregar
@@ -988,7 +1132,14 @@ export function RutasPage() {
                           <td className="px-3 py-2 text-ink-300">
                             {m.cantidad} {m.unidadEmpaque}
                           </td>
-                          <td className="px-3 py-2 text-ink-300">{m.descripcion}</td>
+                          <td className="px-3 py-2 text-ink-300">
+                            {m.descripcion}
+                            {m.materialPeligroso && (
+                              <span className="ml-2 rounded bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-400">
+                                Peligroso
+                              </span>
+                            )}
+                          </td>
                           <td className="px-3 py-2 text-ink-300">
                             {m.peso} {m.unidadPeso}
                           </td>
@@ -1025,6 +1176,34 @@ export function RutasPage() {
             setTrazarRutaOpen(false);
           }}
           onClose={() => setTrazarRutaOpen(false)}
+        />
+      )}
+
+      {buscarProdServCPOpen && (
+        <BuscarClaveProdServCPModal
+          onSelect={(clave, descripcion) => {
+            setMaterialForm((f) => ({ ...f, claveProdServCP: clave, descripcionProdServCP: descripcion }));
+            setBuscarProdServCPOpen(false);
+          }}
+          onClose={() => setBuscarProdServCPOpen(false)}
+        />
+      )}
+      {buscarUnidadMercanciaOpen && (
+        <BuscarClaveUnidadModal
+          onSelect={(clave, nombre) => {
+            setMaterialForm((f) => ({ ...f, claveUnidadSat: clave, nombreUnidadSat: nombre }));
+            setBuscarUnidadMercanciaOpen(false);
+          }}
+          onClose={() => setBuscarUnidadMercanciaOpen(false)}
+        />
+      )}
+      {buscarMaterialPeligrosoOpen && (
+        <BuscarClaveMaterialPeligrosoModal
+          onSelect={(clave, descripcion) => {
+            setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: clave, descripcionMaterialPeligroso: descripcion }));
+            setBuscarMaterialPeligrosoOpen(false);
+          }}
+          onClose={() => setBuscarMaterialPeligrosoOpen(false)}
         />
       )}
 

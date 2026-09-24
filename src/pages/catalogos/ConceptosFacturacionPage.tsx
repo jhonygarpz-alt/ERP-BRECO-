@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import { OBJETO_IMPUESTO_SAT } from '../../lib/catalogosSat';
+import { useClaveProdServSat, useClaveUnidadSat } from '../../lib/useClaveSat';
 import type { ConceptoFacturacion, ImpuestoConcepto } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { BuscarClaveProdServModal, BuscarClaveUnidadModal } from '../../components/catalogos/BuscarClaveSatModal';
-import { Field, GhostButton, Input, PrimaryButton, Select, ToolbarButton } from '../../components/ui/form';
+import { ClaveSatField } from '../../components/catalogos/ClaveSatField';
+import { Field, GhostButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
 const TRASLADOS_DISPONIBLES = ['IVA 0%', 'IVA 8%', 'IVA 11%', 'IVA 16%'];
@@ -290,34 +291,29 @@ export function ConceptosFacturacionPage() {
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-breco-500">Seccion Claves CFDI</h3>
               <div className="grid grid-cols-1 gap-4">
                 <Field label="Clave Productos y Servicios">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="flex flex-shrink-0 gap-2">
-                      <Input className="w-28" value={form.claveProdServ} readOnly placeholder="Clave" />
-                      <ToolbarButton
-                        type="button"
-                        title="Buscar en el catalogo SAT"
-                        onClick={() => setBuscarProdServOpen(true)}
-                      >
-                        <MoreHorizontal size={16} />
-                      </ToolbarButton>
-                    </div>
-                    <Input className="flex-1" value={form.claveProdServDescripcion} readOnly placeholder="Descripcion" />
-                  </div>
+                  <ClaveSatField
+                    clave={form.claveProdServ}
+                    etiqueta={form.claveProdServDescripcion}
+                    useCatalogo={useClaveProdServSat}
+                    obtenerClave={(r) => r.clave}
+                    obtenerEtiqueta={(r) => r.descripcion}
+                    onSeleccionar={(r) => setForm((f) => ({ ...f, claveProdServ: r.clave, claveProdServDescripcion: r.descripcion }))}
+                    onLimpiar={() => setForm((f) => ({ ...f, claveProdServ: '', claveProdServDescripcion: '' }))}
+                    onAbrirBuscador={() => setBuscarProdServOpen(true)}
+                  />
                 </Field>
                 <Field label="Clave Unidad">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="flex flex-shrink-0 gap-2">
-                      <Input className="w-28" value={form.claveUnidad} readOnly placeholder="Clave" />
-                      <ToolbarButton
-                        type="button"
-                        title="Buscar en el catalogo SAT"
-                        onClick={() => setBuscarUnidadOpen(true)}
-                      >
-                        <MoreHorizontal size={16} />
-                      </ToolbarButton>
-                    </div>
-                    <Input className="flex-1" value={form.claveUnidadNombre} readOnly placeholder="Nombre" />
-                  </div>
+                  <ClaveSatField
+                    clave={form.claveUnidad}
+                    etiqueta={form.claveUnidadNombre}
+                    useCatalogo={useClaveUnidadSat}
+                    obtenerClave={(r) => r.clave}
+                    obtenerEtiqueta={(r) => r.nombre}
+                    onSeleccionar={(r) => setForm((f) => ({ ...f, claveUnidad: r.clave, claveUnidadNombre: r.nombre }))}
+                    onLimpiar={() => setForm((f) => ({ ...f, claveUnidad: '', claveUnidadNombre: '' }))}
+                    onAbrirBuscador={() => setBuscarUnidadOpen(true)}
+                    placeholderEtiqueta="Nombre"
+                  />
                 </Field>
               </div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

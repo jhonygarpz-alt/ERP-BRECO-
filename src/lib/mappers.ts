@@ -921,13 +921,13 @@ export function conceptoFacturacionFromRow(row: Record<string, unknown>): Concep
     incluirCalculoLiquidacionPorcentajeFlete: row.incluir_calculo_liquidacion_pct_flete as boolean,
     incluirReporteControlMovimientosInterterminal: row.incluir_reporte_cm_interterminal as boolean,
     incluirReporteControlMovimientosTransporteGasolina: row.incluir_reporte_cm_transporte_gasolina as boolean,
-    claveProdServ: row.clave_prod_serv as string,
-    claveProdServDescripcion: row.clave_prod_serv_descripcion as string,
-    claveUnidad: row.clave_unidad as string,
-    claveUnidadNombre: row.clave_unidad_nombre as string,
-    unidadMedida: row.unidad_medida as string,
-    noIdentificacion: row.no_identificacion as string,
-    objetoImpuesto: row.objeto_impuesto as string,
+    claveProdServ: (row.clave_prod_serv as string | null) ?? '',
+    claveProdServDescripcion: (row.clave_prod_serv_descripcion as string | null) ?? '',
+    claveUnidad: (row.clave_unidad as string | null) ?? '',
+    claveUnidadNombre: (row.clave_unidad_nombre as string | null) ?? '',
+    unidadMedida: (row.unidad_medida as string | null) ?? '',
+    noIdentificacion: (row.no_identificacion as string | null) ?? '',
+    objetoImpuesto: (row.objeto_impuesto as string | null) ?? '',
   };
 }
 export function conceptoFacturacionToRow(c: ConceptoFacturacion) {
