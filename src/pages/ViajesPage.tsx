@@ -311,13 +311,15 @@ export function ViajesPage() {
   }
 
   /** Abre el viaje seleccionado directo en la pestana Mercancias, donde vive el complemento Carta Porte. */
-  function abrirCartaPorteSeleccionado() {
-    if (!viajeSeleccionado) return;
-    setEditing(viajeSeleccionado);
-    setForm(viajeSeleccionado);
-    setTab('mercancias');
+  /** Crea un documento de Carta Porte desde cero -- es un tipo de documento
+   * independiente del Viaje, no requiere que exista ni que haya uno
+   * seleccionado en la tabla. */
+  function abrirNuevaCartaPorte() {
+    setEditing(null);
+    setForm({ ...emptyForm(), tipoDocumento: 'CartaPorte' });
+    setTab('general');
     setTrayectoSeleccionadoId(null);
-    setSoloLectura(!puedeEditar);
+    setSoloLectura(false);
     setModalOpen(true);
   }
 
@@ -946,7 +948,7 @@ export function ViajesPage() {
           <Ban size={16} /> Cancelar Viaje
         </ToolbarButton>
         <span className="mx-1 h-5 w-px bg-line-800" />
-        <ToolbarButton type="button" disabled={!viajeSeleccionado} onClick={abrirCartaPorteSeleccionado}>
+        <ToolbarButton type="button" disabled={!puedeCrear} onClick={abrirNuevaCartaPorte}>
           <FileText size={16} /> Carta Porte
         </ToolbarButton>
         <ToolbarButton
