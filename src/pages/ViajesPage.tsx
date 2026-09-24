@@ -18,6 +18,7 @@ import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterial
 import { ClaveSatField } from '../components/catalogos/ClaveSatField';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
 import { CampoResaltadoProvider } from '../lib/CampoResaltadoContext';
+import { TIMBRADO_VACIO } from '../lib/timbrado';
 import {
   TIPOS_EMBALAJE_SAT,
   SECTOR_COFEPRIS_SAT,
@@ -122,6 +123,7 @@ export function ViajesPage() {
     folio: nextFolio(viajes.items),
     fecha: hoyISO(),
     tipoDocumento: 'Viaje',
+    timbrado: TIMBRADO_VACIO,
     clienteId: '',
     unidadId: '',
     operadorId: '',

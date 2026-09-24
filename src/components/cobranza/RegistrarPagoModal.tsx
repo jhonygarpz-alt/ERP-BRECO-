@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { hoyISO } from '../../lib/fechas';
 import { facturasPendientesDePago, nextFolioCobranza } from '../../lib/cobranza';
+import { TIMBRADO_VACIO } from '../../lib/timbrado';
 import type { AplicacionPago, PagoCliente } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
@@ -90,6 +91,7 @@ export function RegistrarPagoModal({
       .map(([facturaId, importe]) => ({ facturaId, importe }));
     onGuardar({
       folio: editing?.folio ?? nextFolioCobranza(pagosCliente.items, 'PGO-'),
+      timbrado: editing?.timbrado ?? TIMBRADO_VACIO,
       clienteId,
       fechaMovimiento: editing?.fechaMovimiento ?? new Date().toISOString(),
       fechaCobro,

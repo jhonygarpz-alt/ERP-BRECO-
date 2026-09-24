@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { supabase } from './supabaseClient';
 import { viajeToRow } from './mappers';
+import { TIMBRADO_VACIO } from './timbrado';
 import type { EstatusViaje, Viaje } from '../types';
 
 function normalizarEncabezado(texto: string): string {
@@ -314,6 +315,7 @@ export async function guardarViajesImportados(
         tipoDocumento: 'Viaje',
         nacional: false,
         local: false,
+        timbrado: TIMBRADO_VACIO,
         horaSalida: '',
         horaLlegadaEstimada: '',
         ubicacionActual: '',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, FileSpreadsheet, Image as ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
+import { TIMBRADO_VACIO } from '../../lib/timbrado';
 import { uid } from '../../lib/storage';
 import { reconocerImagen } from '../../lib/ocr';
 import { parseProgramaTexto } from '../../lib/parsePrograma';
@@ -222,6 +223,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
           tipoDocumento: 'Viaje',
           nacional: false,
           local: false,
+          timbrado: TIMBRADO_VACIO,
           ...payload,
           sucursal: '',
           loadNumber: '',

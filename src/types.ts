@@ -1,5 +1,23 @@
 export type Estatus = 'activo' | 'inactivo';
 
+/**
+ * Datos de timbrado ante el SAT de un CFDI (Factura, Carta Porte, Nota de
+ * Credito o Complemento de Pago). El ERP hoy no se conecta a ningun PAC para
+ * timbrar, asi que estos campos quedan vacios hasta que se conecte uno; los
+ * formatos de impresion ya reservan su lugar (folio fiscal, sellos, QR) para
+ * cuando ese timbrado real empiece a llenarlos.
+ */
+export interface DatosTimbradoCfdi {
+  folioFiscal: string;
+  noSerieCertificadoEmisor: string;
+  noSerieCertificadoSat: string;
+  fechaHoraExpedicion: string;
+  fechaHoraCertificacion: string;
+  selloDigitalCfdi: string;
+  selloDigitalSat: string;
+  cadenaOriginal: string;
+}
+
 export interface ClienteContacto {
   nombre: string;
   puesto: string;
@@ -428,6 +446,8 @@ export interface Viaje {
   fecha: string;
   /** 'Viaje' (documento normal) o 'CartaPorte' (requiere el complemento CFDI de Carta Porte). */
   tipoDocumento: TipoDocumentoViaje;
+  /** Datos de timbrado del CFDI de Carta Porte (vacios hasta que se conecte un PAC). */
+  timbrado: DatosTimbradoCfdi;
   clienteId: string;
   unidadId: string;
   operadorId: string;
@@ -522,6 +542,8 @@ export interface Factura {
   id: string;
   folio: string;
   fecha: string;
+  /** Datos de timbrado del CFDI (vacios hasta que se conecte un PAC). */
+  timbrado: DatosTimbradoCfdi;
   /** Primer viaje relacionado (compatibilidad con reportes existentes); la lista completa vive en viajeIds. */
   viajeId: string;
   clienteId: string;
@@ -941,6 +963,8 @@ export type EstatusPago = 'Aplicado' | 'Cancelado';
 export interface PagoCliente {
   id: string;
   folio: string;
+  /** Datos de timbrado del CFDI de Complemento de Pago (vacios hasta que se conecte un PAC). */
+  timbrado: DatosTimbradoCfdi;
   clienteId: string;
   fechaMovimiento: string;
   fechaCobro: string;
@@ -975,6 +999,8 @@ export interface NotaCredito {
   id: string;
   folio: string;
   fecha: string;
+  /** Datos de timbrado del CFDI (vacios hasta que se conecte un PAC). */
+  timbrado: DatosTimbradoCfdi;
   sucursal: string;
   clienteId: string;
   /** Facturas a las que esta NC les reduce el saldo. */

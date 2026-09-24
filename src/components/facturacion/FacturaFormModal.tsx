@@ -4,6 +4,7 @@ import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
+import { TIMBRADO_VACIO } from '../../lib/timbrado';
 import type { ConceptoFacturacion, Factura, FacturaLinea, TipoFactura } from '../../types';
 import {
   calcularTotalesFactura,
@@ -36,6 +37,7 @@ function construirFactura(tipo: TipoFactura, facturas: Factura[]): Omit<Factura,
   return {
     folio: nextFolioFactura(facturas),
     fecha: hoyISO(),
+    timbrado: TIMBRADO_VACIO,
     viajeId: '',
     clienteId: '',
     importe: 0,

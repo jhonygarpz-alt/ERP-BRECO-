@@ -6,6 +6,7 @@ import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
 import { porcentajeDeTexto } from '../../lib/facturacion';
 import { calcularTotalesNotaCredito, facturasPendientesDePago, nextFolioCobranza } from '../../lib/cobranza';
+import { TIMBRADO_VACIO } from '../../lib/timbrado';
 import type { NotaCredito, NotaCreditoLinea } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
@@ -21,6 +22,7 @@ function construirNotaCredito(notas: NotaCredito[]): Omit<NotaCredito, 'id'> {
   return {
     folio: nextFolioCobranza(notas, 'NC-'),
     fecha: hoyISO(),
+    timbrado: TIMBRADO_VACIO,
     sucursal: 'MA',
     clienteId: '',
     facturaIds: [],

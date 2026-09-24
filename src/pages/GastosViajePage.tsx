@@ -158,6 +158,10 @@ export function GastosViajePage() {
       setError('Captura un concepto para el gasto.');
       return;
     }
+    if (form.generaPasivo && !form.proveedorId) {
+      setError('Para generar el pasivo en Cuentas por Pagar, primero asigna el Proveedor a quien se le debe.');
+      return;
+    }
     const tipoFinal = form.tipo === 'Otro' ? tipoOtro.trim() || 'Otro' : form.tipo;
     setError('');
     const datos: Omit<GastoViaje, 'id'> = {
@@ -368,7 +372,7 @@ export function GastosViajePage() {
                 <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} placeholder="Descripcion del gasto" />
               </Field>
 
-              <Field label="Proveedor">
+              <Field label={form.generaPasivo ? 'Proveedor (obligatorio para generar el pasivo)' : 'Proveedor'}>
                 <ComboBoxCodigo
                   items={proveedores.items}
                   valor={proveedorSeleccionado?.numero ?? ''}

@@ -1,4 +1,5 @@
 import { DEFAULT_ALERTAS_VENCIMIENTOS } from './alertasVencimientosConfig';
+import { TIMBRADO_VACIO } from './timbrado';
 import type {
   Almacen,
   Articulo,
@@ -537,6 +538,7 @@ export function viajeFromRow(row: Record<string, unknown>): Viaje {
     pesoCargaUnidad: (row.peso_carga_unidad as string | null) ?? 'KILOGRAMOS',
     conceptosFacturacionViaje: (row.conceptos_facturacion_viaje as Viaje['conceptosFacturacionViaje'] | null) ?? [],
     tipoDocumento: (row.tipo_documento as Viaje['tipoDocumento'] | null) ?? 'Viaje',
+    timbrado: (row.timbrado as Viaje['timbrado'] | null) ?? TIMBRADO_VACIO,
   };
 }
 export function viajeToRow(v: Viaje) {
@@ -593,6 +595,7 @@ export function viajeToRow(v: Viaje) {
     peso_carga_unidad: v.pesoCargaUnidad,
     conceptos_facturacion_viaje: v.conceptosFacturacionViaje,
     tipo_documento: v.tipoDocumento,
+    timbrado: v.timbrado,
   };
 }
 
@@ -693,6 +696,7 @@ export function facturaFromRow(row: Record<string, unknown>): Factura {
     lineas: (row.lineas as Factura['lineas'] | null) ?? [],
     subtotal: Number(row.subtotal) || 0,
     descuentoTotal: Number(row.descuento_total) || 0,
+    timbrado: (row.timbrado as Factura['timbrado'] | null) ?? TIMBRADO_VACIO,
   };
 }
 export function facturaToRow(f: Factura) {
@@ -719,6 +723,7 @@ export function facturaToRow(f: Factura) {
     lineas: f.lineas,
     subtotal: f.subtotal,
     descuento_total: f.descuentoTotal,
+    timbrado: f.timbrado,
   };
 }
 
@@ -1237,6 +1242,7 @@ export function pagoClienteFromRow(row: Record<string, unknown>): PagoCliente {
     saldoAFavor: Number(row.saldo_a_favor) || 0,
     estatus: (row.estatus as PagoCliente['estatus']) ?? 'Aplicado',
     creadoEn: (row.creado_en as string | null) ?? undefined,
+    timbrado: (row.timbrado as PagoCliente['timbrado'] | null) ?? TIMBRADO_VACIO,
   };
 }
 export function pagoClienteToRow(p: PagoCliente) {
@@ -1256,6 +1262,7 @@ export function pagoClienteToRow(p: PagoCliente) {
     aplicaciones: p.aplicaciones,
     saldo_a_favor: p.saldoAFavor,
     estatus: p.estatus,
+    timbrado: p.timbrado,
   };
 }
 
@@ -1278,6 +1285,7 @@ export function notaCreditoFromRow(row: Record<string, unknown>): NotaCredito {
     total: Number(row.total) || 0,
     estatus: (row.estatus as NotaCredito['estatus']) ?? 'Activa',
     creadoEn: (row.creado_en as string | null) ?? undefined,
+    timbrado: (row.timbrado as NotaCredito['timbrado'] | null) ?? TIMBRADO_VACIO,
   };
 }
 export function notaCreditoToRow(n: NotaCredito) {
@@ -1298,6 +1306,7 @@ export function notaCreditoToRow(n: NotaCredito) {
     subtotal: n.subtotal,
     total: n.total,
     estatus: n.estatus,
+    timbrado: n.timbrado,
   };
 }
 

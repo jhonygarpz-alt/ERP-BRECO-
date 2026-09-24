@@ -12,6 +12,7 @@ import { StatCard } from '../components/ui/StatCard';
 import { Receipt, CheckCircle2, Clock } from 'lucide-react';
 import { ImportarFacturacionModal } from '../components/reportes/ImportarFacturacionModal';
 import { hoyISO } from '../lib/fechas';
+import { TIMBRADO_VACIO } from '../lib/timbrado';
 
 function formatearMXN(n: number): string {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -52,6 +53,7 @@ export function FacturacionPage() {
   const emptyForm: Omit<Factura, 'id'> = {
     folio: nextFolio(facturas.items),
     fecha,
+    timbrado: TIMBRADO_VACIO,
     viajeId: viajes.items[0]?.id ?? '',
     clienteId: viajes.items[0]?.clienteId ?? clientes.items[0]?.id ?? '',
     importe: 0,
