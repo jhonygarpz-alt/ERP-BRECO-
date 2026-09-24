@@ -107,6 +107,17 @@ import { EstatusViajesReportPage } from './pages/reportes-trafico/EstatusViajesR
 import { IngresosPorUnidadReportPage } from './pages/reportes-trafico/IngresosPorUnidadReportPage';
 import { DetalladoViajesReportPage } from './pages/reportes-trafico/DetalladoViajesReportPage';
 import { VencimientosUnidadesReportPage } from './pages/reportes-trafico/VencimientosUnidadesReportPage';
+import { SalidasDiariasReportPage } from './pages/reportes-trafico/SalidasDiariasReportPage';
+import { CombustibleConciliadoReportPage } from './pages/reportes-trafico/CombustibleConciliadoReportPage';
+import { RendimientoPorUnidadReportPage } from './pages/reportes-trafico/RendimientoPorUnidadReportPage';
+import { AnticiposOperadorReportPage } from './pages/reportes-trafico/AnticiposOperadorReportPage';
+import { CartasPorteRevisionReportPage } from './pages/reportes-trafico/CartasPorteRevisionReportPage';
+import { ListadoViajesConcentradoReportPage } from './pages/reportes-trafico/ListadoViajesConcentradoReportPage';
+import { ViajesUsoTraficoReportPage } from './pages/reportes-trafico/ViajesUsoTraficoReportPage';
+import { InventarioEquipoViajesReportPage } from './pages/reportes-trafico/InventarioEquipoViajesReportPage';
+import { AnticiposVsGastosReportPage } from './pages/reportes-trafico/AnticiposVsGastosReportPage';
+import { JustInTimeReportPage } from './pages/reportes-trafico/JustInTimeReportPage';
+import { DisponibilidadEquipoReportPage } from './pages/reportes-trafico/DisponibilidadEquipoReportPage';
 import { ImprimirReporteTraficoPage } from './pages/reportes-trafico/ImprimirReporteTraficoPage';
 import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
@@ -165,6 +176,17 @@ function App() {
                   <Route path="/trafico/reportes/ingresos-unidad" element={<IngresosPorUnidadReportPage />} />
                   <Route path="/trafico/reportes/detallado-viajes" element={<DetalladoViajesReportPage />} />
                   <Route path="/trafico/reportes/vencimientos-unidades" element={<VencimientosUnidadesReportPage />} />
+                  <Route path="/trafico/reportes/salidas-diarias" element={<SalidasDiariasReportPage />} />
+                  <Route path="/trafico/reportes/combustible-conciliado" element={<CombustibleConciliadoReportPage />} />
+                  <Route path="/trafico/reportes/rendimiento-unidad" element={<RendimientoPorUnidadReportPage />} />
+                  <Route path="/trafico/reportes/anticipos-operador" element={<AnticiposOperadorReportPage />} />
+                  <Route path="/trafico/reportes/cartas-porte-revision" element={<CartasPorteRevisionReportPage />} />
+                  <Route path="/trafico/reportes/viajes-concentrado" element={<ListadoViajesConcentradoReportPage />} />
+                  <Route path="/trafico/reportes/viajes-uso-trafico" element={<ViajesUsoTraficoReportPage />} />
+                  <Route path="/trafico/reportes/inventario-equipo" element={<InventarioEquipoViajesReportPage />} />
+                  <Route path="/trafico/reportes/anticipos-vs-gastos" element={<AnticiposVsGastosReportPage />} />
+                  <Route path="/trafico/reportes/just-in-time" element={<JustInTimeReportPage />} />
+                  <Route path="/trafico/reportes/disponibilidad-equipo" element={<DisponibilidadEquipoReportPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Facturacion" />}>
