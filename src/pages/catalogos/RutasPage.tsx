@@ -34,6 +34,12 @@ function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
+/** Extrae el porcentaje de textos como "IVA 16%" o "RETENCION IVA 4%". */
+function extraerPorcentaje(texto: string): number {
+  const m = texto.match(/(\d+(?:\.\d+)?)\s*%/);
+  return m ? Number(m[1]) : 0;
+}
+
 const emptyForm: Omit<Ruta, 'id'> = {
   codigo: '',
   activo: true,
@@ -448,9 +454,22 @@ export function RutasPage() {
   }
 
   const totalConceptos = useMemo(
-    () => form.conceptosFacturacion.reduce((acc, c) => acc + (c.importe || 0), 0),
+    () =>
+      form.conceptosFacturacion.reduce((acc, c) => {
+        const importe = c.importe || 0;
+        const iva = importe * (extraerPorcentaje(c.traslada) / 100);
+        const retencionIva = importe * (extraerPorcentaje(c.retiene) / 100);
+        return acc + importe + iva - retencionIva - (c.importeIsr || 0);
+      }, 0),
     [form.conceptosFacturacion],
   );
+
+  function actualizarImporteConceptoLinea(id: string, importe: number) {
+    setForm((f) => ({
+      ...f,
+      conceptosFacturacion: f.conceptosFacturacion.map((c) => (c.id === id ? { ...c, importe } : c)),
+    }));
+  }
   const conceptoOpcionesTraslada = useMemo(() => {
     const c = conceptosFacturacion.items.find((x) => x.id === conceptoLineaForm.conceptoFacturacionId);
     return c ? c.traslados.filter((t) => t.aplica) : [];
@@ -901,7 +920,15 @@ export function RutasPage() {
                         <tr key={c.id} className="border-t border-line-800/70">
                           <td className="px-3 py-2 text-ink-300">{c.concepto}</td>
                           <td className="px-3 py-2 text-ink-300">{c.unidadMedida}</td>
-                          <td className="px-3 py-2 text-ink-300">{money(c.importe)}</td>
+                          <td className="px-3 py-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              className="w-28"
+                              value={c.importe || ''}
+                              onChange={(e) => actualizarImporteConceptoLinea(c.id, Number(e.target.value) || 0)}
+                            />
+                          </td>
                           <td className="px-3 py-2 text-ink-300">{c.traslada}</td>
                           <td className="px-3 py-2 text-ink-300">{c.retiene}</td>
                           <td className="px-3 py-2 text-ink-300">{money(c.importeIsr)}</td>
@@ -918,7 +945,7 @@ export function RutasPage() {
 
                 <div className="flex justify-end">
                   <div className="w-48">
-                    <Field label="Total">
+                    <Field label="Total (con IVA y retenciones)">
                       <Input readOnly value={money(totalConceptos)} />
                     </Field>
                   </div>

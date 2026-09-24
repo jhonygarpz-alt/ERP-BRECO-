@@ -374,8 +374,6 @@ export interface ViajeTrayecto {
   unidadId: string;
   origen: string;
   destino: string;
-  cvR1: string;
-  cvR2: string;
 }
 
 /** Un renglon de la pestana "Mercancias" (Descripciones / Materiales Carga). */
@@ -445,6 +443,14 @@ export interface Viaje {
   exportacion: boolean;
   nacional: boolean;
   local: boolean;
+  /**
+   * Clave del catalogo SAT c_ConfigAutotransporte para el Complemento Carta
+   * Porte de este viaje en particular. Por defecto se toma la de la unidad
+   * asignada (Unidad.tipo), pero se puede sobreescribir aqui porque la
+   * configuracion vehicular cambia cuando la unidad lleva remolque(s)
+   * (p.ej. una unidad "C2" pasa a ser "T3S2" al enganchar un semirremolque).
+   */
+  configVehicularClaveSat?: string;
   estatus: EstatusViaje;
   observaciones: string;
   ubicacionActual: string;

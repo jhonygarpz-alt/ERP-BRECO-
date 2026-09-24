@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowRightLeft, Ban, ChevronLeft, ChevronRight, Copy, Eye, FileText, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Ban, ChevronLeft, ChevronRight, Copy, Eye, FileText, Map, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
@@ -13,6 +13,7 @@ import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea,
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
+import { VerRutaMapaModal } from '../components/viajes/VerRutaMapaModal';
 import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../components/catalogos/BuscarClaveSatModal';
 import { ClaveSatField } from '../components/catalogos/ClaveSatField';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
@@ -49,13 +50,17 @@ function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
+/** Extrae el porcentaje de textos como "IVA 16%" o "RETENCION IVA 4%". */
+function extraerPorcentaje(texto: string): number {
+  const m = texto.match(/(\d+(?:\.\d+)?)\s*%/);
+  return m ? Number(m[1]) : 0;
+}
+
 const emptyTrayecto: Omit<ViajeTrayecto, 'id'> = {
   operadorId: '',
   unidadId: '',
   origen: '',
   destino: '',
-  cvR1: '',
-  cvR2: '',
 };
 
 const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
@@ -132,6 +137,7 @@ export function ViajesPage() {
     exportacion: false,
     nacional: false,
     local: false,
+    configVehicularClaveSat: '',
     estatus: 'Programado',
     observaciones: '',
     ubicacionActual: '',
@@ -220,9 +226,11 @@ export function ViajesPage() {
   const [trayectoEditandoId, setTrayectoEditandoId] = useState<string | null>(null);
   const [trayectoForm, setTrayectoForm] = useState<Omit<ViajeTrayecto, 'id'>>(emptyTrayecto);
   const [trayectoSeleccionadoId, setTrayectoSeleccionadoId] = useState<string | null>(null);
+  const [verRutaMapaOpen, setVerRutaMapaOpen] = useState(false);
 
   // ---- Mercancias ----
   const [materialForm, setMaterialForm] = useState<Omit<ViajeMaterial, 'id'>>(emptyMaterial);
+  const [materialEditandoId, setMaterialEditandoId] = useState<string | null>(null);
 
   // ---- Conceptos de facturacion del viaje ----
   const emptyConceptoLinea = {
@@ -477,8 +485,6 @@ export function ViajesPage() {
       unidadId: '',
       origen: t.origen,
       destino: t.destino,
-      cvR1: '',
-      cvR2: '',
     }));
     const conceptosCopiados = r.conceptosFacturacion.map((c) => ({ ...c, id: uid('cfv') }));
     const materialesCopiados = r.materialesCarga.map((m) => ({ ...m, id: uid('mat') }));
@@ -500,9 +506,23 @@ export function ViajesPage() {
   // ---- Mercancias ----
   function agregarMaterial() {
     if (!materialForm.descripcion.trim() && !materialForm.cantidad) return;
-    const nuevos = [...form.materialesCarga, { id: uid('mat'), ...materialForm }];
+    const nuevos = materialEditandoId
+      ? form.materialesCarga.map((m) => (m.id === materialEditandoId ? { id: m.id, ...materialForm } : m))
+      : [...form.materialesCarga, { id: uid('mat'), ...materialForm }];
     const pesoTotal = nuevos.reduce((acc, m) => acc + (m.peso || 0), 0);
     setForm((f) => ({ ...f, materialesCarga: nuevos, pesoCargaTotal: pesoTotal }));
+    setMaterialForm(emptyMaterial);
+    setMaterialEditandoId(null);
+  }
+
+  function editarMaterial(m: ViajeMaterial) {
+    const { id, ...resto } = m;
+    setMaterialEditandoId(id);
+    setMaterialForm(resto);
+  }
+
+  function cancelarEdicionMaterial() {
+    setMaterialEditandoId(null);
     setMaterialForm(emptyMaterial);
   }
 
@@ -510,6 +530,7 @@ export function ViajesPage() {
     const nuevos = form.materialesCarga.filter((m) => m.id !== id);
     const pesoTotal = nuevos.reduce((acc, m) => acc + (m.peso || 0), 0);
     setForm((f) => ({ ...f, materialesCarga: nuevos, pesoCargaTotal: pesoTotal }));
+    if (materialEditandoId === id) cancelarEdicionMaterial();
   }
 
   // ---- Conceptos de facturacion ----
@@ -789,9 +810,22 @@ export function ViajesPage() {
   }
 
   const totalConceptos = useMemo(
-    () => form.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0),
+    () =>
+      form.conceptosFacturacionViaje.reduce((acc, c) => {
+        const importe = c.importe || 0;
+        const iva = importe * (extraerPorcentaje(c.traslada) / 100);
+        const retencionIva = importe * (extraerPorcentaje(c.retiene) / 100);
+        return acc + importe + iva - retencionIva - (c.importeIsr || 0);
+      }, 0),
     [form.conceptosFacturacionViaje],
   );
+
+  function actualizarImporteConceptoLinea(id: string, importe: number) {
+    setForm((f) => ({
+      ...f,
+      conceptosFacturacionViaje: f.conceptosFacturacionViaje.map((c) => (c.id === id ? { ...c, importe } : c)),
+    }));
+  }
 
   const conceptoOpcionesTraslada = useMemo(() => {
     const c = conceptosFacturacion.items.find((x) => x.id === conceptoLineaForm.conceptoFacturacionId);
@@ -801,6 +835,8 @@ export function ViajesPage() {
     const c = conceptosFacturacion.items.find((x) => x.id === conceptoLineaForm.conceptoFacturacionId);
     return c ? c.retenciones.filter((t) => t.aplica) : [];
   }, [conceptosFacturacion.items, conceptoLineaForm.conceptoFacturacionId]);
+
+  const rutaDelViaje = rutas.items.find((r) => r.codigo === form.rutaCodigo);
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = useMemo(() => {
@@ -1345,6 +1381,14 @@ export function ViajesPage() {
                       <GhostButton type="button" disabled={!trayectoSeleccionadoId} onClick={eliminarTrayectoSeleccionado}>
                         Eliminar
                       </GhostButton>
+                      <GhostButton
+                        type="button"
+                        disabled={!rutaDelViaje?.trazoRuta}
+                        onClick={() => setVerRutaMapaOpen(true)}
+                        title={!rutaDelViaje?.trazoRuta ? 'Esta ruta no tiene un trazo guardado' : undefined}
+                      >
+                        <Map size={14} /> Ver Ruta en Mapa
+                      </GhostButton>
                     </div>
 
                     <div className="overflow-hidden rounded-xl border border-line-800">
@@ -1356,14 +1400,12 @@ export function ViajesPage() {
                             <th className="px-3 py-2 font-medium">Camion</th>
                             <th className="px-3 py-2 font-medium">Origen</th>
                             <th className="px-3 py-2 font-medium">Destino</th>
-                            <th className="px-3 py-2 font-medium">C/V R1</th>
-                            <th className="px-3 py-2 font-medium">C/V R2</th>
                           </tr>
                         </thead>
                         <tbody>
                           {form.trayectos.length === 0 && (
                             <tr>
-                              <td colSpan={7} className="px-3 py-6 text-center text-ink-600">
+                              <td colSpan={5} className="px-3 py-6 text-center text-ink-600">
                                 Sin trayectos asignados.
                               </td>
                             </tr>
@@ -1384,8 +1426,6 @@ export function ViajesPage() {
                                 <td className="px-3 py-2 text-ink-300">{un?.economico ?? ''}</td>
                                 <td className="px-3 py-2 text-ink-300">{t.origen}</td>
                                 <td className="px-3 py-2 text-ink-300">{t.destino}</td>
-                                <td className="px-3 py-2 text-ink-300">{t.cvR1}</td>
-                                <td className="px-3 py-2 text-ink-300">{t.cvR2}</td>
                               </tr>
                             );
                           })}
@@ -1412,7 +1452,6 @@ export function ViajesPage() {
                             </p>
                           );
                         }
-                        const config = CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === unidadAsignada.tipo);
                         const permiso = TIPO_PERMISO_SCT.find((p) => p.clave === unidadAsignada.claveTipoPermisoSct);
                         return (
                           <>
@@ -1420,7 +1459,19 @@ export function ViajesPage() {
                               <Input readOnly value={`${unidadAsignada.economico} - ${unidadAsignada.placas}`} />
                             </Field>
                             <Field label="Configuracion vehicular (Clave SAT)">
-                              <Input readOnly value={config ? `${config.clave} - ${config.descripcion}` : unidadAsignada.tipo || 'Sin configurar'} />
+                              <Select
+                                value={form.configVehicularClaveSat || unidadAsignada.tipo || ''}
+                                onChange={(e) => setForm((f) => ({ ...f, configVehicularClaveSat: e.target.value }))}
+                              >
+                                <option value="">Selecciona...</option>
+                                {CONFIG_AUTOTRANSPORTE_SAT.map((c) => (
+                                  <option key={c.clave} value={c.clave}>{c.clave} - {c.descripcion}</option>
+                                ))}
+                              </Select>
+                              <p className="mt-1 text-xs text-ink-500">
+                                Se toma por defecto del catalogo de Unidades, pero puedes cambiarla aqui si este viaje lleva
+                                remolque(s) y la configuracion es distinta.
+                              </p>
                             </Field>
                             <Field label="Permiso SCT">
                               <Input readOnly value={unidadAsignada.numeroPermisoSct || 'Sin capturar'} />
@@ -1629,9 +1680,14 @@ export function ViajesPage() {
                           )}
                         </div>
                       )}
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
+                        {materialEditandoId && (
+                          <GhostButton type="button" onClick={cancelarEdicionMaterial}>
+                            Cancelar
+                          </GhostButton>
+                        )}
                         <PrimaryButton type="button" onClick={agregarMaterial}>
-                          Agregar
+                          {materialEditandoId ? 'Guardar cambios' : 'Agregar'}
                         </PrimaryButton>
                       </div>
                     </div>
@@ -1671,7 +1727,10 @@ export function ViajesPage() {
                           </tr>
                         )}
                         {form.materialesCarga.map((m) => (
-                          <tr key={m.id} className="border-t border-line-800/70">
+                          <tr
+                            key={m.id}
+                            className={`border-t border-line-800/70 ${materialEditandoId === m.id ? 'bg-breco-500/10' : ''}`}
+                          >
                             <td className="px-3 py-2 text-ink-300">
                               {m.cantidad} {m.unidadEmpaque}
                             </td>
@@ -1687,9 +1746,14 @@ export function ViajesPage() {
                               {m.peso} {m.unidadPeso}
                             </td>
                             <td className="px-3 py-2">
-                              <IconButton type="button" onClick={() => eliminarMaterial(m.id)} className="hover:text-breco-500">
-                                <Trash2 size={14} />
-                              </IconButton>
+                              <div className="flex justify-end gap-1">
+                                <IconButton type="button" title="Editar/Consultar" onClick={() => editarMaterial(m)}>
+                                  <Pencil size={14} />
+                                </IconButton>
+                                <IconButton type="button" title="Eliminar" onClick={() => eliminarMaterial(m.id)} className="hover:text-breco-500">
+                                  <Trash2 size={14} />
+                                </IconButton>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1824,7 +1888,15 @@ export function ViajesPage() {
                           <tr key={c.id} className="border-t border-line-800/70">
                             <td className="px-3 py-2 text-ink-300">{c.concepto}</td>
                             <td className="px-3 py-2 text-ink-300">{c.unidadMedida}</td>
-                            <td className="px-3 py-2 text-ink-300">{money(c.importe)}</td>
+                            <td className="px-3 py-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                className="w-28"
+                                value={c.importe || ''}
+                                onChange={(e) => actualizarImporteConceptoLinea(c.id, Number(e.target.value) || 0)}
+                              />
+                            </td>
                             <td className="px-3 py-2 text-ink-300">{c.traslada}</td>
                             <td className="px-3 py-2 text-ink-300">{c.retiene}</td>
                             <td className="px-3 py-2 text-ink-300">{money(c.importeIsr)}</td>
@@ -1842,7 +1914,7 @@ export function ViajesPage() {
 
                 <div className="flex justify-end">
                   <div className="w-48">
-                    <Field label="Total">
+                    <Field label="Total (con IVA y retenciones)">
                       <Input readOnly value={money(totalConceptos)} />
                     </Field>
                   </div>
@@ -2349,12 +2421,6 @@ export function ViajesPage() {
               <Field label="Destino">
                 <Input value={trayectoForm.destino} onChange={(e) => setTrayectoForm({ ...trayectoForm, destino: e.target.value })} />
               </Field>
-              <Field label="C/V R1">
-                <Input value={trayectoForm.cvR1} onChange={(e) => setTrayectoForm({ ...trayectoForm, cvR1: e.target.value })} />
-              </Field>
-              <Field label="C/V R2">
-                <Input value={trayectoForm.cvR2} onChange={(e) => setTrayectoForm({ ...trayectoForm, cvR2: e.target.value })} />
-              </Field>
             </div>
             <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
               <GhostButton type="button" onClick={() => setTrayectoModalOpen(false)}>
@@ -2366,6 +2432,17 @@ export function ViajesPage() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {verRutaMapaOpen && rutaDelViaje?.trazoRuta && (
+        <VerRutaMapaModal
+          origenDireccion={rutaDelViaje.origenDireccion}
+          destinoDireccion={rutaDelViaje.destinoDireccion}
+          kilometros={rutaDelViaje.kilometros}
+          horas={rutaDelViaje.horas}
+          trazoRuta={rutaDelViaje.trazoRuta}
+          onClose={() => setVerRutaMapaOpen(false)}
+        />
       )}
     </div>
   );
