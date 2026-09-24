@@ -11,6 +11,7 @@ export const seedEmpresa: Empresa = {
   nombre: 'BRECO Transportes',
   razonSocial: 'Pendiente',
   rfc: 'Pendiente',
+  regimenFiscal: '',
   direccion: 'Pendiente',
   telefono: 'Pendiente',
   email: 'Pendiente',

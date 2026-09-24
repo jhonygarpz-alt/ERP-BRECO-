@@ -629,6 +629,8 @@ export interface Empresa {
   nombre: string;
   razonSocial: string;
   rfc: string;
+  /** Clave + descripcion del catalogo SAT c_RegimenFiscal (ej. "612 - Personas Fisicas con Actividades Empresariales y Profesionales"), para el encabezado de los CFDI impresos. */
+  regimenFiscal: string;
   direccion: string;
   telefono: string;
   email: string;

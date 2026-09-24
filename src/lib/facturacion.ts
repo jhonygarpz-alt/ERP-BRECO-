@@ -1,5 +1,5 @@
 import { uid } from './storage';
-import type { Cliente, Factura, FacturaLinea, Viaje } from '../types';
+import type { Cliente, Factura, FacturaLinea, Viaje, ViajeConceptoFacturacionLinea } from '../types';
 
 export function creditoDisponibleDeCliente(cliente: Cliente | undefined, facturas: Factura[]): number {
   if (!cliente) return 0;
@@ -61,6 +61,23 @@ export function calcularTotalesFactura(lineas: FacturaLinea[]): TotalesFactura {
   const totalIva = lineas.reduce((acc, l) => acc + l.importeIva, 0);
   const totalRetenciones = lineas.reduce((acc, l) => acc + l.importeRetencion, 0);
   return { subtotal, descuentoTotal, totalIva, totalRetenciones, total: subtotal - descuentoTotal + totalIva - totalRetenciones };
+}
+
+export interface TotalesConceptosViaje {
+  subtotal: number;
+  totalIva: number;
+  totalRetencionIva: number;
+  totalIsr: number;
+  total: number;
+}
+
+/** Totales (con IVA trasladado y retenciones de IVA/ISR) de los "Conceptos de Facturacion" capturados en un Viaje/Carta Porte o en una Ruta. */
+export function calcularTotalesConceptosViaje(lineas: ViajeConceptoFacturacionLinea[]): TotalesConceptosViaje {
+  const subtotal = lineas.reduce((acc, c) => acc + (c.importe || 0), 0);
+  const totalIva = lineas.reduce((acc, c) => acc + (c.importe || 0) * porcentajeDeTexto(c.traslada), 0);
+  const totalRetencionIva = lineas.reduce((acc, c) => acc + (c.importe || 0) * porcentajeDeTexto(c.retiene), 0);
+  const totalIsr = lineas.reduce((acc, c) => acc + (c.importeIsr || 0), 0);
+  return { subtotal, totalIva, totalRetencionIva, totalIsr, total: subtotal + totalIva - totalRetencionIva - totalIsr };
 }
 
 /** Siguiente folio consecutivo de 9 digitos, igual al formato ya usado en Viajes/Facturas del sistema de referencia. */

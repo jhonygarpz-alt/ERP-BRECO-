@@ -64,6 +64,13 @@ export function EmpresaSection() {
           <Field label="RFC">
             <Input value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value })} />
           </Field>
+          <Field label="Regimen Fiscal (SAT)">
+            <Input
+              value={form.regimenFiscal}
+              onChange={(e) => setForm({ ...form, regimenFiscal: e.target.value })}
+              placeholder="Ej. 612 - Personas Fisicas con Actividades Empresariales y Profesionales"
+            />
+          </Field>
           <Field label="Telefono">
             <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
           </Field>

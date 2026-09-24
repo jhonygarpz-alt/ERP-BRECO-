@@ -19,6 +19,7 @@ import { ClaveSatField } from '../components/catalogos/ClaveSatField';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
 import { CampoResaltadoProvider } from '../lib/CampoResaltadoContext';
 import { TIMBRADO_VACIO } from '../lib/timbrado';
+import { calcularTotalesConceptosViaje } from '../lib/facturacion';
 import {
   TIPOS_EMBALAJE_SAT,
   SECTOR_COFEPRIS_SAT,
@@ -49,12 +50,6 @@ function shiftDate(date: string, dias: number) {
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-}
-
-/** Extrae el porcentaje de textos como "IVA 16%" o "RETENCION IVA 4%". */
-function extraerPorcentaje(texto: string): number {
-  const m = texto.match(/(\d+(?:\.\d+)?)\s*%/);
-  return m ? Number(m[1]) : 0;
 }
 
 const emptyTrayecto: Omit<ViajeTrayecto, 'id'> = {
@@ -812,13 +807,7 @@ export function ViajesPage() {
   }
 
   const totalConceptos = useMemo(
-    () =>
-      form.conceptosFacturacionViaje.reduce((acc, c) => {
-        const importe = c.importe || 0;
-        const iva = importe * (extraerPorcentaje(c.traslada) / 100);
-        const retencionIva = importe * (extraerPorcentaje(c.retiene) / 100);
-        return acc + importe + iva - retencionIva - (c.importeIsr || 0);
-      }, 0),
+    () => calcularTotalesConceptosViaje(form.conceptosFacturacionViaje).total,
     [form.conceptosFacturacionViaje],
   );
 

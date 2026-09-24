@@ -111,6 +111,7 @@ export function EmpresasSection() {
         nombre: form.nombre,
         razonSocial: '',
         rfc: form.rfc,
+        regimenFiscal: '',
         direccion: '',
         telefono: form.telefono,
         email: form.email,

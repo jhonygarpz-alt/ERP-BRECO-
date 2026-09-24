@@ -1,25 +1,46 @@
 import { useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
+import { CONFIG_AUTOTRANSPORTE_SAT, TIPO_PERMISO_SCT } from '../lib/catalogosSat';
+import { calcularTotalesConceptosViaje } from '../lib/facturacion';
+import { importeALetras } from '../lib/numeroALetras';
+import { useQrDataUrl } from '../lib/useQrDataUrl';
+import {
+  BarraAcciones,
+  pagina,
+  Recuadro,
+  CajaEtiqueta,
+  TituloSeccion,
+  tablaStyle,
+  thCfdi,
+  tdCfdi,
+  CajaTotales,
+  BloqueTimbrado,
+  LeyendaCfdi,
+} from '../components/print/PrintKit';
+import type { Caja, Cliente, ConceptoFacturacion, Destinatario, Empresa, Operador, Unidad, Viaje } from '../types';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
+
+function direccionCorta(d?: { calle: string; numeroExterior: string; colonia: string }) {
+  if (!d) return '';
+  return [d.calle, d.numeroExterior, d.colonia].filter(Boolean).join(' ');
+}
+
+function ciudadCorta(d?: { municipio: string; estado: string; pais: string; cp: string }) {
+  if (!d) return '';
+  return [d.municipio, d.estado, d.pais].filter(Boolean).join(', ') + (d.cp ? `, C.P. ${d.cp}` : '');
 }
 
 export function ImprimirViajePage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const conImporteReal = searchParams.get('modo') !== 'cero';
-  const { viajes, clientes, unidades, operadores, cajas, empresa } = useData();
+  const { viajes, clientes, unidades, operadores, cajas, rutas, destinatarios, conceptosFacturacion, empresa } = useData();
 
   const viaje = viajes.items.find((v) => v.id === id);
-  const cliente = clientes.items.find((c) => c.id === viaje?.clienteId);
-  const trayectos = viaje?.trayectos.length ? viaje.trayectos : [];
-  const primerOperador = operadores.items.find((o) => o.id === (trayectos[0]?.operadorId || viaje?.operadorId));
-  const remolque1 = cajas.items.find((c) => c.id === viaje?.remolque1Id);
-  const dolly = cajas.items.find((c) => c.id === viaje?.dollyId);
-  const remolque2 = cajas.items.find((c) => c.id === viaje?.remolque2Id);
-  const totalConceptos = conImporteReal ? (viaje?.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0) ?? 0) : 0;
 
   useEffect(() => {
     if (!viaje) return;
@@ -28,37 +49,355 @@ export function ImprimirViajePage() {
   }, [viaje]);
 
   if (!viaje) {
+    return <div style={pagina}>No se encontro el viaje.</div>;
+  }
+
+  if (viaje.tipoDocumento === 'CartaPorte') {
     return (
-      <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif' }}>
-        No se encontro el viaje.
-      </div>
+      <VistaCartaPorte
+        viaje={viaje}
+        cliente={clientes.items.find((c) => c.id === viaje.clienteId)}
+        unidad={unidades.items.find((u) => u.id === (viaje.trayectos[0]?.unidadId || viaje.unidadId))}
+        remolque1={cajas.items.find((c) => c.id === viaje.remolque1Id)}
+        remolque2={cajas.items.find((c) => c.id === viaje.remolque2Id)}
+        dolly={cajas.items.find((c) => c.id === viaje.dollyId)}
+        operador={operadores.items.find((o) => o.id === (viaje.trayectos[0]?.operadorId || viaje.operadorId))}
+        rutaOrigen={destinatarios.items.find((d) => d.id === rutas.items.find((r) => r.codigo === viaje.rutaCodigo)?.origenId)}
+        rutaDestino={destinatarios.items.find((d) => d.id === rutas.items.find((r) => r.codigo === viaje.rutaCodigo)?.destinoId)}
+        conceptosCatalogo={conceptosFacturacion.items}
+        empresa={empresa.value}
+      />
     );
   }
 
   return (
-    <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif', fontSize: 13 }}>
-      <div className="mb-4 flex justify-end gap-2 print:hidden">
-        <button
-          onClick={() => window.print()}
-          style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
-        >
-          Imprimir
-        </button>
-        <button
-          onClick={() => window.close()}
-          style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
-        >
-          Cerrar
-        </button>
+    <VistaViajeSimple
+      viaje={viaje}
+      conImporteReal={conImporteReal}
+      cliente={clientes.items.find((c) => c.id === viaje.clienteId)}
+      operadores={operadores.items}
+      unidades={unidades.items}
+      remolque1={cajas.items.find((c) => c.id === viaje.remolque1Id)}
+      dolly={cajas.items.find((c) => c.id === viaje.dollyId)}
+      remolque2={cajas.items.find((c) => c.id === viaje.remolque2Id)}
+      empresa={empresa.value}
+    />
+  );
+}
+
+function VistaCartaPorte({
+  viaje,
+  cliente,
+  unidad,
+  remolque1,
+  remolque2,
+  dolly,
+  operador,
+  rutaOrigen,
+  rutaDestino,
+  conceptosCatalogo,
+  empresa,
+}: {
+  viaje: Viaje;
+  cliente?: Cliente;
+  unidad?: Unidad;
+  remolque1?: Caja;
+  remolque2?: Caja;
+  dolly?: Caja;
+  operador?: Operador;
+  rutaOrigen?: Destinatario;
+  rutaDestino?: Destinatario;
+  conceptosCatalogo: ConceptoFacturacion[];
+  empresa: Empresa;
+}) {
+  const totales = calcularTotalesConceptosViaje(viaje.conceptosFacturacionViaje);
+  const importeLetra = importeALetras(totales.total, viaje.moneda === 'DOLARES' ? 'USD' : 'MXN');
+  const config = CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === (viaje.configVehicularClaveSat || unidad?.tipo));
+  const permiso = TIPO_PERMISO_SCT.find((p) => p.clave === unidad?.claveTipoPermisoSct);
+  const qrDataUrl = useQrDataUrl(viaje.timbrado.folioFiscal);
+  const internacional = viaje.importacion || viaje.exportacion;
+
+  return (
+    <div style={pagina}>
+      <BarraAcciones />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: 16, alignItems: 'start', marginBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          {empresa.logoDataUrl && <img src={empresa.logoDataUrl} alt="" style={{ height: 56, width: 'auto', objectFit: 'contain' }} />}
+          <div>
+            <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{empresa.nombre || 'Empresa'}</h1>
+            <p style={{ margin: '2px 0 0', fontSize: 10.5 }}>RFC: {empresa.rfc || '—'}</p>
+            {empresa.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 10.5 }}>{empresa.regimenFiscal}</p>}
+            <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#444' }}>{empresa.direccion || ''}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <CajaEtiqueta etiqueta="Carta Porte con Complemento" valor={viaje.folio} />
+          <CajaEtiqueta etiqueta="No. Serie Certificado del Emisor" valor={viaje.timbrado.noSerieCertificadoEmisor} tono="claro" />
+          <CajaEtiqueta etiqueta="Fecha Hora Expedicion" valor={viaje.timbrado.fechaHoraExpedicion || viaje.fecha} tono="claro" />
+        </div>
       </div>
+
+      <Recuadro style={{ padding: '8px 12px', marginBottom: 10 }}>
+        <p style={{ margin: 0, fontWeight: 700 }}>Cliente: {cliente?.nombre ?? '—'}</p>
+        <p style={{ margin: '1px 0 0' }}>RFC: {cliente?.rfc ?? '—'}</p>
+        <p style={{ margin: '4px 0 0' }}>Direccion: {direccionCorta(cliente)}</p>
+        <p style={{ margin: '1px 0 0' }}>Ciudad: {ciudadCorta(cliente)}</p>
+      </Recuadro>
+
+      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>Detalle de mercancias</TituloSeccion>
+        <table style={tablaStyle}>
+          <thead>
+            <tr>
+              <th style={thCfdi}>Bienes Transportados</th>
+              <th style={thCfdi}>Clave Unidad</th>
+              <th style={thCfdi}>Cantidad</th>
+              <th style={thCfdi}>Material Peligroso</th>
+              <th style={thCfdi}>Peso</th>
+              <th style={thCfdi}>Valor</th>
+              <th style={thCfdi}>Moneda</th>
+            </tr>
+          </thead>
+          <tbody>
+            {viaje.materialesCarga.length === 0 && (
+              <tr>
+                <td style={tdCfdi} colSpan={7}>
+                  Sin mercancias capturadas.
+                </td>
+              </tr>
+            )}
+            {viaje.materialesCarga.map((m) => (
+              <tr key={m.id}>
+                <td style={tdCfdi}>
+                  {m.claveProdServCP ? `${m.claveProdServCP} ` : ''}
+                  {m.descripcion}
+                </td>
+                <td style={tdCfdi}>{m.claveUnidadSat || m.unidadEmpaque}</td>
+                <td style={tdCfdi}>{m.cantidad}</td>
+                <td style={tdCfdi}>{m.materialPeligroso ? `SI (${m.claveMaterialPeligroso || 'sin clave'})` : 'NO'}</td>
+                <td style={tdCfdi}>
+                  {m.peso} {m.unidadPeso}
+                </td>
+                <td style={tdCfdi}>0</td>
+                <td style={tdCfdi}>{viaje.moneda === 'DOLARES' ? 'USD' : 'MXN'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>Detalle del complemento Carta Porte</TituloSeccion>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', fontSize: 10.5 }}>
+          <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+            <strong>Medio de transporte:</strong> 01 - Autotransporte Federal
+          </div>
+          <div style={{ padding: '5px 10px' }}>
+            <strong>Transporte Internacional:</strong> {internacional ? 'SI' : 'NO'}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
+          <p style={{ margin: 0, fontWeight: 700 }}>Origen</p>
+          <p style={{ margin: '2px 0 0' }}>Fecha y hora de salida: {viaje.fecha} {viaje.horaSalida}</p>
+          {rutaOrigen ? (
+            <>
+              <p style={{ margin: '2px 0 0' }}>
+                {rutaOrigen.rfc} {rutaOrigen.nombre}
+              </p>
+              <p style={{ margin: '1px 0 0' }}>{direccionCorta(rutaOrigen)}</p>
+              <p style={{ margin: '1px 0 0' }}>{ciudadCorta(rutaOrigen)}</p>
+            </>
+          ) : (
+            <p style={{ margin: '2px 0 0' }}>{viaje.origen || viaje.cargarEn || '—'}</p>
+          )}
+        </Recuadro>
+        <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
+          <p style={{ margin: 0, fontWeight: 700 }}>Destino</p>
+          <p style={{ margin: '2px 0 0' }}>Fecha y hora de prog. llegada: {viaje.fechaEntrega || viaje.fecha} {viaje.horaLlegadaEstimada}</p>
+          {rutaDestino ? (
+            <>
+              <p style={{ margin: '2px 0 0' }}>
+                {rutaDestino.rfc} {rutaDestino.nombre}
+              </p>
+              <p style={{ margin: '1px 0 0' }}>{direccionCorta(rutaDestino)}</p>
+              <p style={{ margin: '1px 0 0' }}>{ciudadCorta(rutaDestino)}</p>
+            </>
+          ) : (
+            <p style={{ margin: '2px 0 0' }}>{viaje.destino || viaje.descargarEn || '—'}</p>
+          )}
+        </Recuadro>
+      </div>
+
+      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>Conceptos de Cobro</TituloSeccion>
+        <table style={tablaStyle}>
+          <thead>
+            <tr>
+              <th style={thCfdi}>Cantidad</th>
+              <th style={thCfdi}>Clave de Medida SAT</th>
+              <th style={thCfdi}>Clave Producto</th>
+              <th style={thCfdi}>Concepto</th>
+              <th style={{ ...thCfdi, textAlign: 'right' }}>P.U.</th>
+              <th style={{ ...thCfdi, textAlign: 'right' }}>Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {viaje.conceptosFacturacionViaje.length === 0 && (
+              <tr>
+                <td style={tdCfdi} colSpan={6}>
+                  Sin conceptos capturados.
+                </td>
+              </tr>
+            )}
+            {viaje.conceptosFacturacionViaje.map((c) => {
+              const catalogo = conceptosCatalogo.find((cc) => cc.id === c.conceptoFacturacionId);
+              return (
+                <tr key={c.id}>
+                  <td style={tdCfdi}>1</td>
+                  <td style={tdCfdi}>{catalogo?.claveUnidad || '—'}</td>
+                  <td style={tdCfdi}>{catalogo?.claveProdServ || '—'}</td>
+                  <td style={tdCfdi}>{c.concepto}</td>
+                  <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(c.importe)}</td>
+                  <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(c.importe)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {viaje.observaciones && (
+        <Recuadro style={{ padding: '6px 10px', marginBottom: 10, fontSize: 10 }}>
+          <strong>Observaciones:</strong> {viaje.observaciones}
+        </Recuadro>
+      )}
+
+      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>AutoTransporte Federal</TituloSeccion>
+        <table style={tablaStyle}>
+          <thead>
+            <tr>
+              <th style={thCfdi}>Tipo Permiso SCT</th>
+              <th style={thCfdi}>Permiso SCT</th>
+              <th style={thCfdi}>Aseguradora</th>
+              <th style={thCfdi}>Poliza Seguro</th>
+              <th style={thCfdi}>Config Vehicular</th>
+              <th style={thCfdi}>Placas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={tdCfdi}>{unidad?.claveTipoPermisoSct ? `${unidad.claveTipoPermisoSct} - ${permiso?.descripcion ?? ''}` : '—'}</td>
+              <td style={tdCfdi}>{unidad?.numeroPermisoSct || '—'}</td>
+              <td style={tdCfdi}>{unidad?.aseguradora || '—'}</td>
+              <td style={tdCfdi}>{unidad?.noPoliza || '—'}</td>
+              <td style={tdCfdi}>{config ? `${config.clave} - ${config.descripcion}` : unidad?.tipo || '—'}</td>
+              <td style={tdCfdi}>{unidad?.placas || '—'}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', fontSize: 10, borderTop: '1px solid #ddd' }}>
+          <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+            <strong>Remolque1:</strong> {remolque1 ? `${remolque1.economico} (${remolque1.placas})` : '—'}
+          </div>
+          <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+            <strong>Remolque2:</strong> {remolque2 ? `${remolque2.economico} (${remolque2.placas})` : '—'}
+          </div>
+          <div style={{ padding: '5px 10px' }}>
+            <strong>Dolly:</strong> {dolly ? `${dolly.economico} (${dolly.placas})` : '—'}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>Figuras de transporte</TituloSeccion>
+        <table style={tablaStyle}>
+          <thead>
+            <tr>
+              <th style={thCfdi}>RFC</th>
+              <th style={thCfdi}>Nombre</th>
+              <th style={thCfdi}>Licencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={tdCfdi}>{operador?.rfc || '—'}</td>
+              <td style={tdCfdi}>{operador?.nombre || '—'}</td>
+              <td style={tdCfdi}>{operador?.licencia || '—'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+        <Recuadro style={{ padding: '6px 10px', flex: 1, fontSize: 10 }}>
+          <strong>Importe con letra:</strong> {importeLetra}
+        </Recuadro>
+        <CajaTotales
+          moneda={viaje.moneda === 'DOLARES' ? 'USD' : 'MXN'}
+          filas={[
+            { etiqueta: 'Subtotal', valor: money(totales.subtotal) },
+            { etiqueta: 'IVA', valor: money(totales.totalIva) },
+            { etiqueta: 'Retenciones', valor: money(totales.totalRetencionIva + totales.totalIsr) },
+            { etiqueta: 'Total a Pagar', valor: money(totales.total), destacado: true },
+          ]}
+        />
+      </div>
+
+      <BloqueTimbrado
+        folioFiscal={viaje.timbrado.folioFiscal}
+        fechaHoraExpedicion={viaje.timbrado.fechaHoraExpedicion}
+        fechaHoraCertificacion={viaje.timbrado.fechaHoraCertificacion}
+        noSerieCertificadoEmisor={viaje.timbrado.noSerieCertificadoEmisor}
+        noSerieCertificadoSat={viaje.timbrado.noSerieCertificadoSat}
+        selloDigitalCfdi={viaje.timbrado.selloDigitalCfdi}
+        selloDigitalSat={viaje.timbrado.selloDigitalSat}
+        cadenaOriginal={viaje.timbrado.cadenaOriginal}
+        qrDataUrl={qrDataUrl}
+      />
+      <LeyendaCfdi folioFiscal={viaje.timbrado.folioFiscal} simulado={viaje.timbrado.simulado} cancelado={viaje.timbrado.cancelado} />
+    </div>
+  );
+}
+
+function VistaViajeSimple({
+  viaje,
+  conImporteReal,
+  cliente,
+  operadores,
+  unidades,
+  remolque1,
+  dolly,
+  remolque2,
+  empresa,
+}: {
+  viaje: Viaje;
+  conImporteReal: boolean;
+  cliente?: Cliente;
+  operadores: { id: string; nombre: string }[];
+  unidades: { id: string; economico: string }[];
+  remolque1?: { economico: string };
+  dolly?: { economico: string };
+  remolque2?: { economico: string };
+  empresa: Empresa;
+}) {
+  const trayectos = viaje.trayectos.length ? viaje.trayectos : [];
+  const primerOperador = operadores.find((o) => o.id === (trayectos[0]?.operadorId || viaje.operadorId));
+  const totalConceptos = conImporteReal ? viaje.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0) : 0;
+
+  return (
+    <div style={pagina}>
+      <BarraAcciones />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #111', paddingBottom: 12, marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {empresa.value.logoDataUrl && (
-            <img src={empresa.value.logoDataUrl} alt="" style={{ height: 48, width: 'auto', objectFit: 'contain' }} />
-          )}
+          {empresa.logoDataUrl && <img src={empresa.logoDataUrl} alt="" style={{ height: 48, width: 'auto', objectFit: 'contain' }} />}
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.value.nombre || 'Sistema de Trafico'}</h1>
+            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.nombre || 'Sistema de Trafico'}</h1>
             <p style={{ margin: 0, color: '#555' }}>Viaje {viaje.folio}</p>
             {!conImporteReal && <p style={{ margin: 0, color: '#555', fontStyle: 'italic' }}>Copia sin importes</p>}
           </div>
@@ -127,8 +466,8 @@ export function ImprimirViajePage() {
             <tbody>
               {trayectos.map((t) => (
                 <tr key={t.id}>
-                  <td style={tdStyle}>{operadores.items.find((o) => o.id === t.operadorId)?.nombre ?? '—'}</td>
-                  <td style={tdStyle}>{unidades.items.find((u) => u.id === t.unidadId)?.economico ?? '—'}</td>
+                  <td style={tdStyle}>{operadores.find((o) => o.id === t.operadorId)?.nombre ?? '—'}</td>
+                  <td style={tdStyle}>{unidades.find((u) => u.id === t.unidadId)?.economico ?? '—'}</td>
                   <td style={tdStyle}>{t.origen}</td>
                   <td style={tdStyle}>{t.destino}</td>
                 </tr>

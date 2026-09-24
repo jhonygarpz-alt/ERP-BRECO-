@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import { CONFIG_AUTOTRANSPORTE_SAT, TIPOS_EMBALAJE_SAT, SECTOR_COFEPRIS_SAT, TIPO_MATERIA_COFEPRIS_SAT } from '../../lib/catalogosSat';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../../lib/useClaveSat';
+import { calcularTotalesConceptosViaje } from '../../lib/facturacion';
 import type {
   Cliente,
   ClasificacionViaje,
@@ -32,12 +33,6 @@ const UNIDADES_PESO = ['KILOGRAMOS', 'TONELADAS', 'LIBRAS'];
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-}
-
-/** Extrae el porcentaje de textos como "IVA 16%" o "RETENCION IVA 4%". */
-function extraerPorcentaje(texto: string): number {
-  const m = texto.match(/(\d+(?:\.\d+)?)\s*%/);
-  return m ? Number(m[1]) : 0;
 }
 
 const emptyForm: Omit<Ruta, 'id'> = {
@@ -454,13 +449,7 @@ export function RutasPage() {
   }
 
   const totalConceptos = useMemo(
-    () =>
-      form.conceptosFacturacion.reduce((acc, c) => {
-        const importe = c.importe || 0;
-        const iva = importe * (extraerPorcentaje(c.traslada) / 100);
-        const retencionIva = importe * (extraerPorcentaje(c.retiene) / 100);
-        return acc + importe + iva - retencionIva - (c.importeIsr || 0);
-      }, 0),
+    () => calcularTotalesConceptosViaje(form.conceptosFacturacion).total,
     [form.conceptosFacturacion],
   );
 
