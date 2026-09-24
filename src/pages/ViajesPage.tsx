@@ -359,6 +359,22 @@ export function ViajesPage() {
     viajes.update(viajeSeleccionado.id, { tipoDocumento: 'CartaPorte' });
   }
 
+  function facturaDelViaje(viajeId: string): Factura | undefined {
+    return facturas.items.find(
+      (f) => f.estatus !== 'Cancelado' && ((f.viajeIds && f.viajeIds.includes(viajeId)) || f.viajeId === viajeId),
+    );
+  }
+
+  function intentarFacturarSeleccionado() {
+    if (!viajeSeleccionado) return;
+    const facturaExistente = facturaDelViaje(viajeSeleccionado.id);
+    if (facturaExistente) {
+      alert(`El viaje "${viajeSeleccionado.folio}" ya fue facturado (Factura ${facturaExistente.folio}).`);
+      return;
+    }
+    setFacturarOpen(true);
+  }
+
   function guardarFacturaDesdeViaje(datos: Omit<Factura, 'id'>) {
     facturas.add({ id: uid('fac'), ...datos });
     setFacturarOpen(false);
@@ -1032,7 +1048,12 @@ export function ViajesPage() {
           <ArrowRightLeft size={16} /> Pasar a Carta Porte
         </ToolbarButton>
         <span className="mx-1 h-5 w-px bg-line-800" />
-        <ToolbarButton type="button" disabled={!viajeSeleccionado || !puedeFacturar} onClick={() => setFacturarOpen(true)}>
+        <ToolbarButton
+          type="button"
+          disabled={!viajeSeleccionado || !puedeFacturar}
+          onClick={intentarFacturarSeleccionado}
+          title={viajeSeleccionado && facturaDelViaje(viajeSeleccionado.id) ? 'Este viaje ya fue facturado' : undefined}
+        >
           <Receipt size={16} /> Facturar
         </ToolbarButton>
       </div>
