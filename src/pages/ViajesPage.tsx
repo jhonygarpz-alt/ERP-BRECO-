@@ -356,7 +356,11 @@ export function ViajesPage() {
   function pasarACartaPorteSeleccionado() {
     if (!viajeSeleccionado || viajeSeleccionado.tipoDocumento === 'CartaPorte') return;
     if (!confirm(`Pasar el viaje "${viajeSeleccionado.folio}" a Carta Porte? Se habilitara el complemento CFDI de Carta Porte.`)) return;
+    const actualizado: Viaje = { ...viajeSeleccionado, tipoDocumento: 'CartaPorte' };
     viajes.update(viajeSeleccionado.id, { tipoDocumento: 'CartaPorte' });
+    // Abre de una vez la captura para llenar los datos que un Viaje normal no
+    // pide (permiso SCT, config vehicular, claves SAT de mercancias, etc.).
+    openEdit(actualizado);
   }
 
   function facturaDelViaje(viajeId: string): Factura | undefined {
