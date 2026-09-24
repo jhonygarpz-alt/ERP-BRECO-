@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Ban, ChevronLeft, ChevronRight, Copy, Eye, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Ban, ChevronLeft, ChevronRight, Copy, Eye, FileText, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
@@ -13,6 +13,7 @@ import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea,
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
+import { BuscarClaveProdServModal, BuscarClaveUnidadModal } from '../components/catalogos/BuscarClaveSatModal';
 import { hoyISO, fechaLocal } from '../lib/fechas';
 import { ordenServicioActivaDeUnidad } from '../lib/mantenimiento';
 
@@ -53,6 +54,18 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
   descripcion: '',
   peso: 0,
   unidadPeso: UNIDADES_PESO[0],
+  claveProdServCP: '',
+  descripcionProdServCP: '',
+  claveUnidadSat: '',
+  nombreUnidadSat: '',
+  claveEmbalajeSat: '',
+  descripcionEmbalajeSat: '',
+  materialPeligroso: false,
+  claveMaterialPeligroso: '',
+  aplicaCofepris: false,
+  cofeprisTipoMateria: '',
+  cofeprisDenominacionGenerica: '',
+  cofeprisDenominacionDistintiva: '',
 };
 
 export function ViajesPage() {
@@ -91,6 +104,7 @@ export function ViajesPage() {
   const emptyForm = (): Omit<Viaje, 'id'> => ({
     folio: nextFolio(viajes.items),
     fecha: hoyISO(),
+    tipoDocumento: 'Viaje',
     clienteId: '',
     unidadId: '',
     operadorId: '',
@@ -148,6 +162,9 @@ export function ViajesPage() {
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [rutaPickerOpen, setRutaPickerOpen] = useState(false);
   const [unidadPickerOpen, setUnidadPickerOpen] = useState(false);
+  const [buscarProdServCPOpen, setBuscarProdServCPOpen] = useState(false);
+  const [buscarUnidadMercanciaOpen, setBuscarUnidadMercanciaOpen] = useState(false);
+  const [filtroDocumento, setFiltroDocumento] = useState<'Todos' | 'Viaje' | 'CartaPorte'>('Todos');
 
   // ---- Alta rapida de cliente (sin salir de la asignacion del viaje) ----
   const emptyNuevoCliente = { nombre: '', rfc: '', tipo: 'Nacional' as Cliente['tipo'], moneda: 'MXN' as Cliente['moneda'] };
@@ -212,13 +229,14 @@ export function ViajesPage() {
     () =>
       viajes.items
         .filter((v) => todasLasFechas || v.fecha === fecha)
+        .filter((v) => filtroDocumento === 'Todos' || v.tipoDocumento === filtroDocumento)
         .filter((v) =>
           `${v.folio} ${v.loadNumber} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
             .toLowerCase()
             .includes(search.toLowerCase()),
         ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viajes.items, search, fecha, todasLasFechas, clientes.items, unidades.items],
+    [viajes.items, search, fecha, todasLasFechas, filtroDocumento, clientes.items, unidades.items],
   );
 
   function openNew() {
@@ -290,6 +308,24 @@ export function ViajesPage() {
       estatusHora: new Date().toTimeString().slice(0, 5),
     });
     setViajeSeleccionadoId(null);
+  }
+
+  /** Abre el viaje seleccionado directo en la pestana Mercancias, donde vive el complemento Carta Porte. */
+  function abrirCartaPorteSeleccionado() {
+    if (!viajeSeleccionado) return;
+    setEditing(viajeSeleccionado);
+    setForm(viajeSeleccionado);
+    setTab('mercancias');
+    setTrayectoSeleccionadoId(null);
+    setSoloLectura(!puedeEditar);
+    setModalOpen(true);
+  }
+
+  /** Convierte un viaje normal en documento de Carta Porte (habilita el complemento en Mercancias). */
+  function pasarACartaPorteSeleccionado() {
+    if (!viajeSeleccionado || viajeSeleccionado.tipoDocumento === 'CartaPorte') return;
+    if (!confirm(`Pasar el viaje "${viajeSeleccionado.folio}" a Carta Porte? Se habilitara el complemento CFDI de Carta Porte.`)) return;
+    viajes.update(viajeSeleccionado.id, { tipoDocumento: 'CartaPorte' });
   }
 
   const formatosViajeHabilitados = formatosImpresion.items.filter((f) => f.area === 'Viajes' && f.activo);
@@ -681,6 +717,10 @@ export function ViajesPage() {
       ubicacion: '',
       estadoCarga: 'Vacio',
       kilometrajeActual: 0,
+      numeroPermisoSct: '',
+      vigenciaPermisoSct: '',
+      verificacionSct: '',
+      claveTipoPermisoSct: '',
     });
     setTrayectoForm((f) => ({ ...f, unidadId: nuevoId }));
     setNuevaUnidadOpen(false);
@@ -769,6 +809,15 @@ export function ViajesPage() {
           </div>
         </div>
       ),
+    },
+    {
+      header: 'Documento',
+      render: (v) =>
+        v.tipoDocumento === 'CartaPorte' ? (
+          <span className="rounded-full bg-breco-500/15 px-2 py-0.5 text-[11px] font-semibold text-breco-500">Carta Porte</span>
+        ) : (
+          <span className="rounded-full bg-line-800 px-2 py-0.5 text-[11px] font-medium text-ink-400">Viaje</span>
+        ),
     },
     { header: 'Numero de Viaje del Cliente', render: (v) => v.loadNumber || '—' },
     { header: 'Unidad', render: (v) => unidadNombre(v.unidadId) },
@@ -861,6 +910,20 @@ export function ViajesPage() {
           />
           Ver todas las fechas
         </label>
+        <div className="ml-auto flex items-center gap-1 rounded-lg border border-line-800 bg-bg-900 p-1">
+          {(['Todos', 'Viaje', 'CartaPorte'] as const).map((opcion) => (
+            <button
+              key={opcion}
+              type="button"
+              onClick={() => setFiltroDocumento(opcion)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                filtroDocumento === opcion ? 'bg-breco-500 text-white' : 'text-ink-400 hover:text-ink-100'
+              }`}
+            >
+              {opcion === 'Todos' ? 'Ambos' : opcion === 'CartaPorte' ? 'Carta Porte' : 'Viaje'}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-line-800 bg-bg-900 p-2">
@@ -882,6 +945,18 @@ export function ViajesPage() {
         <ToolbarButton type="button" disabled={!viajeSeleccionado || !puedeEditar} onClick={cancelarViajeSeleccionado}>
           <Ban size={16} /> Cancelar Viaje
         </ToolbarButton>
+        <span className="mx-1 h-5 w-px bg-line-800" />
+        <ToolbarButton type="button" disabled={!viajeSeleccionado} onClick={abrirCartaPorteSeleccionado}>
+          <FileText size={16} /> Carta Porte
+        </ToolbarButton>
+        <ToolbarButton
+          type="button"
+          disabled={!viajeSeleccionado || !puedeEditar || viajeSeleccionado.tipoDocumento === 'CartaPorte'}
+          onClick={pasarACartaPorteSeleccionado}
+          title={viajeSeleccionado?.tipoDocumento === 'CartaPorte' ? 'Este viaje ya es Carta Porte' : undefined}
+        >
+          <ArrowRightLeft size={16} /> Pasar a Carta Porte
+        </ToolbarButton>
       </div>
 
       <CrudTable
@@ -899,6 +974,7 @@ export function ViajesPage() {
       {modalOpen && (
         <Modal
           title={soloLectura ? `Consultando Viaje ${editing?.folio ?? ''}` : editing ? `Editando Viaje ${editing.folio}` : 'Agregando Viaje'}
+          subtitle={form.tipoDocumento === 'CartaPorte' ? 'Documento: Carta Porte (con complemento CFDI)' : 'Documento: Viaje'}
           onClose={() => setModalOpen(false)}
           wide="xl"
         >
@@ -1340,6 +1416,93 @@ export function ViajesPage() {
                           </Select>
                         </div>
                       </Field>
+                      {form.tipoDocumento === 'CartaPorte' && (
+                        <div className="space-y-3 rounded-lg border border-breco-500/30 bg-breco-500/5 p-3">
+                          <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-breco-500">
+                            Complemento Carta Porte
+                          </p>
+                          <Field label="Clave SAT - Productos y servicios (Bienes Transp.)">
+                            <div className="flex gap-2">
+                              <Input className="w-24" readOnly value={materialForm.claveProdServCP} placeholder="Clave" />
+                              <Input className="flex-1" readOnly value={materialForm.descripcionProdServCP} placeholder="Descripcion" />
+                              <ToolbarButton type="button" onClick={() => setBuscarProdServCPOpen(true)}>
+                                <ScanLine size={14} />
+                              </ToolbarButton>
+                            </div>
+                          </Field>
+                          <Field label="Clave SAT - Unidad">
+                            <div className="flex gap-2">
+                              <Input className="w-24" readOnly value={materialForm.claveUnidadSat} placeholder="Clave" />
+                              <Input className="flex-1" readOnly value={materialForm.nombreUnidadSat} placeholder="Unidad" />
+                              <ToolbarButton type="button" onClick={() => setBuscarUnidadMercanciaOpen(true)}>
+                                <ScanLine size={14} />
+                              </ToolbarButton>
+                            </div>
+                          </Field>
+                          <Field label="Clave SAT - Embalaje">
+                            <div className="flex gap-2">
+                              <Input
+                                className="w-24"
+                                value={materialForm.claveEmbalajeSat}
+                                onChange={(e) => setMaterialForm({ ...materialForm, claveEmbalajeSat: e.target.value })}
+                                placeholder="Clave"
+                              />
+                              <Input
+                                className="flex-1"
+                                value={materialForm.descripcionEmbalajeSat}
+                                onChange={(e) => setMaterialForm({ ...materialForm, descripcionEmbalajeSat: e.target.value })}
+                                placeholder="Tipo de embalaje"
+                              />
+                            </div>
+                          </Field>
+                          <label className="flex items-center gap-2 text-sm text-ink-300">
+                            <input
+                              type="checkbox"
+                              checked={materialForm.materialPeligroso ?? false}
+                              onChange={(e) => setMaterialForm({ ...materialForm, materialPeligroso: e.target.checked })}
+                            />
+                            Material peligroso
+                          </label>
+                          {materialForm.materialPeligroso && (
+                            <Field label="Clave SAT - Material peligroso">
+                              <Input
+                                value={materialForm.claveMaterialPeligroso}
+                                onChange={(e) => setMaterialForm({ ...materialForm, claveMaterialPeligroso: e.target.value })}
+                              />
+                            </Field>
+                          )}
+                          <label className="flex items-center gap-2 text-sm text-ink-300">
+                            <input
+                              type="checkbox"
+                              checked={materialForm.aplicaCofepris ?? false}
+                              onChange={(e) => setMaterialForm({ ...materialForm, aplicaCofepris: e.target.checked })}
+                            />
+                            Aplica Sector COFEPRIS
+                          </label>
+                          {materialForm.aplicaCofepris && (
+                            <div className="space-y-2 rounded-lg border border-line-800 p-2">
+                              <Field label="Tipo de materia">
+                                <Input
+                                  value={materialForm.cofeprisTipoMateria}
+                                  onChange={(e) => setMaterialForm({ ...materialForm, cofeprisTipoMateria: e.target.value })}
+                                />
+                              </Field>
+                              <Field label="Denominacion generica">
+                                <Input
+                                  value={materialForm.cofeprisDenominacionGenerica}
+                                  onChange={(e) => setMaterialForm({ ...materialForm, cofeprisDenominacionGenerica: e.target.value })}
+                                />
+                              </Field>
+                              <Field label="Denominacion distintiva">
+                                <Input
+                                  value={materialForm.cofeprisDenominacionDistintiva}
+                                  onChange={(e) => setMaterialForm({ ...materialForm, cofeprisDenominacionDistintiva: e.target.value })}
+                                />
+                              </Field>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div className="flex justify-end">
                         <PrimaryButton type="button" onClick={agregarMaterial}>
                           Agregar
@@ -1386,7 +1549,14 @@ export function ViajesPage() {
                             <td className="px-3 py-2 text-ink-300">
                               {m.cantidad} {m.unidadEmpaque}
                             </td>
-                            <td className="px-3 py-2 text-ink-300">{m.descripcion}</td>
+                            <td className="px-3 py-2 text-ink-300">
+                              {m.descripcion}
+                              {m.materialPeligroso && (
+                                <span className="ml-2 rounded bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-400">
+                                  Peligroso
+                                </span>
+                              )}
+                            </td>
                             <td className="px-3 py-2 text-ink-300">
                               {m.peso} {m.unidadPeso}
                             </td>
@@ -1602,6 +1772,25 @@ export function ViajesPage() {
             </GhostButton>
           </div>
         </Modal>
+      )}
+
+      {buscarProdServCPOpen && (
+        <BuscarClaveProdServModal
+          onSelect={(clave, descripcion) => {
+            setMaterialForm((f) => ({ ...f, claveProdServCP: clave, descripcionProdServCP: descripcion }));
+            setBuscarProdServCPOpen(false);
+          }}
+          onClose={() => setBuscarProdServCPOpen(false)}
+        />
+      )}
+      {buscarUnidadMercanciaOpen && (
+        <BuscarClaveUnidadModal
+          onSelect={(clave, nombre) => {
+            setMaterialForm((f) => ({ ...f, claveUnidadSat: clave, nombreUnidadSat: nombre }));
+            setBuscarUnidadMercanciaOpen(false);
+          }}
+          onClose={() => setBuscarUnidadMercanciaOpen(false)}
+        />
       )}
 
       {clientePickerOpen && (

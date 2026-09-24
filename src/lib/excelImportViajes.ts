@@ -311,6 +311,7 @@ export async function guardarViajesImportados(
       nuevos.push({
         id: crearId(),
         folio,
+        tipoDocumento: 'Viaje',
         horaSalida: '',
         horaLlegadaEstimada: '',
         ubicacionActual: '',

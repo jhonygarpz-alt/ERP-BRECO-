@@ -112,6 +112,29 @@ export const SUBTIPO_REMOLQUE_SAT: ClaveSat[] = [
   { clave: 'CTR032', descripcion: 'Volteo Desmontable' },
 ];
 
+/** c_TipoPermiso -- tipo de permiso SCT/ATFS del autotransporte (Carta Porte). */
+export const TIPO_PERMISO_SCT: ClaveSat[] = [
+  { clave: 'TPAF01', descripcion: 'Autotransporte Federal de carga general' },
+  { clave: 'TPAF02', descripcion: 'Autotransporte Federal de carga especializada de materiales y residuos peligrosos' },
+  { clave: 'TPAF03', descripcion: 'Transporte privado de carga' },
+  { clave: 'TPAF04', descripcion: 'Autotransporte Federal de carga de gran peso y/o volumen de las dimensiones y peso vehicular maximo autorizado' },
+  { clave: 'TPAF05', descripcion: 'Transporte de fondos y valores' },
+  { clave: 'TPAF06', descripcion: 'Gruas' },
+  { clave: 'TPAF07', descripcion: 'Transporte Federal de Pasaje Turismo' },
+  { clave: 'TPAF08', descripcion: 'Transporte domestico de materiales y residuos peligrosos' },
+  { clave: 'TPAF09', descripcion: 'Autotransporte internacional de carga de largo recorrido' },
+  { clave: 'TPAF10', descripcion: 'Transporte Federal de carga de dos o mas operadores' },
+  { clave: 'TPAF11', descripcion: 'Otro' },
+  { clave: 'TPAM01', descripcion: 'Permiso para embarcaciones que naveguen en zona de altura y de cabotaje nacional' },
+  { clave: 'TPAM02', descripcion: 'Permiso temporal para embarcaciones de bandera extranjera' },
+  { clave: 'TPAM03', descripcion: 'Aviso de transportacion en embarcacion menor' },
+  { clave: 'TPAM04', descripcion: 'Otro' },
+  { clave: 'TPAA01', descripcion: 'Servicio de transporte aereo regular nacional e internacional de carga' },
+  { clave: 'TPAA02', descripcion: 'Servicio de transporte aereo no regular, nacional e internacional de carga' },
+  { clave: 'TPAA03', descripcion: 'Otro' },
+  { clave: 'TPFE01', descripcion: 'Servicio de autotransporte ferroviario de carga' },
+];
+
 /** c_ObjetoImp -- si el concepto es objeto de impuesto (usado en Conceptos de Facturacion). */
 export const OBJETO_IMPUESTO_SAT: ClaveSat[] = [
   { clave: '01', descripcion: 'No objeto de impuesto.' },

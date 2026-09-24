@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { mensajeDeError } from '../../lib/errors';
 import { unidadToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
-import { CONFIG_AUTOTRANSPORTE_SAT } from '../../lib/catalogosSat';
+import { CONFIG_AUTOTRANSPORTE_SAT, TIPO_PERMISO_SCT } from '../../lib/catalogosSat';
 import {
   descargarPlantillaUnidades,
   guardarUnidadesImportadas,
@@ -81,6 +81,10 @@ const emptyForm: Omit<Unidad, 'id'> = {
   ubicacion: '',
   estadoCarga: 'Vacio',
   kilometrajeActual: 0,
+  numeroPermisoSct: '',
+  vigenciaPermisoSct: '',
+  verificacionSct: '',
+  claveTipoPermisoSct: '',
 };
 
 export function UnidadesPage() {
@@ -473,6 +477,44 @@ export function UnidadesPage() {
                 <Field label="Tipo motor">
                   <Input value={form.tipoMotor} onChange={(e) => setForm({ ...form, tipoMotor: e.target.value })} />
                 </Field>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Permiso SCT (Carta Porte)</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <Field label="Permiso SCT">
+                  <Input
+                    value={form.numeroPermisoSct}
+                    onChange={(e) => setForm({ ...form, numeroPermisoSct: e.target.value })}
+                  />
+                </Field>
+                <Field label="Fecha de vencimiento">
+                  <Input
+                    type="date"
+                    value={form.vigenciaPermisoSct}
+                    onChange={(e) => setForm({ ...form, vigenciaPermisoSct: e.target.value })}
+                  />
+                </Field>
+                <Field label="Verificación SCT">
+                  <Input
+                    value={form.verificacionSct}
+                    onChange={(e) => setForm({ ...form, verificacionSct: e.target.value })}
+                  />
+                </Field>
+                <div className="col-span-2 sm:col-span-3">
+                  <Field label="Tipo de permiso (Clave SAT)">
+                    <Select
+                      value={form.claveTipoPermisoSct}
+                      onChange={(e) => setForm({ ...form, claveTipoPermisoSct: e.target.value })}
+                    >
+                      <option value="">Selecciona...</option>
+                      {TIPO_PERMISO_SCT.map((t) => (
+                        <option key={t.clave} value={t.clave}>{t.clave} - {t.descripcion}</option>
+                      ))}
+                    </Select>
+                  </Field>
+                </div>
               </div>
             </section>
 

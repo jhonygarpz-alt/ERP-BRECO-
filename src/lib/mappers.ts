@@ -188,6 +188,10 @@ export function unidadFromRow(row: Record<string, unknown>): Unidad {
     ubicacion: (row.ubicacion as string | null) ?? '',
     estadoCarga: ((row.estado_carga as string | null) ?? 'Vacio') as Unidad['estadoCarga'],
     kilometrajeActual: Number(row.kilometraje_actual) || 0,
+    numeroPermisoSct: (row.numero_permiso_sct as string | null) ?? '',
+    vigenciaPermisoSct: (row.vigencia_permiso_sct as string | null) ?? '',
+    verificacionSct: (row.verificacion_sct as string | null) ?? '',
+    claveTipoPermisoSct: (row.clave_tipo_permiso_sct as string | null) ?? '',
   };
 }
 export function unidadToRow(u: Unidad) {
@@ -238,6 +242,10 @@ export function unidadToRow(u: Unidad) {
     ubicacion: u.ubicacion,
     estado_carga: u.estadoCarga,
     kilometraje_actual: u.kilometrajeActual,
+    numero_permiso_sct: u.numeroPermisoSct,
+    vigencia_permiso_sct: u.vigenciaPermisoSct || null,
+    verificacion_sct: u.verificacionSct,
+    clave_tipo_permiso_sct: u.claveTipoPermisoSct,
   };
 }
 
@@ -525,6 +533,7 @@ export function viajeFromRow(row: Record<string, unknown>): Viaje {
     pesoCargaTotal: (row.peso_carga_total as number | null) ?? 0,
     pesoCargaUnidad: (row.peso_carga_unidad as string | null) ?? 'KILOGRAMOS',
     conceptosFacturacionViaje: (row.conceptos_facturacion_viaje as Viaje['conceptosFacturacionViaje'] | null) ?? [],
+    tipoDocumento: (row.tipo_documento as Viaje['tipoDocumento'] | null) ?? 'Viaje',
   };
 }
 export function viajeToRow(v: Viaje) {
@@ -577,6 +586,7 @@ export function viajeToRow(v: Viaje) {
     peso_carga_total: v.pesoCargaTotal,
     peso_carga_unidad: v.pesoCargaUnidad,
     conceptos_facturacion_viaje: v.conceptosFacturacionViaje,
+    tipo_documento: v.tipoDocumento,
   };
 }
 

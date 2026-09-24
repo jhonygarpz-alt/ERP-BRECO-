@@ -219,6 +219,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
           id: uid('via'),
           folio,
           fecha: hoy,
+          tipoDocumento: 'Viaje',
           ...payload,
           sucursal: '',
           loadNumber: '',

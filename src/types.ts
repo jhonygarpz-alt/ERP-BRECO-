@@ -175,6 +175,12 @@ export interface Unidad {
   estadoCarga: EstadoCarga;
   /** Kilometraje/odometro actual, capturado a mano; lo usa Mantenimiento > Servicios Programados para calcular vencimientos por km. */
   kilometrajeActual: number;
+  // ---- Permiso SCT (Carta Porte / Autotransporte) ----
+  numeroPermisoSct: string;
+  vigenciaPermisoSct: string;
+  verificacionSct: string;
+  /** Clave del catalogo SAT c_TipoPermiso. */
+  claveTipoPermisoSct: string;
 }
 
 export type EstadoCarga = 'Cargado' | 'Vacio';
@@ -380,6 +386,24 @@ export interface ViajeMaterial {
   descripcion: string;
   peso: number;
   unidadPeso: string;
+  // ---- Complemento Carta Porte (solo si el viaje es tipoDocumento='CartaPorte') ----
+  /** Clave del catalogo SAT c_ClaveProdServCP (Bienes Transportados). */
+  claveProdServCP?: string;
+  descripcionProdServCP?: string;
+  /** Clave del catalogo SAT c_ClaveUnidad para el peso/cantidad de la mercancia. */
+  claveUnidadSat?: string;
+  nombreUnidadSat?: string;
+  /** Clave del catalogo SAT c_TipoEmbalaje. */
+  claveEmbalajeSat?: string;
+  descripcionEmbalajeSat?: string;
+  materialPeligroso?: boolean;
+  /** Clave del catalogo SAT c_MaterialPeligroso (solo si materialPeligroso=true). */
+  claveMaterialPeligroso?: string;
+  // ---- Sector COFEPRIS (solo aplica a mercancia regulada: medicamentos, quimicos, etc.) ----
+  aplicaCofepris?: boolean;
+  cofeprisTipoMateria?: string;
+  cofeprisDenominacionGenerica?: string;
+  cofeprisDenominacionDistintiva?: string;
 }
 
 /** Un renglon de la pestana "Conceptos Facturacion" (cobro del viaje). */
@@ -394,10 +418,14 @@ export interface ViajeConceptoFacturacionLinea {
   importeIsr: number;
 }
 
+export type TipoDocumentoViaje = 'Viaje' | 'CartaPorte';
+
 export interface Viaje {
   id: string;
   folio: string;
   fecha: string;
+  /** 'Viaje' (documento normal) o 'CartaPorte' (requiere el complemento CFDI de Carta Porte). */
+  tipoDocumento: TipoDocumentoViaje;
   clienteId: string;
   unidadId: string;
   operadorId: string;
