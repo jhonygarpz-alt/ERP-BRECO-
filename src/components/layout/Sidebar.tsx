@@ -101,7 +101,7 @@ function NavCollapsibleGroup({
   label: string;
   icon: LucideIcon;
   routes: string[];
-  links: { to: string; label: string; icon: LucideIcon }[];
+  links: { to: string; label: string; icon: LucideIcon; end?: boolean }[];
   collapsed: boolean;
   onExpandCollapsed: () => void;
 }) {
@@ -134,7 +134,7 @@ function NavCollapsibleGroup({
           {links.map((item) => (
             <div key={item.to} className="relative">
               <span className="absolute -left-[18px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-sb-border" />
-              <NavRow to={item.to} end={item.to === routes[0]} label={item.label} icon={item.icon} />
+              <NavRow to={item.to} end={item.end ?? item.to === routes[0]} label={item.label} icon={item.icon} />
             </div>
           ))}
         </div>
@@ -176,7 +176,7 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-const traficoRoutes = ['/viajes', '/gastos-viaje', '/viajes-del-dia', '/aeropuerto', '/programa', '/trafico/reportes'];
+const traficoRoutes = ['/viajes', '/gastos-viaje', '/gastos-viaje/detallado', '/viajes-del-dia', '/aeropuerto', '/programa', '/trafico/reportes'];
 const monitoreoRoutes = ['/monitoreo'];
 const facturacionRoutes = ['/facturacion'];
 const cobranzaRoutes = ['/cobranza'];
@@ -227,12 +227,13 @@ export function Sidebar({
 
   const traficoLinks = [
     puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
-    puedeViajes && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet },
+    puedeViajes && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet, end: true },
+    puedeViajes && { to: '/gastos-viaje/detallado', label: 'Detallado de Gastos por Viaje', icon: BarChart3 },
     puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
     puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
     puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
     puedeViajes && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart },
-  ].filter(Boolean) as { to: string; label: string; icon: LucideIcon }[];
+  ].filter(Boolean) as { to: string; label: string; icon: LucideIcon; end?: boolean }[];
 
   const monitoreoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeMonitoreo
     ? [

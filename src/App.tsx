@@ -30,6 +30,7 @@ import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { GastosViajePage } from './pages/GastosViajePage';
+import { GastosPorViajeDetalladoPage } from './pages/GastosPorViajeDetalladoPage';
 import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
 import { ParqueVehicularPage } from './pages/ParqueVehicularPage';
@@ -140,6 +141,7 @@ function App() {
                 <Route element={<RequirePermission modulo="Viajes" />}>
                   <Route path="/viajes" element={<ViajesPage />} />
                   <Route path="/gastos-viaje" element={<GastosViajePage />} />
+                  <Route path="/gastos-viaje/detallado" element={<GastosPorViajeDetalladoPage />} />
                   <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
                   <Route path="/aeropuerto" element={<AeropuertoPage />} />
                   <Route path="/trafico/reportes" element={<ReportesTraficoHubPage />} />

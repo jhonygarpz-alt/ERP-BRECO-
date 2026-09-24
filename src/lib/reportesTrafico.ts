@@ -3,7 +3,7 @@
 // operadores) y un rango de fechas, y regresa filas listas para mostrar en
 // pantalla, exportar a Excel o imprimir en PDF -- la MISMA funcion se usa en
 // las tres pantallas para que los tres numeros siempre coincidan.
-import type { Cliente, Factura, Operador, Unidad, Viaje } from '../types';
+import type { Cliente, Factura, GastoViaje, Operador, Unidad, Viaje } from '../types';
 import { hoyISO, fechaLocal } from './fechas';
 
 export interface FiltroFechas {
@@ -169,6 +169,45 @@ export function calcularViajesPorUnidad(viajes: Viaje[], unidades: Unidad[], fil
   return Array.from(porUnidad.entries())
     .map(([unidadId, datos]) => ({ unidad: economicoUnidad(unidades, unidadId), ...datos }))
     .sort((a, b) => b.viajes - a.viajes);
+}
+
+// ---- Detallado de Gastos por Viaje (tambien 06. Gastos de Viaje por Liquidacion) ----
+export interface FilaGastoPorViaje {
+  viajeId: string;
+  folio: string;
+  fecha: string;
+  cliente: string;
+  ingreso: number;
+  gastos: number;
+  utilidad: number;
+}
+export function calcularGastosPorViaje(
+  viajes: Viaje[],
+  gastos: GastoViaje[],
+  clientes: Cliente[],
+  filtro: FiltroFechas,
+): FilaGastoPorViaje[] {
+  const gastosPorViaje = new Map<string, number>();
+  for (const g of gastos) {
+    if (g.estatus === 'Cancelado') continue;
+    gastosPorViaje.set(g.viajeId, (gastosPorViaje.get(g.viajeId) ?? 0) + (g.monto || 0));
+  }
+  return viajesEnRango(viajes, filtro)
+    .filter((v) => v.estatus !== 'Cancelado')
+    .map((v) => {
+      const ingreso = v.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0);
+      const gastosViaje = gastosPorViaje.get(v.id) ?? 0;
+      return {
+        viajeId: v.id,
+        folio: v.folio,
+        fecha: v.fecha,
+        cliente: nombreCliente(clientes, v.clienteId),
+        ingreso,
+        gastos: gastosViaje,
+        utilidad: ingreso - gastosViaje,
+      };
+    })
+    .sort((a, b) => b.fecha.localeCompare(a.fecha) || a.folio.localeCompare(b.folio));
 }
 
 // ---- 14 / 25. Estatus de Viajes / Resumen por Estatus ----

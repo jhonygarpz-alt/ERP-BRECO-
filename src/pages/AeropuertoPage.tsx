@@ -255,6 +255,7 @@ function AvanceModal({
 function Tablero({
   titulo,
   filas,
+  fechaSeleccionada,
   ahora,
   puedeEditar,
   colorEstatus,
@@ -269,6 +270,7 @@ function Tablero({
 }: {
   titulo: string;
   filas: Viaje[];
+  fechaSeleccionada: string;
   ahora: Date;
   puedeEditar: boolean;
   colorEstatus: (nombre: string) => Tone | null;
@@ -334,7 +336,12 @@ function Tablero({
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="font-semibold text-ink-100">{v.cajaEconomico || v.cajaNombre || 'N/D'}</div>
-                    <div className="text-[11px] text-ink-600">{v.folio}</div>
+                    <div className="text-[11px] text-ink-600">
+                      {v.folio}
+                      {v.fecha !== fechaSeleccionada && (
+                        <span className="ml-1.5 rounded bg-amber-500/15 px-1 py-0.5 text-amber-400">Del {v.fecha}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 uppercase">{v.origen || 'N/D'}</td>
                   <td className="px-4 py-2.5 uppercase">{v.destino || 'N/D'}</td>
@@ -426,7 +433,18 @@ export function AeropuertoPage() {
     (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
 
-  const viajesDelDia = useMemo(() => viajes.items.filter((v) => v.fecha === fecha), [viajes.items, fecha]);
+  // Ademas de los viajes fechados este dia, en la vista de "Hoy" tambien se
+  // incluye cualquier viaje que siga En Transito sin importar en que fecha
+  // se registro -- si no, un viaje que salio ayer y todavia no llega
+  // desaparece del tablero en cuanto cambia la fecha, aunque siga en la
+  // carretera.
+  const viajesDelDia = useMemo(
+    () =>
+      viajes.items.filter(
+        (v) => v.fecha === fecha || (fecha === hoyISO() && normalizarEstatus(v.estatus) === 'en transito'),
+      ),
+    [viajes.items, fecha],
+  );
 
   const viajesOrdenados = useMemo(
     () => viajesDelDia.slice().sort((a, b) => (a.horaSalida || '99:99').localeCompare(b.horaSalida || '99:99')),
@@ -517,6 +535,7 @@ export function AeropuertoPage() {
         <Tablero
           titulo="VIAJES EN RUTA"
           filas={viajesOrdenados}
+          fechaSeleccionada={fecha}
           ahora={ahora}
           puedeEditar={puedeEditar}
           colorEstatus={colorEstatus}
