@@ -4,7 +4,7 @@ import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
-import { TIMBRADO_VACIO } from '../../lib/timbrado';
+import { TIMBRADO_VACIO, timbrarSimulado } from '../../lib/timbrado';
 import type { ConceptoFacturacion, Factura, FacturaLinea, TipoFactura } from '../../types';
 import {
   calcularTotalesFactura,
@@ -79,6 +79,8 @@ export function FacturaFormModal({
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [lineaForm, setLineaForm] = useState(emptyLineaForm);
   const [error, setError] = useState('');
+  const [paso, setPaso] = useState<'formulario' | 'preguntarTimbrar' | 'aviso72h'>('formulario');
+  const [datosPendientes, setDatosPendientes] = useState<Omit<Factura, 'id'> | null>(null);
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = creditoDisponibleDeCliente(clienteSeleccionado, facturas.items.filter((f) => f.id !== editing?.id));
@@ -159,13 +161,34 @@ export function FacturaFormModal({
     }
     setError('');
     const t = calcularTotalesFactura(form.lineas);
-    onGuardar({
+    const datos: Omit<Factura, 'id'> = {
       ...form,
       viajeId: form.viajeIds[0] ?? '',
       subtotal: t.subtotal,
       descuentoTotal: t.descuentoTotal,
       importe: t.total,
-    });
+    };
+    if (datos.timbrado.folioFiscal) {
+      // Ya esta timbrada (se esta editando); no se vuelve a preguntar.
+      onGuardar(datos);
+      return;
+    }
+    setDatosPendientes(datos);
+    setPaso('preguntarTimbrar');
+  }
+
+  function confirmarTimbrar() {
+    if (!datosPendientes) return;
+    onGuardar({ ...datosPendientes, timbrado: timbrarSimulado() });
+  }
+
+  function posponerTimbrado() {
+    setPaso('aviso72h');
+  }
+
+  function cerrarAvisoYGuardar() {
+    if (!datosPendientes) return;
+    onGuardar(datosPendientes);
   }
 
   return (
@@ -478,6 +501,44 @@ export function FacturaFormModal({
           onSelect={seleccionarConcepto}
           onClose={() => setConceptoPickerOpen(false)}
         />
+      )}
+
+      {paso === 'preguntarTimbrar' && (
+        <Modal title="Timbrar factura" onClose={() => setPaso('formulario')}>
+          <div className="space-y-4">
+            <p className="text-sm text-ink-300">
+              La factura {form.folio} ya se guardo. ¿Deseas timbrarla ante el SAT ahora?
+            </p>
+            <p className="text-xs text-ink-500">
+              Por ahora el ERP no esta conectado a un PAC, asi que este timbrado es simulado (no valido ante el SAT); en
+              cuanto se conecte uno, este mismo boton hara el timbrado real.
+            </p>
+            <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
+              <GhostButton type="button" onClick={posponerTimbrado}>
+                No, mas tarde
+              </GhostButton>
+              <PrimaryButton type="button" onClick={confirmarTimbrar}>
+                Si, timbrar
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {paso === 'aviso72h' && (
+        <Modal title="Factura sin timbrar" onClose={cerrarAvisoYGuardar}>
+          <div className="space-y-4">
+            <p className="text-sm text-ink-300">
+              La factura {form.folio} se guardo sin timbrar. Tienes <strong>72 horas</strong> para timbrarla; despues de
+              ese plazo el SAT ya no permite timbrar con la fecha de emision original.
+            </p>
+            <div className="flex justify-end border-t border-line-800 pt-4">
+              <PrimaryButton type="button" onClick={cerrarAvisoYGuardar}>
+                Entendido
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
       )}
     </Modal>
   );

@@ -8,6 +8,8 @@ export type Estatus = 'activo' | 'inactivo';
  * cuando ese timbrado real empiece a llenarlos.
  */
 export interface DatosTimbradoCfdi {
+  /** true mientras el timbrado lo genera el propio ERP en vez de un PAC real conectado al SAT. */
+  simulado: boolean;
   folioFiscal: string;
   noSerieCertificadoEmisor: string;
   noSerieCertificadoSat: string;
@@ -16,6 +18,12 @@ export interface DatosTimbradoCfdi {
   selloDigitalCfdi: string;
   selloDigitalSat: string;
   cadenaOriginal: string;
+  cancelado: boolean;
+  /** Clave del motivo de cancelacion SAT: 01, 02, 03 o 04. */
+  motivoCancelacion: string;
+  /** Folio fiscal (UUID) del CFDI que sustituye a este, solo obligatorio para el motivo 01. */
+  folioSustitutoCancelacion: string;
+  fechaCancelacion: string;
 }
 
 export interface ClienteContacto {

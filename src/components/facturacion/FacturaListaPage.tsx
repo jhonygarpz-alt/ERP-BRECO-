@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Ban, ChevronDown, Download, Eye, Pencil, Plus, Printer, Search } from 'lucide-react';
+import { Ban, ChevronDown, Download, Eye, FileX2, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { descargarFacturaPdf, descargarFacturasZip } from '../../lib/facturaPdf';
+import { cancelarTimbradoSimulado } from '../../lib/timbrado';
 import type { Factura, TipoFactura } from '../../types';
 import { CrudTable, type Column } from '../ui/CrudTable';
 import { Input, ToolbarButton } from '../ui/form';
 import { StatusBadge } from '../ui/Badge';
 import { FacturaFormModal } from './FacturaFormModal';
+import { CancelarTimbreModal } from './CancelarTimbreModal';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -30,6 +32,7 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
   const [soloLectura, setSoloLectura] = useState(false);
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
   const [descargarAbierto, setDescargarAbierto] = useState(false);
+  const [cancelarTimbreOpen, setCancelarTimbreOpen] = useState(false);
 
   function nombreCliente(id: string) {
     return clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
@@ -84,6 +87,12 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
     if (confirm(`Eliminar la factura "${f.folio}"?`)) facturas.remove(f.id);
   }
 
+  function cancelarTimbre(motivo: string, folioSustituto: string) {
+    if (!seleccionada) return;
+    facturas.update(seleccionada.id, { timbrado: cancelarTimbradoSimulado(seleccionada.timbrado, motivo, folioSustituto) });
+    setCancelarTimbreOpen(false);
+  }
+
   function guardar(datos: Omit<Factura, 'id'>) {
     if (editing) {
       facturas.update(editing.id, datos);
@@ -129,6 +138,23 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
     { header: 'Moneda', render: (f) => (f.moneda === 'MXN' ? 'PESOS' : 'DOLARES') },
     { header: 'Total', render: (f) => <span className="font-semibold text-ink-100">{money(f.importe)}</span>, className: 'text-right' },
     { header: 'Estatus', render: (f) => <StatusBadge status={f.estatus} /> },
+    {
+      header: 'Timbrado',
+      render: (f) =>
+        f.timbrado.cancelado ? (
+          <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400">
+            Cancelado ante SAT
+          </span>
+        ) : f.timbrado.folioFiscal ? (
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+            Timbrada{f.timbrado.simulado ? ' (simulada)' : ''}
+          </span>
+        ) : (
+          <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
+            Sin timbrar
+          </span>
+        ),
+    },
   ];
 
   return (
@@ -194,6 +220,14 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
         >
           <Ban size={16} /> Cancelar
         </ToolbarButton>
+        <ToolbarButton
+          type="button"
+          disabled={!seleccionada || !puedeEditar || !seleccionada?.timbrado.folioFiscal || seleccionada?.timbrado.cancelado}
+          onClick={() => setCancelarTimbreOpen(true)}
+          title="Cancelar el timbre (CFDI) ante el SAT"
+        >
+          <FileX2 size={16} /> Cancelar Timbre
+        </ToolbarButton>
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-2">
@@ -232,6 +266,10 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
 
       {modalOpen && (
         <FacturaFormModal tipo={tipo} editing={editing} soloLectura={soloLectura} onClose={() => setModalOpen(false)} onGuardar={guardar} />
+      )}
+
+      {cancelarTimbreOpen && seleccionada && (
+        <CancelarTimbreModal folio={seleccionada.folio} onClose={() => setCancelarTimbreOpen(false)} onCancelar={cancelarTimbre} />
       )}
     </div>
   );
