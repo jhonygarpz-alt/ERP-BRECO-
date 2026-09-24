@@ -64,17 +64,33 @@ export function FacturaFormModal({
   tipo,
   editing,
   soloLectura,
+  viajesPreseleccionados,
   onClose,
   onGuardar,
 }: {
   tipo: TipoFactura;
   editing: Factura | null;
   soloLectura: boolean;
+  /** Al crear (no al editar), precarga estos viajes -- cliente y conceptos -- para facturar directo desde Asignacion de Viajes. */
+  viajesPreseleccionados?: string[];
   onClose: () => void;
   onGuardar: (datos: Omit<Factura, 'id'>) => void;
 }) {
   const { clientes, viajes, facturas, conceptosFacturacion } = useData();
-  const [form, setForm] = useState<Omit<Factura, 'id'>>(editing ? { ...editing } : construirFactura(tipo, facturas.items));
+  const [form, setForm] = useState<Omit<Factura, 'id'>>(() => {
+    if (editing) return { ...editing };
+    const base = construirFactura(tipo, facturas.items);
+    const viajesSel = (viajesPreseleccionados ?? [])
+      .map((id) => viajes.items.find((v) => v.id === id))
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
+    if (viajesSel.length === 0) return base;
+    return {
+      ...base,
+      clienteId: viajesSel[0].clienteId || base.clienteId,
+      viajeIds: viajesSel.map((v) => v.id),
+      lineas: viajesSel.flatMap((v) => lineasDesdeViaje(v)),
+    };
+  });
   const [clientePickerOpen, setClientePickerOpen] = useState(false);
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [lineaForm, setLineaForm] = useState(emptyLineaForm);

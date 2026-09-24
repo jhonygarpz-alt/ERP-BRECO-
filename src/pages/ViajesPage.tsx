@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRightLeft, Ban, ChevronLeft, ChevronRight, Copy, Eye, FileText, Map, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Ban, ChevronLeft, ChevronRight, Copy, Eye, FileText, Map, MoreHorizontal, Pencil, Plus, Printer, Receipt, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
-import type { Caja, Cliente, ConceptoFacturacion, Ruta, Unidad, Viaje, ViajeMaterial, ViajeTrayecto } from '../types';
+import type { Caja, Cliente, ConceptoFacturacion, Factura, Ruta, Unidad, Viaje, ViajeMaterial, ViajeTrayecto } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
@@ -14,6 +14,7 @@ import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge'
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 import { VerRutaMapaModal } from '../components/viajes/VerRutaMapaModal';
+import { FacturaFormModal } from '../components/facturacion/FacturaFormModal';
 import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../components/catalogos/BuscarClaveSatModal';
 import { ClaveSatField } from '../components/catalogos/ClaveSatField';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
@@ -99,6 +100,7 @@ export function ViajesPage() {
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
   const puedeEditar = hasPermission('Viajes', 'editar');
+  const puedeFacturar = hasPermission('Facturacion', 'crear');
   const puedeEliminar = hasPermission('Viajes', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -230,6 +232,7 @@ export function ViajesPage() {
   const [trayectoForm, setTrayectoForm] = useState<Omit<ViajeTrayecto, 'id'>>(emptyTrayecto);
   const [trayectoSeleccionadoId, setTrayectoSeleccionadoId] = useState<string | null>(null);
   const [verRutaMapaOpen, setVerRutaMapaOpen] = useState(false);
+  const [facturarOpen, setFacturarOpen] = useState(false);
 
   // ---- Mercancias ----
   const [materialForm, setMaterialForm] = useState<Omit<ViajeMaterial, 'id'>>(emptyMaterial);
@@ -354,6 +357,11 @@ export function ViajesPage() {
     if (!viajeSeleccionado || viajeSeleccionado.tipoDocumento === 'CartaPorte') return;
     if (!confirm(`Pasar el viaje "${viajeSeleccionado.folio}" a Carta Porte? Se habilitara el complemento CFDI de Carta Porte.`)) return;
     viajes.update(viajeSeleccionado.id, { tipoDocumento: 'CartaPorte' });
+  }
+
+  function guardarFacturaDesdeViaje(datos: Omit<Factura, 'id'>) {
+    facturas.add({ id: uid('fac'), ...datos });
+    setFacturarOpen(false);
   }
 
   const formatosViajeHabilitados = formatosImpresion.items.filter((f) => f.area === 'Viajes' && f.activo);
@@ -1022,6 +1030,10 @@ export function ViajesPage() {
           title={viajeSeleccionado?.tipoDocumento === 'CartaPorte' ? 'Este viaje ya es Carta Porte' : undefined}
         >
           <ArrowRightLeft size={16} /> Pasar a Carta Porte
+        </ToolbarButton>
+        <span className="mx-1 h-5 w-px bg-line-800" />
+        <ToolbarButton type="button" disabled={!viajeSeleccionado || !puedeFacturar} onClick={() => setFacturarOpen(true)}>
+          <Receipt size={16} /> Facturar
         </ToolbarButton>
       </div>
 
@@ -2473,6 +2485,17 @@ export function ViajesPage() {
           horas={rutaDelViaje.horas}
           trazoRuta={rutaDelViaje.trazoRuta}
           onClose={() => setVerRutaMapaOpen(false)}
+        />
+      )}
+
+      {facturarOpen && viajeSeleccionado && (
+        <FacturaFormModal
+          tipo="Viaje"
+          editing={null}
+          soloLectura={false}
+          viajesPreseleccionados={[viajeSeleccionado.id]}
+          onClose={() => setFacturarOpen(false)}
+          onGuardar={guardarFacturaDesdeViaje}
         />
       )}
     </div>
