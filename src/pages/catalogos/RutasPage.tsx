@@ -350,7 +350,17 @@ export function RutasPage() {
   // ---- Trayectos ----
   function abrirNuevoTrayecto() {
     setTrayectoEditandoId(null);
-    setTrayectoForm({ ...emptyTrayecto, secuencia: form.trayectos.length + 1 });
+    setTrayectoForm({
+      ...emptyTrayecto,
+      secuencia: form.trayectos.length + 1,
+      origen: form.origenDireccion,
+      destino: form.destinoDireccion,
+      kilometros: form.kilometros,
+      horas: form.horas,
+      eta: form.eta,
+      tipoTrayecto: form.tipoTrayecto,
+      trazoRuta: form.trazoRuta,
+    });
     setTrayectoModalOpen(true);
   }
 
