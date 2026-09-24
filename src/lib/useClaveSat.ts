@@ -72,3 +72,68 @@ export function useClaveUnidadSat(termino: string): ClaveUnidadSugerida[] {
 
   return resultados;
 }
+
+export interface ClaveMaterialPeligrosoSugerida {
+  clave: string;
+  descripcion: string;
+  claseODivision: string;
+}
+
+/** Busca en el catalogo oficial del SAT c_MaterialPeligroso (Carta Porte, ~2,346 filas) por clave o descripcion. */
+export function useClaveMaterialPeligrosoSat(termino: string): ClaveMaterialPeligrosoSugerida[] {
+  const [resultados, setResultados] = useState<ClaveMaterialPeligrosoSugerida[]>([]);
+
+  useEffect(() => {
+    const limpio = termino.trim();
+    if (limpio.length < MIN_CARACTERES) {
+      setResultados([]);
+      return;
+    }
+    let cancelado = false;
+    const timeout = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from('clave_material_peligroso_sat')
+        .select('clave, descripcion, clase_o_division')
+        .or(`clave.ilike.${limpio}%,descripcion.ilike.%${limpio}%`)
+        .limit(LIMITE_RESULTADOS);
+      if (error) console.error('Error buscando clave_material_peligroso_sat:', error);
+      if (!cancelado)
+        setResultados((data ?? []).map((r) => ({ clave: r.clave, descripcion: r.descripcion, claseODivision: r.clase_o_division })));
+    }, 350);
+    return () => {
+      cancelado = true;
+      clearTimeout(timeout);
+    };
+  }, [termino]);
+
+  return resultados;
+}
+
+/** Busca en el catalogo oficial del SAT c_ClaveProdServCP (Carta Porte, ~48,757 claves -- distinto al c_ClaveProdServ general de Facturacion) por clave o descripcion. */
+export function useClaveProdServCPSat(termino: string): ClaveProdServSugerida[] {
+  const [resultados, setResultados] = useState<ClaveProdServSugerida[]>([]);
+
+  useEffect(() => {
+    const limpio = termino.trim();
+    if (limpio.length < MIN_CARACTERES) {
+      setResultados([]);
+      return;
+    }
+    let cancelado = false;
+    const timeout = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from('clave_prod_serv_cp_sat')
+        .select('clave, descripcion')
+        .or(`clave.ilike.${limpio}%,descripcion.ilike.%${limpio}%`)
+        .limit(LIMITE_RESULTADOS);
+      if (error) console.error('Error buscando clave_prod_serv_cp_sat:', error);
+      if (!cancelado) setResultados(data ?? []);
+    }, 350);
+    return () => {
+      cancelado = true;
+      clearTimeout(timeout);
+    };
+  }, [termino]);
+
+  return resultados;
+}

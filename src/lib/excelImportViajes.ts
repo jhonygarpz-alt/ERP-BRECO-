@@ -312,6 +312,8 @@ export async function guardarViajesImportados(
         id: crearId(),
         folio,
         tipoDocumento: 'Viaje',
+        nacional: false,
+        local: false,
         horaSalida: '',
         horaLlegadaEstimada: '',
         ubicacionActual: '',

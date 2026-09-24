@@ -13,7 +13,14 @@ import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea,
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
-import { BuscarClaveProdServModal, BuscarClaveUnidadModal } from '../components/catalogos/BuscarClaveSatModal';
+import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../components/catalogos/BuscarClaveSatModal';
+import {
+  TIPOS_EMBALAJE_SAT,
+  SECTOR_COFEPRIS_SAT,
+  TIPO_MATERIA_COFEPRIS_SAT,
+  CONFIG_AUTOTRANSPORTE_SAT,
+  TIPO_PERMISO_SCT,
+} from '../lib/catalogosSat';
 import { hoyISO, fechaLocal } from '../lib/fechas';
 import { ordenServicioActivaDeUnidad } from '../lib/mantenimiento';
 
@@ -63,6 +70,7 @@ const emptyMaterial: Omit<ViajeMaterial, 'id'> = {
   materialPeligroso: false,
   claveMaterialPeligroso: '',
   aplicaCofepris: false,
+  cofeprisSector: '',
   cofeprisTipoMateria: '',
   cofeprisDenominacionGenerica: '',
   cofeprisDenominacionDistintiva: '',
@@ -118,6 +126,8 @@ export function ViajesPage() {
     cita: '',
     importacion: false,
     exportacion: false,
+    nacional: false,
+    local: false,
     estatus: 'Programado',
     observaciones: '',
     ubicacionActual: '',
@@ -164,6 +174,7 @@ export function ViajesPage() {
   const [unidadPickerOpen, setUnidadPickerOpen] = useState(false);
   const [buscarProdServCPOpen, setBuscarProdServCPOpen] = useState(false);
   const [buscarUnidadMercanciaOpen, setBuscarUnidadMercanciaOpen] = useState(false);
+  const [buscarMaterialPeligrosoOpen, setBuscarMaterialPeligrosoOpen] = useState(false);
   const [filtroDocumento, setFiltroDocumento] = useState<'Todos' | 'Viaje' | 'CartaPorte'>('Todos');
 
   // ---- Alta rapida de cliente (sin salir de la asignacion del viaje) ----
@@ -1227,6 +1238,22 @@ export function ViajesPage() {
                         />
                         Exportacion
                       </label>
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.nacional}
+                          onChange={(e) => setForm({ ...form, nacional: e.target.checked })}
+                        />
+                        Nacional
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.local}
+                          onChange={(e) => setForm({ ...form, local: e.target.checked })}
+                        />
+                        Local
+                      </label>
                     </div>
                   </div>
 
@@ -1362,6 +1389,59 @@ export function ViajesPage() {
                     </div>
                   </div>
                 </div>
+
+                {form.tipoDocumento === 'CartaPorte' && (
+                  <div className="rounded-xl border border-breco-500/30 bg-breco-500/5">
+                    <div className="bg-breco-500/10 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-breco-500">
+                      Configuracion Vehicular (SAT - Carta Porte)
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">
+                      {(() => {
+                        const unidadAsignada = unidades.items.find(
+                          (u) => u.id === (form.trayectos[0]?.unidadId || form.unidadId),
+                        );
+                        if (!unidadAsignada) {
+                          return (
+                            <p className="col-span-2 text-center text-sm text-ink-600">
+                              Asigna un camion en "Asignar Operador/Camion" para ver aqui su configuracion vehicular y permiso SCT.
+                            </p>
+                          );
+                        }
+                        const config = CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === unidadAsignada.tipo);
+                        const permiso = TIPO_PERMISO_SCT.find((p) => p.clave === unidadAsignada.claveTipoPermisoSct);
+                        return (
+                          <>
+                            <Field label="Unidad">
+                              <Input readOnly value={`${unidadAsignada.economico} - ${unidadAsignada.placas}`} />
+                            </Field>
+                            <Field label="Configuracion vehicular (Clave SAT)">
+                              <Input readOnly value={config ? `${config.clave} - ${config.descripcion}` : unidadAsignada.tipo || 'Sin configurar'} />
+                            </Field>
+                            <Field label="Permiso SCT">
+                              <Input readOnly value={unidadAsignada.numeroPermisoSct || 'Sin capturar'} />
+                            </Field>
+                            <Field label="Vigencia del permiso">
+                              <Input readOnly value={unidadAsignada.vigenciaPermisoSct || '—'} />
+                            </Field>
+                            <Field label="Tipo de permiso (Clave SAT)">
+                              <Input readOnly value={permiso ? `${permiso.clave} - ${permiso.descripcion}` : unidadAsignada.claveTipoPermisoSct || 'Sin configurar'} />
+                            </Field>
+                            <div className="col-span-2 text-center">
+                              <a
+                                href={`#/catalogos/unidades`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs font-medium text-breco-500 hover:underline"
+                              >
+                                Editar en el catalogo de Unidades ↗
+                              </a>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1441,21 +1521,23 @@ export function ViajesPage() {
                               </ToolbarButton>
                             </div>
                           </Field>
-                          <Field label="Clave SAT - Embalaje">
-                            <div className="flex gap-2">
-                              <Input
-                                className="w-24"
-                                value={materialForm.claveEmbalajeSat}
-                                onChange={(e) => setMaterialForm({ ...materialForm, claveEmbalajeSat: e.target.value })}
-                                placeholder="Clave"
-                              />
-                              <Input
-                                className="flex-1"
-                                value={materialForm.descripcionEmbalajeSat}
-                                onChange={(e) => setMaterialForm({ ...materialForm, descripcionEmbalajeSat: e.target.value })}
-                                placeholder="Tipo de embalaje"
-                              />
-                            </div>
+                          <Field label="Clave SAT - Tipo de embalaje">
+                            <Select
+                              value={materialForm.claveEmbalajeSat}
+                              onChange={(e) => {
+                                const encontrado = TIPOS_EMBALAJE_SAT.find((t) => t.clave === e.target.value);
+                                setMaterialForm({
+                                  ...materialForm,
+                                  claveEmbalajeSat: e.target.value,
+                                  descripcionEmbalajeSat: encontrado?.descripcion ?? '',
+                                });
+                              }}
+                            >
+                              <option value="">Selecciona...</option>
+                              {TIPOS_EMBALAJE_SAT.map((t) => (
+                                <option key={t.clave} value={t.clave}>{t.clave} - {t.descripcion}</option>
+                              ))}
+                            </Select>
                           </Field>
                           <label className="flex items-center gap-2 text-sm text-ink-300">
                             <input
@@ -1467,10 +1549,12 @@ export function ViajesPage() {
                           </label>
                           {materialForm.materialPeligroso && (
                             <Field label="Clave SAT - Material peligroso">
-                              <Input
-                                value={materialForm.claveMaterialPeligroso}
-                                onChange={(e) => setMaterialForm({ ...materialForm, claveMaterialPeligroso: e.target.value })}
-                              />
+                              <div className="flex gap-2">
+                                <Input className="flex-1" readOnly value={materialForm.claveMaterialPeligroso} placeholder="Busca la clave..." />
+                                <ToolbarButton type="button" onClick={() => setBuscarMaterialPeligrosoOpen(true)}>
+                                  <ScanLine size={14} />
+                                </ToolbarButton>
+                              </div>
                             </Field>
                           )}
                           <label className="flex items-center gap-2 text-sm text-ink-300">
@@ -1483,11 +1567,27 @@ export function ViajesPage() {
                           </label>
                           {materialForm.aplicaCofepris && (
                             <div className="space-y-2 rounded-lg border border-line-800 p-2">
+                              <Field label="Sector COFEPRIS">
+                                <Select
+                                  value={materialForm.cofeprisSector ?? ''}
+                                  onChange={(e) => setMaterialForm({ ...materialForm, cofeprisSector: e.target.value })}
+                                >
+                                  <option value="">Selecciona...</option>
+                                  {SECTOR_COFEPRIS_SAT.map((s) => (
+                                    <option key={s.clave} value={s.clave}>{s.clave} - {s.descripcion}</option>
+                                  ))}
+                                </Select>
+                              </Field>
                               <Field label="Tipo de materia">
-                                <Input
+                                <Select
                                   value={materialForm.cofeprisTipoMateria}
                                   onChange={(e) => setMaterialForm({ ...materialForm, cofeprisTipoMateria: e.target.value })}
-                                />
+                                >
+                                  <option value="">Selecciona...</option>
+                                  {TIPO_MATERIA_COFEPRIS_SAT.map((t) => (
+                                    <option key={t.clave} value={t.clave}>{t.clave} - {t.descripcion}</option>
+                                  ))}
+                                </Select>
                               </Field>
                               <Field label="Denominacion generica">
                                 <Input
@@ -1777,7 +1877,7 @@ export function ViajesPage() {
       )}
 
       {buscarProdServCPOpen && (
-        <BuscarClaveProdServModal
+        <BuscarClaveProdServCPModal
           onSelect={(clave, descripcion) => {
             setMaterialForm((f) => ({ ...f, claveProdServCP: clave, descripcionProdServCP: descripcion }));
             setBuscarProdServCPOpen(false);
@@ -1792,6 +1892,15 @@ export function ViajesPage() {
             setBuscarUnidadMercanciaOpen(false);
           }}
           onClose={() => setBuscarUnidadMercanciaOpen(false)}
+        />
+      )}
+      {buscarMaterialPeligrosoOpen && (
+        <BuscarClaveMaterialPeligrosoModal
+          onSelect={(clave) => {
+            setMaterialForm((f) => ({ ...f, claveMaterialPeligroso: clave }));
+            setBuscarMaterialPeligrosoOpen(false);
+          }}
+          onClose={() => setBuscarMaterialPeligrosoOpen(false)}
         />
       )}
 

@@ -220,6 +220,8 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
           folio,
           fecha: hoy,
           tipoDocumento: 'Viaje',
+          nacional: false,
+          local: false,
           ...payload,
           sucursal: '',
           loadNumber: '',

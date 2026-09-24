@@ -401,6 +401,9 @@ export interface ViajeMaterial {
   claveMaterialPeligroso?: string;
   // ---- Sector COFEPRIS (solo aplica a mercancia regulada: medicamentos, quimicos, etc.) ----
   aplicaCofepris?: boolean;
+  /** Clave del catalogo SAT c_SectorCOFEPRIS. */
+  cofeprisSector?: string;
+  /** Clave del catalogo SAT c_TipoMateria. */
   cofeprisTipoMateria?: string;
   cofeprisDenominacionGenerica?: string;
   cofeprisDenominacionDistintiva?: string;
@@ -439,6 +442,8 @@ export interface Viaje {
   cita: string;
   importacion: boolean;
   exportacion: boolean;
+  nacional: boolean;
+  local: boolean;
   estatus: EstatusViaje;
   observaciones: string;
   ubicacionActual: string;
