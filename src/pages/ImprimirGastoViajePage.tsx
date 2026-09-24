@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
+import { importeALetras } from '../lib/numeroALetras';
+import { BarraAcciones, pagina, Recuadro, CajaEtiqueta, TituloSeccion } from '../components/print/PrintKit';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -8,11 +10,11 @@ function money(n: number) {
 
 export function ImprimirGastoViajePage() {
   const { id } = useParams<{ id: string }>();
-  const { gastosViaje, viajes, clientes, operadores, proveedores, empresa } = useData();
+  const { gastosViaje, viajes, unidades, operadores, proveedores, empresa } = useData();
 
   const gasto = gastosViaje.items.find((g) => g.id === id);
   const viaje = viajes.items.find((v) => v.id === gasto?.viajeId);
-  const cliente = clientes.items.find((c) => c.id === viaje?.clienteId);
+  const unidad = unidades.items.find((u) => u.id === (viaje?.trayectos[0]?.unidadId || viaje?.unidadId));
   const operador = operadores.items.find((o) => o.id === gasto?.operadorId);
   const proveedor = proveedores.items.find((p) => p.id === gasto?.proveedorId);
 
@@ -23,149 +25,97 @@ export function ImprimirGastoViajePage() {
   }, [gasto]);
 
   if (!gasto) {
-    return (
-      <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif' }}>
-        No se encontro el gasto.
-      </div>
-    );
+    return <div style={pagina}>No se encontro el gasto.</div>;
   }
 
-  return (
-    <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif', fontSize: 13 }}>
-      <div className="mb-4 flex justify-end gap-2 print:hidden">
-        <button
-          onClick={() => window.print()}
-          style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
-        >
-          Imprimir
-        </button>
-        <button
-          onClick={() => window.close()}
-          style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
-        >
-          Cerrar
-        </button>
-      </div>
+  const importeLetra = importeALetras(gasto.monto, gasto.moneda === 'DOLARES' ? 'USD' : 'MXN');
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          borderBottom: '2px solid #111',
-          paddingBottom: 12,
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {empresa.value.logoDataUrl && (
-            <img src={empresa.value.logoDataUrl} alt="" style={{ height: 48, width: 'auto', objectFit: 'contain' }} />
-          )}
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.value.nombre || 'Sistema de Trafico'}</h1>
-            <p style={{ margin: 0, color: '#555' }}>Gasto de Viaje</p>
-            {empresa.value.razonSocial && <p style={{ margin: 0, color: '#555', fontSize: 11 }}>{empresa.value.razonSocial}</p>}
-            {empresa.value.direccion && <p style={{ margin: 0, color: '#555', fontSize: 11 }}>{empresa.value.direccion}</p>}
+  return (
+    <div style={pagina}>
+      <BarraAcciones />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px', gap: 16, alignItems: 'flex-start', marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 56, width: 'auto', objectFit: 'contain' }} />}
+          <div style={{ textAlign: 'center', flex: 1 }}>
+            <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Comprobacion de Gastos de Viaje</h1>
+            <p style={{ margin: '4px 0 0', fontWeight: 700 }}>{empresa.value.nombre || 'Empresa'}</p>
+            {empresa.value.razonSocial && <p style={{ margin: '1px 0 0', fontSize: 10.5 }}>{empresa.value.razonSocial}</p>}
+            <p style={{ margin: '1px 0 0', fontSize: 10.5 }}>RFC: {empresa.value.rfc || '—'}</p>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0 }}>
-            <strong>Fecha:</strong> {gasto.fecha}
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong>Estatus:</strong>{' '}
-            <span style={{ color: gasto.estatus === 'Cancelado' ? '#b91c1c' : '#047857', fontWeight: 700 }}>{gasto.estatus}</span>
-          </p>
-          {gasto.numeroReferencia && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <CajaEtiqueta etiqueta="Numero de Comprobante" valor={gasto.numeroReferencia || gasto.id.slice(-6)} />
+          <CajaEtiqueta etiqueta="Fecha" valor={gasto.fecha} tono="claro" />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 14, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>Informacion General</TituloSeccion>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', fontSize: 10.5 }}>
+          <div style={{ padding: '6px 12px', borderRight: '1px solid #ddd' }}>
             <p style={{ margin: 0 }}>
-              <strong>Referencia:</strong> {gasto.numeroReferencia}
+              <strong>Operador:</strong> {operador?.nombre ?? '—'}
+            </p>
+            <p style={{ margin: '3px 0 0' }}>
+              <strong>Carta Porte:</strong> {viaje?.tipoDocumento === 'CartaPorte' ? viaje.folio : '—'}
+            </p>
+            <p style={{ margin: '3px 0 0' }}>
+              <strong>Ruta:</strong> {viaje?.rutaDescripcion || `${viaje?.origen ?? ''} / ${viaje?.destino ?? ''}`}
+            </p>
+          </div>
+          <div style={{ padding: '6px 12px' }}>
+            <p style={{ margin: 0 }}>
+              <strong>Unidad:</strong> {unidad?.economico ?? '—'}
+            </p>
+            <p style={{ margin: '3px 0 0' }}>
+              <strong>Placas:</strong> {unidad?.placas ?? '—'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 14, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <TituloSeccion>Informacion de Comprobacion de Gastos</TituloSeccion>
+        <div style={{ padding: '10px 12px', fontSize: 11 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: 9.5, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Importe Comprobado</span>
+              <p style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{money(gasto.monto)}</p>
+            </div>
+          </div>
+          <p style={{ margin: '4px 0' }}>
+            <strong>Importe con Letra:</strong> {importeLetra}
+          </p>
+          <p style={{ margin: '4px 0' }}>
+            <strong>Proveedor:</strong> {proveedor?.nombre ?? gasto.tipo}
+          </p>
+          <p style={{ margin: '4px 0' }}>
+            <strong>Concepto:</strong> {gasto.concepto}
+          </p>
+          {gasto.tipo === 'Combustible' && (gasto.litros || gasto.precioLitro) && (
+            <p style={{ margin: '4px 0' }}>
+              <strong>Combustible:</strong> {gasto.combustibleTipo} &middot; {gasto.litros ?? 0} L &middot; {money(gasto.precioLitro ?? 0)}/L
             </p>
           )}
-        </div>
-      </div>
+          {gasto.generaPasivo && (
+            <p style={{ margin: '4px 0', color: '#b45309' }}>
+              <strong>Genera pasivo en Cuentas por Pagar.</strong>
+            </p>
+          )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <div>
-          <h2 style={sectionTitle}>Viaje</h2>
-          <p style={{ margin: 0 }}>{viaje?.folio ?? '—'}</p>
-          <p style={{ margin: 0, color: '#555' }}>{cliente?.nombre ?? ''}</p>
-        </div>
-        <div>
-          <h2 style={sectionTitle}>Operador</h2>
-          <p style={{ margin: 0 }}>{operador?.nombre ?? '—'}</p>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <div>
-          <h2 style={sectionTitle}>Tipo de gasto</h2>
-          <p style={{ margin: 0 }}>{gasto.tipo}</p>
-          <p style={{ margin: 0, color: '#555' }}>{gasto.concepto}</p>
-        </div>
-        <div>
-          <h2 style={sectionTitle}>Proveedor</h2>
-          <p style={{ margin: 0 }}>{proveedor?.nombre ?? '—'}</p>
-        </div>
-      </div>
-
-      {gasto.tipo === 'Combustible' && (gasto.litros || gasto.precioLitro) && (
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={sectionTitle}>Detalle de combustible</h2>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Combustible</th>
-                <th style={thStyle}>Litros</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Precio / litro</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={tdStyle}>{gasto.combustibleTipo ?? '—'}</td>
-                <td style={tdStyle}>{gasto.litros ?? 0}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{money(gasto.precioLitro ?? 0)}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{money(gasto.monto)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0, color: '#555' }}>Moneda: {gasto.moneda}</p>
-          <p style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 700 }}>Total: {money(gasto.monto)}</p>
-          {gasto.generaPasivo && <p style={{ margin: 0, color: '#555' }}>Genera pasivo en Cuentas por Pagar</p>}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, marginTop: 40 }}>
+            <div style={{ borderTop: '1px solid #333', textAlign: 'center', paddingTop: 4, fontSize: 10 }}>Autorizo</div>
+            <div style={{ borderTop: '1px solid #333', textAlign: 'center', paddingTop: 4, fontSize: 10 }}>{operador?.nombre ?? ''}</div>
+          </div>
         </div>
       </div>
 
       {gasto.notas && (
-        <div>
-          <h2 style={sectionTitle}>Notas</h2>
-          <p style={{ margin: 0 }}>{gasto.notas}</p>
-        </div>
+        <Recuadro style={{ padding: '6px 10px', fontSize: 10 }}>
+          <strong>Notas:</strong> {gasto.notas}
+        </Recuadro>
       )}
     </div>
   );
 }
-
-const sectionTitle: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: 0.5,
-  color: '#555',
-  margin: '0 0 4px',
-};
-
-const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse' };
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  borderBottom: '1px solid #999',
-  padding: '4px 6px',
-  fontSize: 11,
-  textTransform: 'uppercase',
-  color: '#555',
-};
-const tdStyle: React.CSSProperties = { borderBottom: '1px solid #ddd', padding: '4px 6px' };

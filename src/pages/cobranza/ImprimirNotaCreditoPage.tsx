@@ -1,6 +1,20 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../lib/DataContext';
+import { importeALetras } from '../../lib/numeroALetras';
+import { useQrDataUrl } from '../../lib/useQrDataUrl';
+import {
+  BarraAcciones,
+  pagina,
+  Recuadro,
+  CajaEtiqueta,
+  tablaStyle,
+  thCfdi,
+  tdCfdi,
+  CajaTotales,
+  BloqueTimbrado,
+  LeyendaCfdi,
+} from '../../components/print/PrintKit';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -12,6 +26,9 @@ export function ImprimirNotaCreditoPage() {
 
   const nota = notasCredito.items.find((n) => n.id === id);
   const cliente = clientes.items.find((c) => c.id === nota?.clienteId);
+  const facturasRelacionadas = (nota?.facturaIds ?? []).map((fid) => facturas.items.find((f) => f.id === fid)).filter((f): f is NonNullable<typeof f> => Boolean(f));
+  const totalIva = nota?.lineas.reduce((acc, l) => acc + l.importeIva, 0) ?? 0;
+  const qrDataUrl = useQrDataUrl(nota?.timbrado.folioFiscal ?? '');
 
   useEffect(() => {
     if (!nota) return;
@@ -20,161 +37,127 @@ export function ImprimirNotaCreditoPage() {
   }, [nota]);
 
   if (!nota) {
-    return (
-      <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif' }}>
-        No se encontro la nota de credito.
-      </div>
-    );
+    return <div style={pagina}>No se encontro la nota de credito.</div>;
   }
 
-  return (
-    <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif', fontSize: 13 }}>
-      <div className="mb-4 flex justify-end gap-2 print:hidden">
-        <button
-          onClick={() => window.print()}
-          style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
-        >
-          Imprimir
-        </button>
-        <button
-          onClick={() => window.close()}
-          style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
-        >
-          Cerrar
-        </button>
-      </div>
+  const importeLetra = importeALetras(nota.total, nota.moneda);
+  const uuidsRelacionados = facturasRelacionadas.map((f) => f.timbrado.folioFiscal).filter(Boolean);
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          borderBottom: '2px solid #111',
-          paddingBottom: 12,
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {empresa.value.logoDataUrl && (
-            <img src={empresa.value.logoDataUrl} alt="" style={{ height: 48, width: 'auto', objectFit: 'contain' }} />
-          )}
+  return (
+    <div style={pagina}>
+      <BarraAcciones />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: 16, alignItems: 'start', marginBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 56, width: 'auto', objectFit: 'contain' }} />}
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.value.nombre || 'Sistema de Trafico'}</h1>
-            <p style={{ margin: 0, color: '#555' }}>Nota de Credito</p>
-            {empresa.value.razonSocial && <p style={{ margin: 0, color: '#555', fontSize: 11 }}>{empresa.value.razonSocial}</p>}
-            {empresa.value.direccion && <p style={{ margin: 0, color: '#555', fontSize: 11 }}>{empresa.value.direccion}</p>}
+            <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{empresa.value.razonSocial || empresa.value.nombre || 'Empresa'}</h1>
+            <p style={{ margin: '2px 0 0', fontSize: 10.5 }}>RFC: {empresa.value.rfc || '—'}</p>
+            {empresa.value.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 10.5 }}>{empresa.value.regimenFiscal}</p>}
+            <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#444' }}>{empresa.value.direccion || ''}</p>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0 }}>
-            <strong>Folio:</strong> {nota.folio}
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong>Fecha:</strong> {nota.fecha}
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong>Estatus:</strong>{' '}
-            <span style={{ color: nota.estatus === 'Cancelada' ? '#b91c1c' : '#047857', fontWeight: 700 }}>{nota.estatus}</span>
-          </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <CajaEtiqueta etiqueta="Nota de Credito" valor={nota.folio} />
+          <CajaEtiqueta etiqueta="Folio Fiscal" valor={nota.timbrado.folioFiscal} tono="claro" />
+          <CajaEtiqueta etiqueta="No. Serie Certificado del Emisor" valor={nota.timbrado.noSerieCertificadoEmisor} tono="claro" />
+          <CajaEtiqueta etiqueta="No. Serie Certificado del SAT" valor={nota.timbrado.noSerieCertificadoSat} tono="claro" />
+          <CajaEtiqueta etiqueta="Fecha Hora Expedicion" valor={nota.timbrado.fechaHoraExpedicion || nota.fecha} tono="claro" />
+          <CajaEtiqueta etiqueta="Fecha Hora Certificacion" valor={nota.timbrado.fechaHoraCertificacion} tono="claro" />
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <div>
-          <h2 style={sectionTitle}>Cliente</h2>
-          <p style={{ margin: 0 }}>{cliente?.nombre ?? '—'}</p>
-          <p style={{ margin: 0, color: '#555' }}>{cliente?.numeroCliente ?? ''}</p>
-        </div>
-        <div>
-          <h2 style={sectionTitle}>Uso del CFDI</h2>
-          <p style={{ margin: 0 }}>{nota.usoCfdi}</p>
-          <p style={{ margin: 0, color: '#555' }}>Metodo de Pago: {nota.metodoPago}</p>
-        </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+        <CajaEtiqueta etiqueta="Tipo de Comprobante" valor="E - Egresos" tono="claro" />
+        <CajaEtiqueta etiqueta="Uso del CFDI" valor={nota.usoCfdi} tono="claro" />
+        <CajaEtiqueta etiqueta="Tipo de Relacion" valor="01 - Nota de credito de los documentos relacionados" tono="claro" />
+        <CajaEtiqueta etiqueta="Moneda" valor={nota.moneda} tono="claro" />
+        <CajaEtiqueta etiqueta="Tipo Cambio" valor={nota.tipoCambio} tono="claro" />
       </div>
 
-      {nota.facturaIds.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={sectionTitle}>Facturas relacionadas</h2>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Documento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {nota.facturaIds.map((fid) => {
-                const f = facturas.items.find((ff) => ff.id === fid);
-                return (
-                  <tr key={fid}>
-                    <td style={tdStyle}>{f?.folio ?? fid}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        <Recuadro style={{ padding: '8px 12px' }}>
+          <p style={{ margin: 0, fontWeight: 700 }}>Cliente: {cliente?.nombre ?? '—'}</p>
+          <p style={{ margin: '1px 0 0' }}>RFC: {cliente?.rfc ?? '—'}</p>
+        </Recuadro>
+        <Recuadro style={{ padding: '8px 12px', fontSize: 10.5 }}>
+          <p style={{ margin: 0 }}>
+            <strong>Metodo de Pago:</strong> {nota.metodoPago}
+          </p>
+          <p style={{ margin: '2px 0 0' }}>
+            <strong>Forma de Pago:</strong> {nota.formaPago || 'Por definir'}
+          </p>
+        </Recuadro>
+      </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={sectionTitle}>Conceptos</h2>
-        <table style={tableStyle}>
+      <Recuadro style={{ padding: '6px 10px', marginBottom: 10, fontSize: 10 }}>
+        <strong>UUID Relacionado(s):</strong> {uuidsRelacionados.length > 0 ? uuidsRelacionados.join(', ') : '—'}
+      </Recuadro>
+
+      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+        <table style={tablaStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>Concepto</th>
-              <th style={thStyle}>Unidad Medida</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-              <th style={thStyle}>Traslada</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>Importe IVA</th>
+              <th style={thCfdi}>Concepto</th>
+              <th style={thCfdi}>Unidad de Medida</th>
+              <th style={{ ...thCfdi, textAlign: 'right' }}>Importe</th>
+              <th style={thCfdi}>Traslada</th>
+              <th style={{ ...thCfdi, textAlign: 'right' }}>Importe IVA</th>
             </tr>
           </thead>
           <tbody>
+            {nota.lineas.length === 0 && (
+              <tr>
+                <td style={tdCfdi} colSpan={5}>
+                  Sin conceptos capturados.
+                </td>
+              </tr>
+            )}
             {nota.lineas.map((l) => (
               <tr key={l.id}>
-                <td style={tdStyle}>{l.concepto}</td>
-                <td style={tdStyle}>{l.unidadMedida}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{money(l.importe)}</td>
-                <td style={tdStyle}>{l.traslada || '-'}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{money(l.importeIva)}</td>
+                <td style={tdCfdi}>{l.concepto}</td>
+                <td style={tdCfdi}>{l.unidadMedida}</td>
+                <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(l.importe)}</td>
+                <td style={tdCfdi}>{l.traslada || '—'}</td>
+                <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(l.importeIva)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0, color: '#555' }}>Moneda: {nota.moneda}</p>
-          <p style={{ margin: 0, color: '#555' }}>Subtotal: {money(nota.subtotal)}</p>
-          <p style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 700 }}>Total: {money(nota.total)}</p>
-        </div>
+      {nota.observaciones && (
+        <Recuadro style={{ padding: '6px 10px', marginBottom: 10, fontSize: 10 }}>
+          <strong>Observaciones:</strong> {nota.observaciones}
+        </Recuadro>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+        <Recuadro style={{ padding: '6px 10px', flex: 1, fontSize: 10 }}>
+          <strong>Importe con letra:</strong> {importeLetra}
+        </Recuadro>
+        <CajaTotales
+          moneda={nota.moneda}
+          filas={[
+            { etiqueta: 'Subtotal', valor: money(nota.subtotal) },
+            { etiqueta: 'IVA', valor: money(totalIva) },
+            { etiqueta: 'Total a Pagar', valor: money(nota.total), destacado: true },
+          ]}
+        />
       </div>
 
-      {nota.observaciones && (
-        <div>
-          <h2 style={sectionTitle}>Observaciones</h2>
-          <p style={{ margin: 0 }}>{nota.observaciones}</p>
-        </div>
-      )}
+      <BloqueTimbrado
+        folioFiscal={nota.timbrado.folioFiscal}
+        fechaHoraExpedicion={nota.timbrado.fechaHoraExpedicion}
+        fechaHoraCertificacion={nota.timbrado.fechaHoraCertificacion}
+        noSerieCertificadoEmisor={nota.timbrado.noSerieCertificadoEmisor}
+        noSerieCertificadoSat={nota.timbrado.noSerieCertificadoSat}
+        selloDigitalCfdi={nota.timbrado.selloDigitalCfdi}
+        selloDigitalSat={nota.timbrado.selloDigitalSat}
+        cadenaOriginal={nota.timbrado.cadenaOriginal}
+        qrDataUrl={qrDataUrl}
+      />
+      <LeyendaCfdi folioFiscal={nota.timbrado.folioFiscal} simulado={nota.timbrado.simulado} cancelado={nota.timbrado.cancelado} />
     </div>
   );
 }
-
-const sectionTitle: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: 0.5,
-  color: '#555',
-  margin: '0 0 4px',
-};
-
-const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse' };
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  borderBottom: '1px solid #999',
-  padding: '4px 6px',
-  fontSize: 11,
-  textTransform: 'uppercase',
-  color: '#555',
-};
-const tdStyle: React.CSSProperties = { borderBottom: '1px solid #ddd', padding: '4px 6px' };
