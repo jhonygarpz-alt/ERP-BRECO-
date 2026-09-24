@@ -75,6 +75,12 @@ import {
   formatoImpresionToRow,
   gastoViajeFromRow,
   gastoViajeToRow,
+  deduccionOperadorFromRow,
+  deduccionOperadorToRow,
+  descuentoOperadorFromRow,
+  descuentoOperadorToRow,
+  abonoDescuentoOperadorFromRow,
+  abonoDescuentoOperadorToRow,
   grupoUnidadFromRow,
   grupoUnidadToRow,
   operadorFromRow,
@@ -125,6 +131,9 @@ import type {
   FacturaSistema,
   FormatoImpresion,
   GastoViaje,
+  DeduccionOperador,
+  DescuentoOperador,
+  AbonoDescuentoOperador,
   GrupoUnidad,
   IncidenciaViaje,
   ConciliacionBancaria,
@@ -176,6 +185,9 @@ interface DataContextValue {
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
   gastosViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GastoViaje>>;
+  deduccionesOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DeduccionOperador>>;
+  descuentosOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DescuentoOperador>>;
+  abonosDescuentoOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, AbonoDescuentoOperador>>;
   estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
   incidenciasViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, IncidenciaViaje>>;
   mensajesViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MensajeViaje>>;
@@ -293,6 +305,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'gastos_viaje',
     gastoViajeFromRow,
     gastoViajeToRow,
+  );
+  const deduccionesOperador = useSupabaseCollection<Record<string, unknown>, DeduccionOperador>(
+    'deducciones_operador',
+    deduccionOperadorFromRow,
+    deduccionOperadorToRow,
+  );
+  const descuentosOperador = useSupabaseCollection<Record<string, unknown>, DescuentoOperador>(
+    'descuentos_operador',
+    descuentoOperadorFromRow,
+    descuentoOperadorToRow,
+  );
+  const abonosDescuentoOperador = useSupabaseCollection<Record<string, unknown>, AbonoDescuentoOperador>(
+    'abonos_descuento_operador',
+    abonoDescuentoOperadorFromRow,
+    abonoDescuentoOperadorToRow,
   );
   const estatusViajes = useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>(
     'estatus_viaje',
@@ -452,6 +479,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         viajes,
         viajeUbicaciones,
         gastosViaje,
+        deduccionesOperador,
+        descuentosOperador,
+        abonosDescuentoOperador,
         estatusViajes,
         incidenciasViaje,
         mensajesViaje,

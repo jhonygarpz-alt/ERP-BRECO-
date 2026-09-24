@@ -45,7 +45,7 @@ const REPORTES: ReporteInfo[] = [
   { numero: 6, titulo: 'Gastos de Viaje por Liquidacion', icon: Wallet, color: '#8b5cf6', to: '/gastos-viaje/detallado' },
   { numero: 7, titulo: 'Ingresos por Operador', icon: Users, color: '#ec4899', to: '/trafico/reportes/ingresos-operador' },
   { numero: 8, titulo: 'Viajes por Unidad', icon: Truck, color: '#06b6d4', to: '/trafico/reportes/viajes-unidad' },
-  { numero: 9, titulo: 'Descuentos por Operador', icon: Percent, color: '#eab308' },
+  { numero: 9, titulo: 'Descuentos por Operador', icon: Percent, color: '#eab308', to: '/trafico/reportes/descuentos-operador' },
   { numero: 10, titulo: 'Rendimiento por Unidad', icon: Gauge, color: '#f59e0b', to: '/trafico/reportes/rendimiento-unidad' },
   { numero: 11, titulo: 'Detallado de Viajes', icon: FileText, color: '#10b981', to: '/trafico/reportes/detallado-viajes' },
   { numero: 12, titulo: 'Relacion de Anticipos', icon: HandCoins, color: '#ef4444', to: '/trafico/reportes/anticipos-operador' },

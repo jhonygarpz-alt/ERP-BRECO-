@@ -43,6 +43,7 @@ import {
   ShoppingBasket,
   PackageSearch,
   X,
+  MinusCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -176,7 +177,16 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-const traficoRoutes = ['/viajes', '/gastos-viaje', '/gastos-viaje/detallado', '/viajes-del-dia', '/aeropuerto', '/programa', '/trafico/reportes'];
+const traficoRoutes = [
+  '/viajes',
+  '/gastos-viaje',
+  '/gastos-viaje/detallado',
+  '/descuentos-operador',
+  '/viajes-del-dia',
+  '/aeropuerto',
+  '/programa',
+  '/trafico/reportes',
+];
 const monitoreoRoutes = ['/monitoreo'];
 const facturacionRoutes = ['/facturacion'];
 const cobranzaRoutes = ['/cobranza'];
@@ -228,6 +238,7 @@ export function Sidebar({
   const traficoLinks = [
     puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
     puedeViajes && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet, end: true },
+    puedeViajes && { to: '/descuentos-operador', label: 'Descuentos a Operador', icon: MinusCircle },
     puedeViajes && { to: '/gastos-viaje/detallado', label: 'Detallado de Gastos por Viaje', icon: BarChart3 },
     puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
     puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },

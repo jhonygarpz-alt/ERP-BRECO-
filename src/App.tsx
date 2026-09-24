@@ -30,6 +30,7 @@ import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { GastosViajePage } from './pages/GastosViajePage';
+import { DescuentosOperadorPage } from './pages/DescuentosOperadorPage';
 import { GastosPorViajeDetalladoPage } from './pages/GastosPorViajeDetalladoPage';
 import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
@@ -118,6 +119,7 @@ import { InventarioEquipoViajesReportPage } from './pages/reportes-trafico/Inven
 import { AnticiposVsGastosReportPage } from './pages/reportes-trafico/AnticiposVsGastosReportPage';
 import { JustInTimeReportPage } from './pages/reportes-trafico/JustInTimeReportPage';
 import { DisponibilidadEquipoReportPage } from './pages/reportes-trafico/DisponibilidadEquipoReportPage';
+import { DescuentosOperadorReportPage } from './pages/reportes-trafico/DescuentosOperadorReportPage';
 import { ImprimirReporteTraficoPage } from './pages/reportes-trafico/ImprimirReporteTraficoPage';
 import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
@@ -165,6 +167,7 @@ function App() {
                   <Route path="/viajes" element={<ViajesPage />} />
                   <Route path="/gastos-viaje" element={<GastosViajePage />} />
                   <Route path="/gastos-viaje/detallado" element={<GastosPorViajeDetalladoPage />} />
+                  <Route path="/descuentos-operador" element={<DescuentosOperadorPage />} />
                   <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
                   <Route path="/aeropuerto" element={<AeropuertoPage />} />
                   <Route path="/trafico/reportes" element={<ReportesTraficoHubPage />} />
@@ -187,6 +190,7 @@ function App() {
                   <Route path="/trafico/reportes/anticipos-vs-gastos" element={<AnticiposVsGastosReportPage />} />
                   <Route path="/trafico/reportes/just-in-time" element={<JustInTimeReportPage />} />
                   <Route path="/trafico/reportes/disponibilidad-equipo" element={<DisponibilidadEquipoReportPage />} />
+                  <Route path="/trafico/reportes/descuentos-operador" element={<DescuentosOperadorReportPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Facturacion" />}>

@@ -925,6 +925,55 @@ export interface GastoViaje {
   creadoEn?: string;
 }
 
+/** Catalogo de conceptos de deduccion para Descuentos a Operador (Prestamo, Uniforme, Herramienta, etc.). */
+export interface DeduccionOperador {
+  id: string;
+  numero: string;
+  nombre: string;
+  activa: boolean;
+}
+
+export type TipoDescuentoOperador = 'Permanente' | 'Otros Descuentos';
+export type FormaDescontarOperador = 'Dinero' | 'Porcentaje';
+export type EstatusDescuentoOperador = 'Activo' | 'Cancelado';
+
+/**
+ * Un descuento/prestamo dado de alta a un operador (submodulo de Trafico,
+ * debajo de Gastos de Viaje). "Permanente" se descuenta indefinidamente
+ * (sin importeTotalADescontar); "Otros Descuentos" tiene un monto total a
+ * saldar (ej. un prestamo) -- el saldo pendiente se calcula restando la
+ * suma de sus AbonoDescuentoOperador, nunca se guarda.
+ */
+export interface DescuentoOperador {
+  id: string;
+  folio: string;
+  descontarAPartir: string;
+  operadorId: string;
+  deduccionId: string;
+  tipoDescuento: TipoDescuentoOperador;
+  formaDescontar: FormaDescontarOperador;
+  /** Monto fijo por liquidacion si formaDescontar es 'Dinero', o el porcentaje si es 'Porcentaje'. */
+  importePorLiquidacion: number;
+  moneda: 'MXN' | 'USD';
+  /** Monto total del descuento (ej. el prestamo completo). 0 = sin tope (uso tipico de "Permanente"). */
+  importeTotalADescontar: number;
+  observaciones: string;
+  estatus: EstatusDescuentoOperador;
+  /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
+  creadoEn?: string;
+}
+
+/** Un abono aplicado a un DescuentoOperador (va reduciendo su saldo pendiente). */
+export interface AbonoDescuentoOperador {
+  id: string;
+  descuentoOperadorId: string;
+  fecha: string;
+  monto: number;
+  observaciones: string;
+  /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
+  creadoEn?: string;
+}
+
 /** Un formato de impresion configurable por area/proceso (ej. "Viajes" -> Con Importe Real / Con Valor $0). */
 export interface FormatoImpresion {
   id: string;

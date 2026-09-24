@@ -22,6 +22,9 @@ import type {
   FacturaSistema,
   FormatoImpresion,
   GastoViaje,
+  DeduccionOperador,
+  DescuentoOperador,
+  AbonoDescuentoOperador,
   GrupoUnidad,
   IncidenciaViaje,
   ConciliacionBancaria,
@@ -1174,6 +1177,77 @@ export function gastoViajeToRow(g: GastoViaje) {
     combustible_tipo: g.combustibleTipo || null,
     litros: g.litros ?? null,
     precio_litro: g.precioLitro ?? null,
+  };
+}
+
+export function deduccionOperadorFromRow(row: Record<string, unknown>): DeduccionOperador {
+  return {
+    id: row.id as string,
+    numero: row.numero as string,
+    nombre: row.nombre as string,
+    activa: row.activa as boolean,
+  };
+}
+export function deduccionOperadorToRow(d: DeduccionOperador) {
+  return {
+    id: d.id,
+    numero: d.numero,
+    nombre: d.nombre,
+    activa: d.activa,
+  };
+}
+
+export function descuentoOperadorFromRow(row: Record<string, unknown>): DescuentoOperador {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    descontarAPartir: row.descontar_a_partir as string,
+    operadorId: row.operador_id as string,
+    deduccionId: row.deduccion_id as string,
+    tipoDescuento: row.tipo_descuento as DescuentoOperador['tipoDescuento'],
+    formaDescontar: row.forma_descontar as DescuentoOperador['formaDescontar'],
+    importePorLiquidacion: Number(row.importe_por_liquidacion) || 0,
+    moneda: row.moneda as DescuentoOperador['moneda'],
+    importeTotalADescontar: Number(row.importe_total_a_descontar) || 0,
+    observaciones: row.observaciones as string,
+    estatus: row.estatus as DescuentoOperador['estatus'],
+    creadoEn: row.creado_en as string | undefined,
+  };
+}
+export function descuentoOperadorToRow(d: DescuentoOperador) {
+  return {
+    id: d.id,
+    folio: d.folio,
+    descontar_a_partir: d.descontarAPartir,
+    operador_id: d.operadorId,
+    deduccion_id: d.deduccionId,
+    tipo_descuento: d.tipoDescuento,
+    forma_descontar: d.formaDescontar,
+    importe_por_liquidacion: d.importePorLiquidacion,
+    moneda: d.moneda,
+    importe_total_a_descontar: d.importeTotalADescontar,
+    observaciones: d.observaciones,
+    estatus: d.estatus,
+  };
+}
+
+export function abonoDescuentoOperadorFromRow(row: Record<string, unknown>): AbonoDescuentoOperador {
+  return {
+    id: row.id as string,
+    descuentoOperadorId: row.descuento_operador_id as string,
+    fecha: row.fecha as string,
+    monto: Number(row.monto) || 0,
+    observaciones: row.observaciones as string,
+    creadoEn: row.creado_en as string | undefined,
+  };
+}
+export function abonoDescuentoOperadorToRow(a: AbonoDescuentoOperador) {
+  return {
+    id: a.id,
+    descuento_operador_id: a.descuentoOperadorId,
+    fecha: a.fecha,
+    monto: a.monto,
+    observaciones: a.observaciones,
   };
 }
 

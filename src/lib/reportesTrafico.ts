@@ -3,7 +3,19 @@
 // operadores) y un rango de fechas, y regresa filas listas para mostrar en
 // pantalla, exportar a Excel o imprimir en PDF -- la MISMA funcion se usa en
 // las tres pantallas para que los tres numeros siempre coincidan.
-import type { Caja, Cliente, EstatusUnidadCustom, Factura, GastoViaje, Operador, Unidad, Viaje } from '../types';
+import type {
+  AbonoDescuentoOperador,
+  Caja,
+  Cliente,
+  DeduccionOperador,
+  DescuentoOperador,
+  EstatusUnidadCustom,
+  Factura,
+  GastoViaje,
+  Operador,
+  Unidad,
+  Viaje,
+} from '../types';
 import { hoyISO, fechaLocal } from './fechas';
 import { validarCartaPorteCompleta } from './cartaPorte';
 
@@ -804,4 +816,38 @@ export function calcularDisponibilidadEquipo(unidades: Unidad[], cajas: Caja[], 
       disponible: c.estatus === 'Disponible',
     }));
   return [...filasUnidades, ...filasCajas].sort((a, b) => (a.disponible === b.disponible ? 0 : a.disponible ? -1 : 1));
+}
+
+// ---- 09. Descuentos por Operador ----
+// Cada renglon es un abono realmente aplicado a un descuento/prestamo de
+// operador (submodulo Descuentos a Operador) dentro del rango de fechas.
+export interface FilaDescuentoOperador {
+  fecha: string;
+  operador: string;
+  folioDescuento: string;
+  deduccion: string;
+  monto: number;
+}
+export function calcularDescuentosPorOperador(
+  abonos: AbonoDescuentoOperador[],
+  descuentos: DescuentoOperador[],
+  operadores: Operador[],
+  deducciones: DeduccionOperador[],
+  filtro: FiltroFechas,
+): FilaDescuentoOperador[] {
+  const descuentoPorId = new Map(descuentos.map((d) => [d.id, d]));
+  return abonos
+    .filter((a) => a.fecha >= filtro.desde && a.fecha <= filtro.hasta)
+    .map((a) => {
+      const descuento = descuentoPorId.get(a.descuentoOperadorId);
+      const deduccion = descuento ? deducciones.find((d) => d.id === descuento.deduccionId) : undefined;
+      return {
+        fecha: a.fecha,
+        operador: descuento ? nombreOperador(operadores, descuento.operadorId) : '—',
+        folioDescuento: descuento?.folio ?? '—',
+        deduccion: deduccion ? `${deduccion.numero} ${deduccion.nombre}` : '—',
+        monto: a.monto || 0,
+      };
+    })
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
 }

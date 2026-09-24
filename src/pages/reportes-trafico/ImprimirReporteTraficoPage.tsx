@@ -6,6 +6,7 @@ import {
   calcularAnticiposVsGastos,
   calcularCartasPorteRevision,
   calcularCombustibleConciliado,
+  calcularDescuentosPorOperador,
   calcularDetalladoViajes,
   calcularEstatusViajes,
   calcularIngresosPorOperador,
@@ -31,6 +32,7 @@ const TITULOS: Record<string, string> = {
   'salidas-diarias': '03. Salidas Diarias con Importes',
   'combustible-conciliado': '04. Combustible Conciliado',
   'ingresos-unidad': '05. Ingresos Generados por Unidad',
+  'descuentos-operador': '09. Descuentos por Operador',
   'ingresos-operador': '07. Ingresos por Operador',
   'viajes-unidad': '08. Viajes por Unidad',
   'rendimiento-unidad': '10. Rendimiento por Unidad',
@@ -52,7 +54,8 @@ const td: React.CSSProperties = { borderBottom: '1px solid #ddd', padding: '6px 
 export function ImprimirReporteTraficoPage() {
   const { tipo } = useParams<{ tipo: string }>();
   const [searchParams] = useSearchParams();
-  const { viajes, facturas, clientes, operadores, unidades, gastosViaje, cajas, empresa } = useData();
+  const { viajes, facturas, clientes, operadores, unidades, gastosViaje, cajas, abonosDescuentoOperador, descuentosOperador, deduccionesOperador, empresa } =
+    useData();
 
   const filtro: FiltroFechas = {
     desde: searchParams.get('desde') || rangoUltimosDias(30).desde,
@@ -272,6 +275,21 @@ export function ImprimirReporteTraficoPage() {
           notaTotal: `${filas.length} viajes · Anticipo: ${money(totalAnticipo)} · Gastos: ${money(totalGastos)}`,
         };
       }
+      case 'descuentos-operador': {
+        const filas = calcularDescuentosPorOperador(
+          abonosDescuentoOperador.items,
+          descuentosOperador.items,
+          operadores.items,
+          deduccionesOperador.items,
+          filtro,
+        );
+        const total = filas.reduce((acc, f) => acc + f.monto, 0);
+        return {
+          headers: ['Fecha', 'Operador', 'Folio Descuento', 'Deduccion', 'Monto'],
+          rows: filas.map((f) => [f.fecha, f.operador, f.folioDescuento, f.deduccion, money(f.monto)]),
+          notaTotal: `${filas.length} abonos · Total: ${money(total)}`,
+        };
+      }
       case 'just-in-time': {
         const filas = calcularJustInTime(viajes.items, clientes.items, filtro);
         const cumplieron = filas.filter((f) => f.cumplio === true).length;
@@ -292,7 +310,21 @@ export function ImprimirReporteTraficoPage() {
       default:
         return { headers: [], rows: [] as string[][], notaTotal: '' };
     }
-  }, [tipo, viajes.items, facturas.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, cajas.items, filtro.desde, filtro.hasta]);
+  }, [
+    tipo,
+    viajes.items,
+    facturas.items,
+    clientes.items,
+    operadores.items,
+    unidades.items,
+    gastosViaje.items,
+    cajas.items,
+    abonosDescuentoOperador.items,
+    descuentosOperador.items,
+    deduccionesOperador.items,
+    filtro.desde,
+    filtro.hasta,
+  ]);
 
   useEffect(() => {
     const t = setTimeout(() => window.print(), 300);
