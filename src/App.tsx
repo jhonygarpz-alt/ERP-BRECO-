@@ -49,6 +49,15 @@ import { MovimientosBancariosPage } from './pages/banco/MovimientosBancariosPage
 import { CuentasPorPagarPage } from './pages/banco/CuentasPorPagarPage';
 import { ImprimirPagoProveedorPage } from './pages/banco/ImprimirPagoProveedorPage';
 import { ConciliacionesPage } from './pages/banco/ConciliacionesPage';
+import { ReportesBancoHubPage } from './pages/reportes-banco/ReportesBancoHubPage';
+import { MovimientosBancariosReportPage } from './pages/reportes-banco/MovimientosBancariosReportPage';
+import { SaldosPorCuentaReportPage } from './pages/reportes-banco/SaldosPorCuentaReportPage';
+import { IngresosEgresosReportPage } from './pages/reportes-banco/IngresosEgresosReportPage';
+import { ConciliacionesReportPage } from './pages/reportes-banco/ConciliacionesReportPage';
+import { NoConciliadosReportPage } from './pages/reportes-banco/NoConciliadosReportPage';
+import { PagosProveedorReportPage } from './pages/reportes-banco/PagosProveedorReportPage';
+import { PasivosProveedorReportPage } from './pages/reportes-banco/PasivosProveedorReportPage';
+import { ImprimirReporteBancoPage } from './pages/reportes-banco/ImprimirReporteBancoPage';
 import { MantenimientoCatalogosHubPage } from './pages/mantenimiento/MantenimientoCatalogosHubPage';
 import { ClasificacionesServicioPage } from './pages/mantenimiento/ClasificacionesServicioPage';
 import { CatalogoServiciosPage } from './pages/mantenimiento/CatalogoServiciosPage';
@@ -174,6 +183,14 @@ function App() {
                   <Route path="/banco/movimientos" element={<MovimientosBancariosPage />} />
                   <Route path="/banco/cuentas-por-pagar" element={<CuentasPorPagarPage />} />
                   <Route path="/banco/conciliaciones" element={<ConciliacionesPage />} />
+                  <Route path="/banco/reportes" element={<ReportesBancoHubPage />} />
+                  <Route path="/banco/reportes/movimientos" element={<MovimientosBancariosReportPage />} />
+                  <Route path="/banco/reportes/saldos-por-cuenta" element={<SaldosPorCuentaReportPage />} />
+                  <Route path="/banco/reportes/ingresos-egresos" element={<IngresosEgresosReportPage />} />
+                  <Route path="/banco/reportes/conciliaciones" element={<ConciliacionesReportPage />} />
+                  <Route path="/banco/reportes/no-conciliados" element={<NoConciliadosReportPage />} />
+                  <Route path="/banco/reportes/pagos-proveedor" element={<PagosProveedorReportPage />} />
+                  <Route path="/banco/reportes/pasivos-proveedor" element={<PasivosProveedorReportPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Mantenimiento" />}>
@@ -242,6 +259,7 @@ function App() {
               <Route path="/almacen/requisiciones/imprimir/:id" element={<ImprimirRequisicionPage />} />
               <Route path="/almacen/movimientos/imprimir/:id" element={<ImprimirMovimientoAlmacenPage />} />
               <Route path="/trafico/reportes/imprimir/:tipo" element={<ImprimirReporteTraficoPage />} />
+              <Route path="/banco/reportes/imprimir/:tipo" element={<ImprimirReporteBancoPage />} />
               <Route path="/monitoreo/reportes/imprimir/:tipo" element={<ImprimirReporteMonitoreoPage />} />
             </Route>
           </Routes>

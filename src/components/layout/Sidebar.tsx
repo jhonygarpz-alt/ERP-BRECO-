@@ -269,6 +269,7 @@ export function Sidebar({
         { to: '/banco/movimientos', label: 'Movimientos Bancarios', icon: Landmark },
         { to: '/banco/cuentas-por-pagar', label: 'Cuentas por Pagar', icon: FileClock },
         { to: '/banco/conciliaciones', label: 'Conciliaciones', icon: GitCompareArrows },
+        { to: '/banco/reportes', label: 'Reportes', icon: PieChart },
       ]
     : [];
 

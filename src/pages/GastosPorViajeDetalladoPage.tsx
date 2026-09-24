@@ -21,6 +21,10 @@ export function GastosPorViajeDetalladoPage() {
   const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);
   const totalGastos = filas.reduce((acc, f) => acc + f.gastos, 0);
   const totalUtilidad = totalIngreso - totalGastos;
+  const totalCasetas = filas.reduce((acc, f) => acc + f.casetas, 0);
+  const totalCombustible = filas.reduce((acc, f) => acc + f.combustible, 0);
+  const totalViaticos = filas.reduce((acc, f) => acc + f.viaticos, 0);
+  const totalOtros = filas.reduce((acc, f) => acc + f.otros, 0);
 
   const datosGrafica = filas
     .slice()
@@ -31,8 +35,8 @@ export function GastosPorViajeDetalladoPage() {
   function handleExportarExcel() {
     exportarExcel(
       'detallado-gastos-por-viaje',
-      ['Folio', 'Fecha', 'Cliente', 'Ingreso', 'Gastos', 'Utilidad'],
-      filas.map((f) => [f.folio, f.fecha, f.cliente, f.ingreso, f.gastos, f.utilidad]),
+      ['Folio', 'Fecha', 'Cliente', 'Ingreso', 'Casetas', 'Combustible', 'Viaticos', 'Otros Gastos', 'Total Gastos', 'Utilidad'],
+      filas.map((f) => [f.folio, f.fecha, f.cliente, f.ingreso, f.casetas, f.combustible, f.viaticos, f.otros, f.gastos, f.utilidad]),
     );
   }
 
@@ -52,6 +56,28 @@ export function GastosPorViajeDetalladoPage() {
         <StatCard label="Total Ingresos" value={money(totalIngreso)} icon={TrendingUp} accent="green" />
         <StatCard label="Total Gastos" value={money(totalGastos)} icon={TrendingDown} accent="red" />
         <StatCard label="Utilidad Neta" value={money(totalUtilidad)} icon={DollarSign} accent={totalUtilidad >= 0 ? 'blue' : 'red'} />
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-line-800 bg-bg-800 p-4">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-500">Gastos del periodo por concepto</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div>
+            <p className="text-xs text-ink-500">Casetas</p>
+            <p className="text-lg font-semibold text-ink-100">{money(totalCasetas)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-ink-500">Combustible</p>
+            <p className="text-lg font-semibold text-ink-100">{money(totalCombustible)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-ink-500">Viaticos</p>
+            <p className="text-lg font-semibold text-ink-100">{money(totalViaticos)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-ink-500">Otros Gastos</p>
+            <p className="text-lg font-semibold text-ink-100">{money(totalOtros)}</p>
+          </div>
+        </div>
       </div>
 
       {datosGrafica.length > 0 && (
@@ -78,8 +104,19 @@ export function GastosPorViajeDetalladoPage() {
       )}
 
       <ReporteTabla
-        headers={['Folio', 'Fecha', 'Cliente', 'Ingreso', 'Gastos', 'Utilidad']}
-        rows={filas.map((f) => [f.folio, f.fecha, f.cliente, money(f.ingreso), money(f.gastos), money(f.utilidad)])}
+        headers={['Folio', 'Fecha', 'Cliente', 'Ingreso', 'Casetas', 'Combustible', 'Viaticos', 'Otros Gastos', 'Total Gastos', 'Utilidad']}
+        rows={filas.map((f) => [
+          f.folio,
+          f.fecha,
+          f.cliente,
+          money(f.ingreso),
+          money(f.casetas),
+          money(f.combustible),
+          money(f.viaticos),
+          money(f.otros),
+          money(f.gastos),
+          money(f.utilidad),
+        ])}
       />
       <p className="mt-3 text-right text-sm text-ink-500">
         Total del periodo: Ingreso {money(totalIngreso)} &middot; Gastos {money(totalGastos)} &middot; Utilidad {money(totalUtilidad)}

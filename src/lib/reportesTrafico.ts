@@ -189,7 +189,23 @@ export function calcularViajesPorUnidad(viajes: Viaje[], unidades: Unidad[], fil
 }
 
 // ---- Detallado de Gastos por Viaje (tambien 06. Gastos de Viaje por Liquidacion) ----
-export interface FilaGastoPorViaje {
+// El desglose distingue los mismos tipos que se capturan en Gastos de Viaje
+// (Peajes/Combustible/Viaticos, ver TIPOS_GASTO en GastosViajePage.tsx);
+// cualquier tipo libre ("Otro", o el texto que capture el usuario) cae en
+// "otros" para no perder el gasto aunque no encaje en esas 3 categorias.
+export interface DesgloseGastosViaje {
+  casetas: number;
+  combustible: number;
+  viaticos: number;
+  otros: number;
+}
+function categoriaGasto(tipo: string): keyof DesgloseGastosViaje {
+  if (tipo === 'Peajes') return 'casetas';
+  if (tipo === 'Combustible') return 'combustible';
+  if (tipo === 'Viaticos / Anticipo') return 'viaticos';
+  return 'otros';
+}
+export interface FilaGastoPorViaje extends DesgloseGastosViaje {
   viajeId: string;
   folio: string;
   fecha: string;
@@ -204,22 +220,26 @@ export function calcularGastosPorViaje(
   clientes: Cliente[],
   filtro: FiltroFechas,
 ): FilaGastoPorViaje[] {
-  const gastosPorViaje = new Map<string, number>();
+  const desglosePorViaje = new Map<string, DesgloseGastosViaje>();
   for (const g of gastos) {
     if (g.estatus === 'Cancelado') continue;
-    gastosPorViaje.set(g.viajeId, (gastosPorViaje.get(g.viajeId) ?? 0) + (g.monto || 0));
+    const actual = desglosePorViaje.get(g.viajeId) ?? { casetas: 0, combustible: 0, viaticos: 0, otros: 0 };
+    actual[categoriaGasto(g.tipo)] += g.monto || 0;
+    desglosePorViaje.set(g.viajeId, actual);
   }
   return viajesEnRango(viajes, filtro)
     .filter((v) => v.estatus !== 'Cancelado')
     .map((v) => {
       const ingreso = v.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0);
-      const gastosViaje = gastosPorViaje.get(v.id) ?? 0;
+      const desglose = desglosePorViaje.get(v.id) ?? { casetas: 0, combustible: 0, viaticos: 0, otros: 0 };
+      const gastosViaje = desglose.casetas + desglose.combustible + desglose.viaticos + desglose.otros;
       return {
         viajeId: v.id,
         folio: v.folio,
         fecha: v.fecha,
         cliente: nombreCliente(clientes, v.clienteId),
         ingreso,
+        ...desglose,
         gastos: gastosViaje,
         utilidad: ingreso - gastosViaje,
       };
