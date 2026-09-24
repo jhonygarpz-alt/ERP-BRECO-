@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { inputClass } from './form';
+import { campoClass } from './form';
+import { useCampoResaltado, estaLleno } from '../../lib/CampoResaltadoContext';
 
 // Campo "codigo" tecleable con autocompletado, para reemplazar los campos
 // de solo lectura que obligaban a abrir el buscador completo para asignar
@@ -29,6 +30,7 @@ export function ComboBoxCodigo<T>({
   const [texto, setTexto] = useState(valor);
   const [abierto, setAbierto] = useState(false);
   const enfocadoRef = useRef(false);
+  const resaltar = useCampoResaltado();
 
   useEffect(() => {
     if (!enfocadoRef.current) setTexto(valor);
@@ -69,7 +71,7 @@ export function ComboBoxCodigo<T>({
   return (
     <div className="relative">
       <input
-        className={`${inputClass} ${className ?? ''}`}
+        className={`${campoClass(resaltar && estaLleno(valor))} ${className ?? ''}`}
         value={texto}
         placeholder={placeholder}
         autoComplete="off"

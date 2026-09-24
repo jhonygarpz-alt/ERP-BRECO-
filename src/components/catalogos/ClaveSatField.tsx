@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MoreHorizontal, type LucideIcon } from 'lucide-react';
-import { inputClass, Input, ToolbarButton } from '../ui/form';
+import { campoClass, Input, ToolbarButton } from '../ui/form';
+import { useCampoResaltado, estaLleno } from '../../lib/CampoResaltadoContext';
 
 /**
  * Campo de "clave SAT" tecleable con autocompletado: al escribir se busca en
@@ -39,6 +40,7 @@ export function ClaveSatField<T>({
   const [texto, setTexto] = useState(clave);
   const [abierto, setAbierto] = useState(false);
   const enfocadoRef = useRef(false);
+  const resaltar = useCampoResaltado();
   const sugerencias = useCatalogo(texto);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export function ClaveSatField<T>({
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <div className="relative flex flex-shrink-0 gap-2">
         <input
-          className={`${inputClass} ${claveClassName}`}
+          className={`${campoClass(resaltar && estaLleno(clave))} ${claveClassName}`}
           value={texto}
           placeholder={placeholderClave}
           autoComplete="off"

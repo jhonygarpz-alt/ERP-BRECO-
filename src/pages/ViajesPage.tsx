@@ -16,6 +16,7 @@ import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../components/catalogos/BuscarClaveSatModal';
 import { ClaveSatField } from '../components/catalogos/ClaveSatField';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
+import { CampoResaltadoProvider } from '../lib/CampoResaltadoContext';
 import {
   TIPOS_EMBALAJE_SAT,
   SECTOR_COFEPRIS_SAT,
@@ -995,6 +996,7 @@ export function ViajesPage() {
           wide="xl"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
+          <CampoResaltadoProvider value={true}>
           <fieldset disabled={soloLectura} className="space-y-4">
             {/* ---- Encabezado ---- */}
             <div className="grid grid-cols-2 gap-3 rounded-xl border border-line-800 bg-bg-900 p-4 sm:grid-cols-5">
@@ -1849,6 +1851,7 @@ export function ViajesPage() {
             )}
 
           </fieldset>
+          </CampoResaltadoProvider>
 
             <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
               {soloLectura ? (
