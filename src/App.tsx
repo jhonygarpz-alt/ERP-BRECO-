@@ -95,6 +95,9 @@ import { ViajesPendientesFacturarReportPage } from './pages/reportes-trafico/Via
 import { IngresosPorOperadorReportPage } from './pages/reportes-trafico/IngresosPorOperadorReportPage';
 import { ViajesPorUnidadReportPage } from './pages/reportes-trafico/ViajesPorUnidadReportPage';
 import { EstatusViajesReportPage } from './pages/reportes-trafico/EstatusViajesReportPage';
+import { IngresosPorUnidadReportPage } from './pages/reportes-trafico/IngresosPorUnidadReportPage';
+import { DetalladoViajesReportPage } from './pages/reportes-trafico/DetalladoViajesReportPage';
+import { VencimientosUnidadesReportPage } from './pages/reportes-trafico/VencimientosUnidadesReportPage';
 import { ImprimirReporteTraficoPage } from './pages/reportes-trafico/ImprimirReporteTraficoPage';
 import { ConfiguracionPage } from './pages/configuracion/ConfiguracionPage';
 
@@ -150,6 +153,9 @@ function App() {
                   <Route path="/trafico/reportes/ingresos-operador" element={<IngresosPorOperadorReportPage />} />
                   <Route path="/trafico/reportes/viajes-unidad" element={<ViajesPorUnidadReportPage />} />
                   <Route path="/trafico/reportes/estatus-viajes" element={<EstatusViajesReportPage />} />
+                  <Route path="/trafico/reportes/ingresos-unidad" element={<IngresosPorUnidadReportPage />} />
+                  <Route path="/trafico/reportes/detallado-viajes" element={<DetalladoViajesReportPage />} />
+                  <Route path="/trafico/reportes/vencimientos-unidades" element={<VencimientosUnidadesReportPage />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Facturacion" />}>

@@ -45,6 +45,23 @@ export function rangoTodo(): FiltroFechas {
   return { desde: '2000-01-01', hasta: hoyISO() };
 }
 
+// Rango hacia adelante (para reportes de vencimientos: interesa lo que ya
+// vencio recientemente y lo que esta por vencer, no el historico de viajes).
+export function rangoVencimientos(diasAtras = 30, diasAdelante = 90): FiltroFechas {
+  const desde = new Date();
+  desde.setDate(desde.getDate() - diasAtras);
+  const hasta = new Date();
+  hasta.setDate(hasta.getDate() + diasAdelante);
+  return { desde: fechaLocal(desde), hasta: fechaLocal(hasta) };
+}
+
+function diasEntreFechas(fechaIso: string, hoy: string): number {
+  const [y1, m1, d1] = hoy.split('-').map(Number);
+  const fecha = new Date(fechaIso);
+  const hoyMs = Date.UTC(y1, m1 - 1, d1);
+  return Math.round((fecha.getTime() - hoyMs) / 86400000);
+}
+
 export function viajesEnRango(viajes: Viaje[], filtro: FiltroFechas): Viaje[] {
   return viajes.filter((v) => v.fecha >= filtro.desde && v.fecha <= filtro.hasta);
 }
@@ -208,6 +225,99 @@ export function calcularGastosPorViaje(
       };
     })
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || a.folio.localeCompare(b.folio));
+}
+
+// ---- 05. Ingresos Generados por Unidad ----
+export interface FilaIngresoUnidad {
+  unidad: string;
+  viajes: number;
+  ingreso: number;
+}
+export function calcularIngresosPorUnidad(viajes: Viaje[], unidades: Unidad[], filtro: FiltroFechas): FilaIngresoUnidad[] {
+  const enRango = viajesEnRango(viajes, filtro).filter((v) => v.estatus !== 'Cancelado');
+  const porUnidad = new Map<string, { viajes: number; ingreso: number }>();
+  for (const v of enRango) {
+    const unidadId = v.trayectos[0]?.unidadId || v.unidadId;
+    if (!unidadId) continue;
+    const ingresoViaje = v.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0);
+    const actual = porUnidad.get(unidadId) ?? { viajes: 0, ingreso: 0 };
+    actual.viajes += 1;
+    actual.ingreso += ingresoViaje;
+    porUnidad.set(unidadId, actual);
+  }
+  return Array.from(porUnidad.entries())
+    .map(([unidadId, datos]) => ({ unidad: economicoUnidad(unidades, unidadId), ...datos }))
+    .sort((a, b) => b.ingreso - a.ingreso);
+}
+
+// ---- 11. Detallado de Viajes ----
+export interface FilaDetalladoViaje {
+  folio: string;
+  fecha: string;
+  cliente: string;
+  operador: string;
+  unidad: string;
+  origen: string;
+  destino: string;
+  kilometros: number;
+  ingreso: number;
+  estatus: string;
+}
+export function calcularDetalladoViajes(
+  viajes: Viaje[],
+  clientes: Cliente[],
+  operadores: Operador[],
+  unidades: Unidad[],
+  filtro: FiltroFechas,
+): FilaDetalladoViaje[] {
+  return viajesEnRango(viajes, filtro)
+    .slice()
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.folio.localeCompare(b.folio))
+    .map((v) => ({
+      folio: v.folio,
+      fecha: v.fecha,
+      cliente: nombreCliente(clientes, v.clienteId),
+      operador: nombreOperador(operadores, v.trayectos[0]?.operadorId || v.operadorId),
+      unidad: economicoUnidad(unidades, v.trayectos[0]?.unidadId || v.unidadId),
+      origen: v.trayectos[0]?.origen || v.origen || '—',
+      destino: v.trayectos[0]?.destino || v.destino || '—',
+      kilometros: v.kilometros || 0,
+      ingreso: v.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0),
+      estatus: v.estatus,
+    }));
+}
+
+// ---- 17. Vencimientos de Unidades ----
+export interface FilaVencimientoUnidad {
+  unidad: string;
+  documento: string;
+  fechaVencimiento: string;
+  dias: number;
+  estatus: 'Vencido' | 'Por vencer' | 'Vigente';
+}
+export function calcularVencimientosUnidades(unidades: Unidad[], filtro: FiltroFechas): FilaVencimientoUnidad[] {
+  const hoy = hoyISO();
+  const filas: FilaVencimientoUnidad[] = [];
+
+  function agregar(unidad: Unidad, documento: string, fechaVencimiento: string) {
+    if (!fechaVencimiento || fechaVencimiento < filtro.desde || fechaVencimiento > filtro.hasta) return;
+    const dias = diasEntreFechas(fechaVencimiento, hoy);
+    filas.push({
+      unidad: unidad.economico,
+      documento,
+      fechaVencimiento,
+      dias,
+      estatus: dias < 0 ? 'Vencido' : dias <= 30 ? 'Por vencer' : 'Vigente',
+    });
+  }
+
+  for (const u of unidades) {
+    u.documentosVencimiento.forEach((doc) => agregar(u, doc.documento || doc.tipo || 'Documento', doc.fechaVencimiento));
+    agregar(u, 'Seguro', u.vigenciaHasta);
+    agregar(u, 'Permiso SCT', u.vigenciaPermisoSct);
+  }
+
+  return filas.sort((a, b) => a.dias - b.dias);
 }
 
 // ---- 14 / 25. Estatus de Viajes / Resumen por Estatus ----

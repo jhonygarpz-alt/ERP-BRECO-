@@ -2,9 +2,12 @@ import { useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useData } from '../../lib/DataContext';
 import {
+  calcularDetalladoViajes,
   calcularEstatusViajes,
   calcularIngresosPorOperador,
+  calcularIngresosPorUnidad,
   calcularListadoViajes,
+  calcularVencimientosUnidades,
   calcularViajesPendientesFacturar,
   calcularViajesPorUnidad,
   money,
@@ -15,9 +18,12 @@ import {
 const TITULOS: Record<string, string> = {
   'listado-viajes': '01. Listado de Viajes',
   'pendientes-facturar': '02. Viajes Pendientes de Facturar',
+  'ingresos-unidad': '05. Ingresos Generados por Unidad',
   'ingresos-operador': '07. Ingresos por Operador',
   'viajes-unidad': '08. Viajes por Unidad',
+  'detallado-viajes': '11. Detallado de Viajes',
   'estatus-viajes': '14. Estatus de Viajes',
+  'vencimientos-unidades': '17. Vencimientos de Unidades',
 };
 
 const th: React.CSSProperties = { textAlign: 'left', borderBottom: '1px solid #999', padding: '6px 8px', fontSize: 11, textTransform: 'uppercase', color: '#555' };
@@ -77,6 +83,49 @@ export function ImprimirReporteTraficoPage() {
           headers: ['Estatus', 'Cantidad', 'Porcentaje'],
           rows: filas.map((f) => [f.estatus, String(f.cantidad), total > 0 ? `${((f.cantidad / total) * 100).toFixed(1)}%` : '0%']),
           notaTotal: `${total} viajes en el periodo.`,
+        };
+      }
+      case 'ingresos-unidad': {
+        const filas = calcularIngresosPorUnidad(viajes.items, unidades.items, filtro);
+        const total = filas.reduce((acc, f) => acc + f.ingreso, 0);
+        return {
+          headers: ['Unidad', 'Viajes', 'Ingreso'],
+          rows: filas.map((f) => [f.unidad, String(f.viajes), money(f.ingreso)]),
+          notaTotal: `Total del periodo: ${money(total)}`,
+        };
+      }
+      case 'detallado-viajes': {
+        const filas = calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, filtro);
+        const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);
+        return {
+          headers: ['Folio', 'Fecha', 'Cliente', 'Operador', 'Unidad', 'Origen', 'Destino', 'Km', 'Ingreso', 'Estatus'],
+          rows: filas.map((f) => [
+            f.folio,
+            f.fecha,
+            f.cliente,
+            f.operador,
+            f.unidad,
+            f.origen,
+            f.destino,
+            f.kilometros.toLocaleString('es-MX'),
+            money(f.ingreso),
+            f.estatus,
+          ]),
+          notaTotal: `${filas.length} viajes · Total: ${money(totalIngreso)}`,
+        };
+      }
+      case 'vencimientos-unidades': {
+        const filas = calcularVencimientosUnidades(unidades.items, filtro);
+        return {
+          headers: ['Unidad', 'Documento', 'Fecha de Vencimiento', 'Dias', 'Estatus'],
+          rows: filas.map((f) => [
+            f.unidad,
+            f.documento,
+            f.fechaVencimiento,
+            f.dias < 0 ? `Vencio hace ${Math.abs(f.dias)} dias` : `Vence en ${f.dias} dias`,
+            f.estatus,
+          ]),
+          notaTotal: `${filas.length} documentos en el rango.`,
         };
       }
       default:
