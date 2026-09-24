@@ -47,6 +47,25 @@ export function viajesPendientesDeFacturar(viajes: Viaje[], facturas: Factura[],
     .sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
+/**
+ * De una lista de viajes que se quieren facturar, cuales ya estan incluidos
+ * en OTRA factura activa (no cancelada) -- para bloquear la doble
+ * facturacion sin importar por donde se intente (Facturacion o el boton
+ * "Facturar" de Asignacion de Viajes).
+ */
+export function viajesYaFacturados(viajeIds: string[], facturas: Factura[], facturaIdExcluir?: string): { viajeId: string; factura: Factura }[] {
+  const conflictos: { viajeId: string; factura: Factura }[] = [];
+  for (const viajeId of viajeIds) {
+    const factura = facturas.find((f) => {
+      if (f.estatus === 'Cancelado' || f.id === facturaIdExcluir) return false;
+      const ids = f.viajeIds && f.viajeIds.length > 0 ? f.viajeIds : [f.viajeId];
+      return ids.includes(viajeId);
+    });
+    if (factura) conflictos.push({ viajeId, factura });
+  }
+  return conflictos;
+}
+
 export interface TotalesFactura {
   subtotal: number;
   descuentoTotal: number;

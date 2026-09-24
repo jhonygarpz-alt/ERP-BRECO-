@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { descargarFacturaPdf, descargarFacturasZip } from '../../lib/facturaPdf';
+import { viajesYaFacturados } from '../../lib/facturacion';
 import { cancelarTimbradoSimulado } from '../../lib/timbrado';
 import type { Factura, TipoFactura } from '../../types';
 import { CrudTable, type Column } from '../ui/CrudTable';
@@ -94,6 +95,14 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
   }
 
   function guardar(datos: Omit<Factura, 'id'>) {
+    const conflictos = viajesYaFacturados(datos.viajeIds, facturas.items, editing?.id);
+    if (conflictos.length > 0) {
+      const detalle = conflictos
+        .map(({ viajeId, factura }) => `${viajes.items.find((v) => v.id === viajeId)?.folio ?? viajeId} (Factura ${factura.folio})`)
+        .join(', ');
+      alert(`No se puede guardar: ya fueron facturados -> ${detalle}`);
+      return;
+    }
     if (editing) {
       facturas.update(editing.id, datos);
     } else {
