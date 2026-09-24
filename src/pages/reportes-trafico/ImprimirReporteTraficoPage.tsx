@@ -32,7 +32,7 @@ const td: React.CSSProperties = { borderBottom: '1px solid #ddd', padding: '6px 
 export function ImprimirReporteTraficoPage() {
   const { tipo } = useParams<{ tipo: string }>();
   const [searchParams] = useSearchParams();
-  const { viajes, facturas, clientes, operadores, unidades, empresa } = useData();
+  const { viajes, facturas, clientes, operadores, unidades, gastosViaje, empresa } = useData();
 
   const filtro: FiltroFechas = {
     desde: searchParams.get('desde') || rangoUltimosDias(30).desde,
@@ -95,10 +95,11 @@ export function ImprimirReporteTraficoPage() {
         };
       }
       case 'detallado-viajes': {
-        const filas = calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, filtro);
+        const filas = calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, filtro);
         const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);
+        const totalGastos = filas.reduce((acc, f) => acc + f.gastos, 0);
         return {
-          headers: ['Folio', 'Fecha', 'Cliente', 'Operador', 'Unidad', 'Origen', 'Destino', 'Km', 'Ingreso', 'Estatus'],
+          headers: ['Folio', 'Fecha', 'Cliente', 'Operador', 'Unidad', 'Origen', 'Destino', 'Km', 'Ingreso', 'Gastos', 'Utilidad', 'Estatus'],
           rows: filas.map((f) => [
             f.folio,
             f.fecha,
@@ -109,9 +110,11 @@ export function ImprimirReporteTraficoPage() {
             f.destino,
             f.kilometros.toLocaleString('es-MX'),
             money(f.ingreso),
+            money(f.gastos),
+            money(f.utilidad),
             f.estatus,
           ]),
-          notaTotal: `${filas.length} viajes · Total: ${money(totalIngreso)}`,
+          notaTotal: `${filas.length} viajes · Ingreso: ${money(totalIngreso)} · Gastos: ${money(totalGastos)} · Utilidad: ${money(totalIngreso - totalGastos)}`,
         };
       }
       case 'vencimientos-unidades': {
@@ -131,7 +134,7 @@ export function ImprimirReporteTraficoPage() {
       default:
         return { headers: [], rows: [] as string[][], notaTotal: '' };
     }
-  }, [tipo, viajes.items, facturas.items, clientes.items, operadores.items, unidades.items, filtro.desde, filtro.hasta]);
+  }, [tipo, viajes.items, facturas.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, filtro.desde, filtro.hasta]);
 
   useEffect(() => {
     const t = setTimeout(() => window.print(), 300);

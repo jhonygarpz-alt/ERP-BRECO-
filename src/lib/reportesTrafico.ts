@@ -281,6 +281,8 @@ export interface FilaDetalladoViaje {
   destino: string;
   kilometros: number;
   ingreso: number;
+  gastos: number;
+  utilidad: number;
   estatus: string;
 }
 export function calcularDetalladoViajes(
@@ -288,23 +290,35 @@ export function calcularDetalladoViajes(
   clientes: Cliente[],
   operadores: Operador[],
   unidades: Unidad[],
+  gastos: GastoViaje[],
   filtro: FiltroFechas,
 ): FilaDetalladoViaje[] {
+  const gastosPorViaje = new Map<string, number>();
+  for (const g of gastos) {
+    if (g.estatus === 'Cancelado') continue;
+    gastosPorViaje.set(g.viajeId, (gastosPorViaje.get(g.viajeId) ?? 0) + (g.monto || 0));
+  }
   return viajesEnRango(viajes, filtro)
     .slice()
     .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.folio.localeCompare(b.folio))
-    .map((v) => ({
-      folio: v.folio,
-      fecha: v.fecha,
-      cliente: nombreCliente(clientes, v.clienteId),
-      operador: nombreOperador(operadores, v.trayectos[0]?.operadorId || v.operadorId),
-      unidad: economicoUnidad(unidades, v.trayectos[0]?.unidadId || v.unidadId),
-      origen: v.trayectos[0]?.origen || v.origen || '—',
-      destino: v.trayectos[0]?.destino || v.destino || '—',
-      kilometros: v.kilometros || 0,
-      ingreso: v.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0),
-      estatus: v.estatus,
-    }));
+    .map((v) => {
+      const ingreso = v.conceptosFacturacionViaje.reduce((acc, c) => acc + (c.importe || 0), 0);
+      const gastosViaje = gastosPorViaje.get(v.id) ?? 0;
+      return {
+        folio: v.folio,
+        fecha: v.fecha,
+        cliente: nombreCliente(clientes, v.clienteId),
+        operador: nombreOperador(operadores, v.trayectos[0]?.operadorId || v.operadorId),
+        unidad: economicoUnidad(unidades, v.trayectos[0]?.unidadId || v.unidadId),
+        origen: v.trayectos[0]?.origen || v.origen || '—',
+        destino: v.trayectos[0]?.destino || v.destino || '—',
+        kilometros: v.kilometros || 0,
+        ingreso,
+        gastos: gastosViaje,
+        utilidad: ingreso - gastosViaje,
+        estatus: v.estatus,
+      };
+    });
 }
 
 // ---- 17. Vencimientos de Unidades ----
