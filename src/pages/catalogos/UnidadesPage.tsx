@@ -367,7 +367,7 @@ export function UnidadesPage() {
                   <Field label="Número de serie">
                     <Input value={form.numeroSerie} onChange={(e) => setForm({ ...form, numeroSerie: e.target.value })} />
                   </Field>
-                  <Field label="Placas">
+                  <Field label="Placas" required>
                     <Input value={form.placas} onChange={(e) => setForm({ ...form, placas: e.target.value })} />
                   </Field>
                   <Field label="Color">
@@ -456,7 +456,7 @@ export function UnidadesPage() {
                 <Field label="Número de ejes">
                   <Input type="number" value={form.numeroEjes || ''} onChange={(e) => setForm({ ...form, numeroEjes: Number(e.target.value) })} />
                 </Field>
-                <Field label="Peso Tara (Ton)">
+                <Field label="Peso Tara (Ton)" required>
                   <Input type="number" step="0.01" value={form.pesoTaraTon || ''} onChange={(e) => setForm({ ...form, pesoTaraTon: Number(e.target.value) })} />
                 </Field>
                 <Field label="Kilometraje Actual">
@@ -483,13 +483,13 @@ export function UnidadesPage() {
             <section>
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Permiso SCT (Carta Porte)</h3>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Field label="Permiso SCT">
+                <Field label="Permiso SCT" required>
                   <Input
                     value={form.numeroPermisoSct}
                     onChange={(e) => setForm({ ...form, numeroPermisoSct: e.target.value })}
                   />
                 </Field>
-                <Field label="Fecha de vencimiento">
+                <Field label="Fecha de vencimiento" required>
                   <Input
                     type="date"
                     value={form.vigenciaPermisoSct}
@@ -503,7 +503,7 @@ export function UnidadesPage() {
                   />
                 </Field>
                 <div className="col-span-2 sm:col-span-3">
-                  <Field label="Tipo de permiso (Clave SAT)">
+                  <Field label="Tipo de permiso (Clave SAT)" required>
                     <Select
                       value={form.claveTipoPermisoSct}
                       onChange={(e) => setForm({ ...form, claveTipoPermisoSct: e.target.value })}
@@ -701,10 +701,10 @@ export function UnidadesPage() {
 
               {tab === 'seguros' && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                  <Field label="Aseguradora">
+                  <Field label="Aseguradora" required>
                     <Input value={form.aseguradora} onChange={(e) => setForm({ ...form, aseguradora: e.target.value })} />
                   </Field>
-                  <Field label="No. Póliza">
+                  <Field label="No. Póliza" required>
                     <Input value={form.noPoliza} onChange={(e) => setForm({ ...form, noPoliza: e.target.value })} />
                   </Field>
                   <Field label="Vigencia desde">

@@ -360,7 +360,7 @@ export function OperadoresPage() {
                   <Field label="Apellido Materno">
                     <Input value={form.apellidoMaterno} onChange={(e) => setForm({ ...form, apellidoMaterno: e.target.value })} />
                   </Field>
-                  <Field label="RFC">
+                  <Field label="RFC" required>
                     <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
                   </Field>
                   <Field label="CURP">
@@ -505,7 +505,7 @@ export function OperadoresPage() {
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Documentos de identidad</h4>
                     <div className="grid grid-cols-2 gap-3">
-                      <Field label="Licencia">
+                      <Field label="Licencia" required>
                         <Input required value={form.licencia} onChange={(e) => setForm({ ...form, licencia: e.target.value })} />
                       </Field>
                       <Field label="Vencimiento">

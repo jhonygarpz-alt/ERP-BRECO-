@@ -160,7 +160,7 @@ export function ImprimirFacturaPage() {
             <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
               <p style={{ margin: 0, fontWeight: 700 }}>Origen</p>
               <p style={{ margin: '2px 0 0' }}>
-                Fecha y hora de salida: {viajeCartaPorte.fecha} {viajeCartaPorte.horaSalida}
+                Fecha y hora de salida: {viajeCartaPorte.fechaCarga || viajeCartaPorte.fecha} {viajeCartaPorte.horaCarga}
               </p>
               {rutaOrigen ? (
                 <>

@@ -23,10 +23,13 @@ export function campoClass(lleno: boolean) {
   return `${baseInputClass} ${lleno ? llenoClass : vacioClass}`;
 }
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium uppercase tracking-wide text-ink-500">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-ink-500">
+        {label}
+        {required && <span className="ml-0.5 text-breco-500">*</span>}
+      </span>
       {children}
     </label>
   );

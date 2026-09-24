@@ -4,6 +4,7 @@ import { useData } from '../lib/DataContext';
 import { CONFIG_AUTOTRANSPORTE_SAT, TIPO_PERMISO_SCT } from '../lib/catalogosSat';
 import { calcularTotalesConceptosViaje } from '../lib/facturacion';
 import { importeALetras } from '../lib/numeroALetras';
+import { pesoBrutoVehicular } from '../lib/cartaPorte';
 import { useQrDataUrl } from '../lib/useQrDataUrl';
 import {
   BarraAcciones,
@@ -32,6 +33,12 @@ function direccionCorta(d?: { calle: string; numeroExterior: string; colonia: st
 function ciudadCorta(d?: { municipio: string; estado: string; pais: string; cp: string }) {
   if (!d) return '';
   return [d.municipio, d.estado, d.pais].filter(Boolean).join(', ') + (d.cp ? `, C.P. ${d.cp}` : '');
+}
+
+function pesoCargaEnKg(peso: number, unidad: string): number {
+  if (unidad === 'TONELADAS') return peso * 1000;
+  if (unidad === 'LIBRAS') return peso * 0.453592;
+  return peso;
 }
 
 export function ImprimirViajePage() {
@@ -133,8 +140,11 @@ function VistaCartaPorte({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <CajaEtiqueta etiqueta="Carta Porte con Complemento" valor={viaje.folio} />
+          <CajaEtiqueta etiqueta="Version Complemento Carta Porte" valor="3.1" tono="claro" />
+          <CajaEtiqueta etiqueta="IdCCP" valor={viaje.timbrado.idCcp} tono="claro" />
           <CajaEtiqueta etiqueta="No. Serie Certificado del Emisor" valor={viaje.timbrado.noSerieCertificadoEmisor} tono="claro" />
           <CajaEtiqueta etiqueta="Fecha Hora Expedicion" valor={viaje.timbrado.fechaHoraExpedicion || viaje.fecha} tono="claro" />
+          <CajaEtiqueta etiqueta="Total Distancia Recorrida" valor={`${viaje.kilometros} Km`} tono="claro" />
         </div>
       </div>
 
@@ -153,16 +163,15 @@ function VistaCartaPorte({
               <th style={thCfdi}>Bienes Transportados</th>
               <th style={thCfdi}>Clave Unidad</th>
               <th style={thCfdi}>Cantidad</th>
+              <th style={thCfdi}>Peso (Kg)</th>
               <th style={thCfdi}>Material Peligroso</th>
-              <th style={thCfdi}>Peso</th>
-              <th style={thCfdi}>Valor</th>
-              <th style={thCfdi}>Moneda</th>
+              <th style={thCfdi}>Embalaje</th>
             </tr>
           </thead>
           <tbody>
             {viaje.materialesCarga.length === 0 && (
               <tr>
-                <td style={tdCfdi} colSpan={7}>
+                <td style={tdCfdi} colSpan={6}>
                   Sin mercancias capturadas.
                 </td>
               </tr>
@@ -175,16 +184,26 @@ function VistaCartaPorte({
                 </td>
                 <td style={tdCfdi}>{m.claveUnidadSat || m.unidadEmpaque}</td>
                 <td style={tdCfdi}>{m.cantidad}</td>
+                <td style={tdCfdi}>{m.peso}</td>
                 <td style={tdCfdi}>{m.materialPeligroso ? `SI (${m.claveMaterialPeligroso || 'sin clave'})` : 'NO'}</td>
-                <td style={tdCfdi}>
-                  {m.peso} {m.unidadPeso}
-                </td>
-                <td style={tdCfdi}>0</td>
-                <td style={tdCfdi}>{viaje.moneda === 'DOLARES' ? 'USD' : 'MXN'}</td>
+                <td style={tdCfdi}>{m.claveEmbalajeSat ? `${m.claveEmbalajeSat} - ${m.descripcionEmbalajeSat || ''}` : '—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {viaje.materialesCarga.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', fontSize: 10, borderTop: '1px solid #ddd' }}>
+            <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+              <strong>Peso Bruto Total:</strong> {viaje.pesoCargaTotal} {viaje.pesoCargaUnidad}
+            </div>
+            <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+              <strong>Numero de Mercancias:</strong> {viaje.materialesCarga.length}
+            </div>
+            <div style={{ padding: '5px 10px' }}>
+              <strong>Moneda:</strong> {viaje.moneda === 'DOLARES' ? 'USD' : 'MXN'}
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
@@ -202,7 +221,7 @@ function VistaCartaPorte({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
         <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
           <p style={{ margin: 0, fontWeight: 700 }}>Origen</p>
-          <p style={{ margin: '2px 0 0' }}>Fecha y hora de salida: {viaje.fecha} {viaje.horaSalida}</p>
+          <p style={{ margin: '2px 0 0' }}>Fecha y hora de salida: {viaje.fechaCarga || viaje.fecha} {viaje.horaCarga}</p>
           {rutaOrigen ? (
             <>
               <p style={{ margin: '2px 0 0' }}>
@@ -217,7 +236,8 @@ function VistaCartaPorte({
         </Recuadro>
         <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
           <p style={{ margin: 0, fontWeight: 700 }}>Destino</p>
-          <p style={{ margin: '2px 0 0' }}>Fecha y hora de prog. llegada: {viaje.fechaEntrega || viaje.fecha} {viaje.horaLlegadaEstimada}</p>
+          <p style={{ margin: '2px 0 0' }}>Fecha y hora de prog. llegada: {viaje.fechaEntrega || viaje.fecha} {viaje.horaEntregaReal}</p>
+          <p style={{ margin: '1px 0 0' }}>Distancia recorrida: {viaje.kilometros} Km</p>
           {rutaDestino ? (
             <>
               <p style={{ margin: '2px 0 0' }}>
@@ -287,6 +307,8 @@ function VistaCartaPorte({
               <th style={thCfdi}>Poliza Seguro</th>
               <th style={thCfdi}>Config Vehicular</th>
               <th style={thCfdi}>Placas</th>
+              <th style={thCfdi}>Año/Modelo</th>
+              <th style={thCfdi}>Peso Bruto Vehicular</th>
             </tr>
           </thead>
           <tbody>
@@ -297,20 +319,30 @@ function VistaCartaPorte({
               <td style={tdCfdi}>{unidad?.noPoliza || '—'}</td>
               <td style={tdCfdi}>{config ? `${config.clave} - ${config.descripcion}` : unidad?.tipo || '—'}</td>
               <td style={tdCfdi}>{unidad?.placas || '—'}</td>
+              <td style={tdCfdi}>{unidad?.anio || '—'}</td>
+              <td style={tdCfdi}>{pesoBrutoVehicular(unidad, remolque1, remolque2, pesoCargaEnKg(viaje.pesoCargaTotal, viaje.pesoCargaUnidad))} Ton</td>
             </tr>
           </tbody>
         </table>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', fontSize: 10, borderTop: '1px solid #ddd' }}>
-          <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
-            <strong>Remolque1:</strong> {remolque1 ? `${remolque1.economico} (${remolque1.placas})` : '—'}
+        {(remolque1 || remolque2 || dolly) && (
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${[remolque1, remolque2, dolly].filter(Boolean).length}, 1fr)`, fontSize: 10, borderTop: '1px solid #ddd' }}>
+            {remolque1 && (
+              <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+                <strong>Remolque1:</strong> {remolque1.tipo} &middot; {remolque1.placas}
+              </div>
+            )}
+            {remolque2 && (
+              <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
+                <strong>Remolque2:</strong> {remolque2.tipo} &middot; {remolque2.placas}
+              </div>
+            )}
+            {dolly && (
+              <div style={{ padding: '5px 10px' }}>
+                <strong>Dolly:</strong> {dolly.economico} &middot; {dolly.placas}
+              </div>
+            )}
           </div>
-          <div style={{ padding: '5px 10px', borderRight: '1px solid #ddd' }}>
-            <strong>Remolque2:</strong> {remolque2 ? `${remolque2.economico} (${remolque2.placas})` : '—'}
-          </div>
-          <div style={{ padding: '5px 10px' }}>
-            <strong>Dolly:</strong> {dolly ? `${dolly.economico} (${dolly.placas})` : '—'}
-          </div>
-        </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>

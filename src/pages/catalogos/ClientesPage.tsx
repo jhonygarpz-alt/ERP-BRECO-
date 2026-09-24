@@ -252,7 +252,7 @@ export function ClientesPage() {
                 <Field label="Fecha de alta">
                   <Input type="date" required value={form.fechaAlta} onChange={(e) => setForm({ ...form, fechaAlta: e.target.value })} />
                 </Field>
-                <Field label="RFC">
+                <Field label="RFC" required>
                   <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
                 </Field>
                 <Field label="Tipo Cliente">

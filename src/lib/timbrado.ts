@@ -10,6 +10,7 @@ export const TIMBRADO_VACIO: DatosTimbradoCfdi = {
   selloDigitalCfdi: '',
   selloDigitalSat: '',
   cadenaOriginal: '',
+  idCcp: '',
   cancelado: false,
   motivoCancelacion: '',
   folioSustitutoCancelacion: '',
@@ -25,6 +26,12 @@ export const MOTIVOS_CANCELACION_SAT: { clave: string; descripcion: string }[] =
 
 function selloFalso(): string {
   return Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 10)).join('');
+}
+
+/** Genera un IdCCP simulado (identificador del Complemento Carta Porte): "CCC" + 33 caracteres alfanumericos. */
+function idCcpFalso(): string {
+  const cuerpo = Array.from({ length: 33 }, () => Math.random().toString(36).slice(2, 3)).join('').toUpperCase();
+  return `CCC${cuerpo}`;
 }
 
 /**
@@ -47,6 +54,7 @@ export function timbrarSimulado(): DatosTimbradoCfdi {
     selloDigitalCfdi: selloFalso(),
     selloDigitalSat: selloFalso(),
     cadenaOriginal: '||1.1|SIMULADO|| -- timbrado simulado, no valido ante el SAT',
+    idCcp: idCcpFalso(),
   };
 }
 

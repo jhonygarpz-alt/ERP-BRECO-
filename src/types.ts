@@ -18,6 +18,8 @@ export interface DatosTimbradoCfdi {
   selloDigitalCfdi: string;
   selloDigitalSat: string;
   cadenaOriginal: string;
+  /** Identificador del Complemento Carta Porte (IdCCP), solo aplica a viajes de tipo CartaPorte. */
+  idCcp: string;
   cancelado: boolean;
   /** Clave del motivo de cancelacion SAT: 01, 02, 03 o 04. */
   motivoCancelacion: string;

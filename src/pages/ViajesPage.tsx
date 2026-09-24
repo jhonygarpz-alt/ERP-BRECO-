@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRightLeft, Ban, ChevronLeft, ChevronRight, Copy, Eye, FileText, Map, MoreHorizontal, Pencil, Plus, Printer, ScanLine, Trash2 } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
@@ -20,6 +20,7 @@ import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat 
 import { CampoResaltadoProvider } from '../lib/CampoResaltadoContext';
 import { TIMBRADO_VACIO } from '../lib/timbrado';
 import { calcularTotalesConceptosViaje } from '../lib/facturacion';
+import { validarCartaPorteCompleta, pesoBrutoVehicular } from '../lib/cartaPorte';
 import {
   TIPOS_EMBALAJE_SAT,
   SECTOR_COFEPRIS_SAT,
@@ -113,6 +114,11 @@ export function ViajesPage() {
   const [nuevoEstatusColor, setNuevoEstatusColor] = useState<Tone>('blue');
   const [editarColorOpen, setEditarColorOpen] = useState(false);
   const [tab, setTab] = useState<'general' | 'mercancias' | 'conceptos'>('general');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (modalOpen) setError('');
+  }, [modalOpen]);
 
   const emptyForm = (): Omit<Viaje, 'id'> => ({
     folio: nextFolio(viajes.items),
@@ -380,6 +386,21 @@ export function ViajesPage() {
       cajaEconomico: remolquePrincipal?.economico || form.cajaEconomico,
       cajaNombre: remolquePrincipal?.marca || form.cajaNombre,
     };
+    if (payload.tipoDocumento === 'CartaPorte') {
+      const faltantes = validarCartaPorteCompleta(
+        payload,
+        clientes.items.find((c) => c.id === payload.clienteId),
+        unidades.items.find((u) => u.id === payload.unidadId),
+        operadores.items.find((o) => o.id === payload.operadorId),
+        cajas.items.find((c) => c.id === payload.remolque1Id),
+        cajas.items.find((c) => c.id === payload.remolque2Id),
+      );
+      if (faltantes.length > 0) {
+        setError(faltantes.join(', '));
+        return;
+      }
+    }
+    setError('');
     if (editing) {
       viajes.update(editing.id, payload);
     } else {
@@ -828,6 +849,7 @@ export function ViajesPage() {
   }, [conceptosFacturacion.items, conceptoLineaForm.conceptoFacturacionId]);
 
   const rutaDelViaje = rutas.items.find((r) => r.codigo === form.rutaCodigo);
+  const esCartaPorte = form.tipoDocumento === 'CartaPorte';
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = useMemo(() => {
@@ -1023,6 +1045,9 @@ export function ViajesPage() {
           wide="xl"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <p className="whitespace-pre-line rounded-lg bg-breco-500/10 px-3 py-2 text-sm text-breco-500">{error}</p>
+          )}
           <CampoResaltadoProvider value={true}>
           <fieldset disabled={soloLectura} className="space-y-4">
             {/* ---- Encabezado ---- */}
@@ -1055,7 +1080,7 @@ export function ViajesPage() {
             <div className="flex flex-col gap-3 rounded-xl border border-line-800 bg-bg-900 p-4 sm:flex-row sm:items-end">
               <div className="flex flex-1 gap-2">
                 <div className="w-28">
-                  <Field label="Nro Cliente">
+                  <Field label="Nro Cliente" required={esCartaPorte}>
                     <ComboBoxCodigo<Cliente>
                       items={clientes.items}
                       valor={clienteSeleccionado?.numeroCliente ?? ''}
@@ -1130,7 +1155,7 @@ export function ViajesPage() {
                         Facturable
                       </label>
                       <div className="w-24">
-                        <Field label="Kilometros">
+                        <Field label="Kilometros" required={esCartaPorte}>
                           <Input
                             type="number"
                             value={form.kilometros}
@@ -1233,22 +1258,22 @@ export function ViajesPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <Field label="Carga">
+                      <Field label="Carga" required={esCartaPorte}>
                         <div className="flex gap-2">
                           <Input type="date" value={form.fechaCarga} onChange={(e) => setForm({ ...form, fechaCarga: e.target.value })} />
                           <Input type="time" value={form.horaCarga} onChange={(e) => setForm({ ...form, horaCarga: e.target.value })} />
                         </div>
                       </Field>
-                      <Field label="Cargar En">
+                      <Field label="Cargar En" required={esCartaPorte}>
                         <Input value={form.cargarEn} onChange={(e) => setForm({ ...form, cargarEn: e.target.value })} />
                       </Field>
-                      <Field label="Entrega">
+                      <Field label="Entrega" required={esCartaPorte}>
                         <div className="flex gap-2">
                           <Input type="date" value={form.fechaEntrega} onChange={(e) => setForm({ ...form, fechaEntrega: e.target.value })} />
                           <Input type="time" value={form.horaEntregaReal} onChange={(e) => setForm({ ...form, horaEntregaReal: e.target.value })} />
                         </div>
                       </Field>
-                      <Field label="Descargar En">
+                      <Field label="Descargar En" required={esCartaPorte}>
                         <Input value={form.descargarEn} onChange={(e) => setForm({ ...form, descargarEn: e.target.value })} />
                       </Field>
                     </div>
@@ -1473,6 +1498,21 @@ export function ViajesPage() {
                             <Field label="Tipo de permiso (Clave SAT)">
                               <Input readOnly value={permiso ? `${permiso.clave} - ${permiso.descripcion}` : unidadAsignada.claveTipoPermisoSct || 'Sin configurar'} />
                             </Field>
+                            <Field label="Peso Bruto Vehicular (Ton)">
+                              <Input
+                                readOnly
+                                value={pesoBrutoVehicular(
+                                  unidadAsignada,
+                                  cajas.items.find((c) => c.id === form.remolque1Id),
+                                  cajas.items.find((c) => c.id === form.remolque2Id),
+                                  form.pesoCargaUnidad === 'TONELADAS'
+                                    ? form.pesoCargaTotal * 1000
+                                    : form.pesoCargaUnidad === 'LIBRAS'
+                                      ? form.pesoCargaTotal * 0.453592
+                                      : form.pesoCargaTotal,
+                                )}
+                              />
+                            </Field>
                             <div className="col-span-2 text-center">
                               <a
                                 href={`#/catalogos/unidades`}
@@ -1526,7 +1566,7 @@ export function ViajesPage() {
                           onChange={(e) => setMaterialForm({ ...materialForm, descripcion: e.target.value })}
                         />
                       </Field>
-                      <Field label="Peso">
+                      <Field label="Peso" required={esCartaPorte}>
                         <div className="flex gap-2">
                           <Input
                             type="number"
@@ -1550,7 +1590,7 @@ export function ViajesPage() {
                           <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-breco-500">
                             Complemento Carta Porte
                           </p>
-                          <Field label="Clave SAT - Productos y servicios (Bienes Transp.)">
+                          <Field label="Clave SAT - Productos y servicios (Bienes Transp.)" required>
                             <ClaveSatField
                               clave={materialForm.claveProdServCP ?? ''}
                               etiqueta={materialForm.descripcionProdServCP ?? ''}
@@ -1564,7 +1604,7 @@ export function ViajesPage() {
                               claveClassName="w-24"
                             />
                           </Field>
-                          <Field label="Clave SAT - Unidad">
+                          <Field label="Clave SAT - Unidad" required>
                             <ClaveSatField
                               clave={materialForm.claveUnidadSat ?? ''}
                               etiqueta={materialForm.nombreUnidadSat ?? ''}
@@ -1606,7 +1646,7 @@ export function ViajesPage() {
                             Material peligroso
                           </label>
                           {materialForm.materialPeligroso && (
-                            <Field label="Clave SAT - Material peligroso">
+                            <Field label="Clave SAT - Material peligroso" required>
                               <ClaveSatField
                                 clave={materialForm.claveMaterialPeligroso ?? ''}
                                 etiqueta={materialForm.descripcionMaterialPeligroso ?? ''}
@@ -2368,7 +2408,7 @@ export function ViajesPage() {
       {trayectoModalOpen && (
         <Modal title={trayectoEditandoId ? 'Editando Trayecto' : 'Asignar Operador/Camion'} onClose={() => setTrayectoModalOpen(false)}>
           <div className="space-y-3">
-            <Field label="Operador">
+            <Field label="Operador" required={esCartaPorte}>
               <Select value={trayectoForm.operadorId} onChange={(e) => setTrayectoForm({ ...trayectoForm, operadorId: e.target.value })}>
                 <option value="">Selecciona...</option>
                 {operadores.items.map((o) => (
@@ -2378,7 +2418,7 @@ export function ViajesPage() {
                 ))}
               </Select>
             </Field>
-            <Field label="Camion">
+            <Field label="Camion" required={esCartaPorte}>
               <div className="flex gap-2">
                 <ComboBoxCodigo<Unidad>
                   className="flex-1"

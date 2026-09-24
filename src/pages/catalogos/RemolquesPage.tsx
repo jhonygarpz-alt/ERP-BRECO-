@@ -291,7 +291,7 @@ export function RemolquesPage() {
                   <Field label="Modelo (Año)">
                     <Input type="number" value={form.anio || ''} onChange={(e) => setForm({ ...form, anio: Number(e.target.value) })} />
                   </Field>
-                  <Field label="Tipo de remolque">
+                  <Field label="Tipo de remolque" required>
                     <Select required value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
                       <option value="">Selecciona...</option>
                       {SUBTIPO_REMOLQUE_SAT.map((t) => (
@@ -311,7 +311,7 @@ export function RemolquesPage() {
                   <Field label="Número de serie">
                     <Input value={form.numeroSerie} onChange={(e) => setForm({ ...form, numeroSerie: e.target.value })} />
                   </Field>
-                  <Field label="Placas">
+                  <Field label="Placas" required>
                     <Input value={form.placas} onChange={(e) => setForm({ ...form, placas: e.target.value })} />
                   </Field>
                   <Field label="Color">
@@ -387,7 +387,7 @@ export function RemolquesPage() {
                 <Field label="Número de ejes">
                   <Input type="number" value={form.numeroEjes || ''} onChange={(e) => setForm({ ...form, numeroEjes: Number(e.target.value) })} />
                 </Field>
-                <Field label="Peso Tara (Ton)">
+                <Field label="Peso Tara (Ton)" required>
                   <Input type="number" step="0.01" value={form.pesoTaraTon || ''} onChange={(e) => setForm({ ...form, pesoTaraTon: Number(e.target.value) })} />
                 </Field>
               </div>
