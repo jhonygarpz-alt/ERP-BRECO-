@@ -48,8 +48,8 @@
    */
   --text-card-header: 0.8125rem; /* 13px */
   --text-card-header--line-height: 1.4;
-  --text-nav: 0.8125rem; /* 13px */
-  --text-nav--line-height: 1.4;
+  --text-nav: 0.9375rem; /* 15px */
+  --text-nav--line-height: 1.45;
   --text-table: 0.8125rem; /* 13px */
   --text-table--line-height: 1.5;
   --text-button: 0.8125rem; /* 13px */
