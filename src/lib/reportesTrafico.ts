@@ -13,11 +13,13 @@ import type {
   Factura,
   GastoViaje,
   Operador,
+  Ruta,
   Unidad,
   Viaje,
 } from '../types';
 import { hoyISO, fechaLocal } from './fechas';
 import { validarCartaPorteCompleta } from './cartaPorte';
+import { destinoViaje, origenViaje } from './monitoreoViajes';
 
 export interface FiltroFechas {
   desde: string;
@@ -105,6 +107,7 @@ export function calcularListadoViajes(
   clientes: Cliente[],
   operadores: Operador[],
   unidades: Unidad[],
+  rutas: Ruta[],
   filtro: FiltroFechas,
 ): FilaListadoViajes[] {
   return viajesEnRango(viajes, filtro)
@@ -116,8 +119,8 @@ export function calcularListadoViajes(
       cliente: nombreCliente(clientes, v.clienteId),
       operador: nombreOperador(operadores, v.trayectos[0]?.operadorId || v.operadorId),
       unidad: economicoUnidad(unidades, v.trayectos[0]?.unidadId || v.unidadId),
-      origen: v.trayectos[0]?.origen || v.origen || '—',
-      destino: v.trayectos[0]?.destino || v.destino || '—',
+      origen: origenViaje(v, rutas) || '—',
+      destino: destinoViaje(v, rutas) || '—',
       estatus: v.estatus,
     }));
 }
@@ -135,6 +138,7 @@ export function calcularViajesPendientesFacturar(
   viajes: Viaje[],
   facturas: Factura[],
   clientes: Cliente[],
+  rutas: Ruta[],
   filtro: FiltroFechas,
 ): FilaViajePendienteFacturar[] {
   const facturados = new Set(facturas.filter((f) => f.estatus !== 'Cancelado').map((f) => f.viajeId));
@@ -146,8 +150,8 @@ export function calcularViajesPendientesFacturar(
       folio: v.folio,
       fecha: v.fecha,
       cliente: nombreCliente(clientes, v.clienteId),
-      origen: v.trayectos[0]?.origen || v.origen || '—',
-      destino: v.trayectos[0]?.destino || v.destino || '—',
+      origen: origenViaje(v, rutas) || '—',
+      destino: destinoViaje(v, rutas) || '—',
       estatus: v.estatus,
     }));
 }
@@ -304,6 +308,7 @@ export function calcularDetalladoViajes(
   operadores: Operador[],
   unidades: Unidad[],
   gastos: GastoViaje[],
+  rutas: Ruta[],
   filtro: FiltroFechas,
 ): FilaDetalladoViaje[] {
   const gastosPorViaje = new Map<string, number>();
@@ -323,8 +328,8 @@ export function calcularDetalladoViajes(
         cliente: nombreCliente(clientes, v.clienteId),
         operador: nombreOperador(operadores, v.trayectos[0]?.operadorId || v.operadorId),
         unidad: economicoUnidad(unidades, v.trayectos[0]?.unidadId || v.unidadId),
-        origen: v.trayectos[0]?.origen || v.origen || '—',
-        destino: v.trayectos[0]?.destino || v.destino || '—',
+        origen: origenViaje(v, rutas) || '—',
+        destino: destinoViaje(v, rutas) || '—',
         kilometros: v.kilometros || 0,
         ingreso,
         gastos: gastosViaje,
@@ -598,6 +603,7 @@ export function calcularListadoViajesConcentrado(
   unidades: Unidad[],
   cajas: Caja[],
   gastos: GastoViaje[],
+  rutas: Ruta[],
   filtro: FiltroFechas,
 ): FilaViajeConcentrado[] {
   const gastosPorViaje = new Map<string, number>();
@@ -622,8 +628,8 @@ export function calcularListadoViajesConcentrado(
         operador: nombreOperador(operadores, v.trayectos[0]?.operadorId || v.operadorId),
         unidad: economicoUnidad(unidades, v.trayectos[0]?.unidadId || v.unidadId),
         remolques: remolques || '—',
-        origen: v.trayectos[0]?.origen || v.origen || '—',
-        destino: v.trayectos[0]?.destino || v.destino || '—',
+        origen: origenViaje(v, rutas) || '—',
+        destino: destinoViaje(v, rutas) || '—',
         kilometros: v.kilometros || 0,
         ingreso,
         gastos: gastosViaje,
@@ -649,7 +655,13 @@ export interface FilaViajeTrafico {
   horaSalida: string;
   estatus: string;
 }
-export function calcularViajesUsoTrafico(viajes: Viaje[], operadores: Operador[], unidades: Unidad[], filtro: FiltroFechas): FilaViajeTrafico[] {
+export function calcularViajesUsoTrafico(
+  viajes: Viaje[],
+  operadores: Operador[],
+  unidades: Unidad[],
+  rutas: Ruta[],
+  filtro: FiltroFechas,
+): FilaViajeTrafico[] {
   const filas: FilaViajeTrafico[] = [];
   for (const v of viajesEnRango(viajes, filtro)) {
     if (v.estatus === 'Cancelado') continue;
@@ -660,8 +672,8 @@ export function calcularViajesUsoTrafico(viajes: Viaje[], operadores: Operador[]
         fecha: v.fecha,
         operador: nombreOperador(operadores, v.operadorId),
         unidad: economicoUnidad(unidades, v.unidadId),
-        origen: v.origen || '—',
-        destino: v.destino || '—',
+        origen: origenViaje(v, rutas) || '—',
+        destino: destinoViaje(v, rutas) || '—',
         cita: v.cita || '—',
         horaSalida: v.horaSalida || '—',
         estatus: v.estatus,
@@ -675,8 +687,11 @@ export function calcularViajesUsoTrafico(viajes: Viaje[], operadores: Operador[]
         fecha: v.fecha,
         operador: nombreOperador(operadores, t.operadorId),
         unidad: economicoUnidad(unidades, t.unidadId),
-        origen: t.origen || '—',
-        destino: t.destino || '—',
+        // El fallback contra la Ruta del catalogo solo aplica al primer
+        // tramo -- la Ruta trae un unico origen/destino, que le corresponde
+        // al viaje completo (tramo 1), no a los tramos 2+ de un convoy.
+        origen: t.origen || (i === 0 ? origenViaje(v, rutas) : '') || '—',
+        destino: t.destino || (i === 0 ? destinoViaje(v, rutas) : '') || '—',
         cita: v.cita || '—',
         horaSalida: v.horaSalida || '—',
         estatus: v.estatus,

@@ -6,6 +6,7 @@ import type { Viaje } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { GhostButton, inputClass } from '../components/ui/form';
 import { hoyISO, fechaLocal } from '../lib/fechas';
+import { destinoViaje, origenViaje } from '../lib/monitoreoViajes';
 
 function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
@@ -63,7 +64,7 @@ function CeldaEditable({ valor, onGuardar, editable }: { valor: string; onGuarda
 }
 
 export function ViajesDelDiaPage() {
-  const { viajes, clientes, unidades, operadores } = useData();
+  const { viajes, clientes, unidades, operadores, rutas } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Viajes', 'editar');
   const [fecha, setFecha] = useState(hoyISO());
@@ -139,7 +140,7 @@ export function ViajesDelDiaPage() {
                 <td className="px-3 py-2.5 text-ink-300">{clienteNombre(v.clienteId)}</td>
                 <td className="px-3 py-2.5 text-ink-300">{servicioTexto(v)}</td>
                 <td className="px-3 py-2.5 text-ink-300">
-                  {v.origen} &rarr; {v.destino}
+                  {origenViaje(v, rutas.items) || 'N/D'} &rarr; {destinoViaje(v, rutas.items) || 'N/D'}
                 </td>
                 <td className="px-3 py-2.5">
                   <CeldaEditable

@@ -8,12 +8,12 @@ import { ReporteFiltros } from '../../components/reportes-trafico/ReporteFiltros
 import { ReporteTabla } from '../../components/reportes-trafico/ReporteTabla';
 
 export function ListadoViajesReportPage() {
-  const { viajes, clientes, operadores, unidades } = useData();
+  const { viajes, clientes, operadores, unidades, rutas } = useData();
   const [filtro, setFiltro] = useState<FiltroFechas>(rangoUltimosDias(30));
 
   const filas = useMemo(
-    () => calcularListadoViajes(viajes.items, clientes.items, operadores.items, unidades.items, filtro),
-    [viajes.items, clientes.items, operadores.items, unidades.items, filtro],
+    () => calcularListadoViajes(viajes.items, clientes.items, operadores.items, unidades.items, rutas.items, filtro),
+    [viajes.items, clientes.items, operadores.items, unidades.items, rutas.items, filtro],
   );
 
   function handleExportarExcel() {

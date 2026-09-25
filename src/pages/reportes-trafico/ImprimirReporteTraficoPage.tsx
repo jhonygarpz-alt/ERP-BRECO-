@@ -54,8 +54,20 @@ const td: React.CSSProperties = { borderBottom: '1px solid #ddd', padding: '6px 
 export function ImprimirReporteTraficoPage() {
   const { tipo } = useParams<{ tipo: string }>();
   const [searchParams] = useSearchParams();
-  const { viajes, facturas, clientes, operadores, unidades, gastosViaje, cajas, abonosDescuentoOperador, descuentosOperador, deduccionesOperador, empresa } =
-    useData();
+  const {
+    viajes,
+    facturas,
+    clientes,
+    operadores,
+    unidades,
+    gastosViaje,
+    cajas,
+    rutas,
+    abonosDescuentoOperador,
+    descuentosOperador,
+    deduccionesOperador,
+    empresa,
+  } = useData();
 
   const filtro: FiltroFechas = {
     desde: searchParams.get('desde') || rangoUltimosDias(30).desde,
@@ -65,7 +77,7 @@ export function ImprimirReporteTraficoPage() {
   const { headers, rows, notaTotal } = useMemo(() => {
     switch (tipo) {
       case 'listado-viajes': {
-        const filas = calcularListadoViajes(viajes.items, clientes.items, operadores.items, unidades.items, filtro);
+        const filas = calcularListadoViajes(viajes.items, clientes.items, operadores.items, unidades.items, rutas.items, filtro);
         return {
           headers: ['Folio', 'Fecha', 'Cliente', 'Operador', 'Unidad', 'Origen', 'Destino', 'Estatus'],
           rows: filas.map((f) => [f.folio, f.fecha, f.cliente, f.operador, f.unidad, f.origen, f.destino, f.estatus]),
@@ -73,7 +85,7 @@ export function ImprimirReporteTraficoPage() {
         };
       }
       case 'pendientes-facturar': {
-        const filas = calcularViajesPendientesFacturar(viajes.items, facturas.items, clientes.items, filtro);
+        const filas = calcularViajesPendientesFacturar(viajes.items, facturas.items, clientes.items, rutas.items, filtro);
         return {
           headers: ['Folio', 'Fecha', 'Cliente', 'Origen', 'Destino', 'Estatus'],
           rows: filas.map((f) => [f.folio, f.fecha, f.cliente, f.origen, f.destino, f.estatus]),
@@ -118,7 +130,7 @@ export function ImprimirReporteTraficoPage() {
         };
       }
       case 'detallado-viajes': {
-        const filas = calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, filtro);
+        const filas = calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, rutas.items, filtro);
         const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);
         const totalGastos = filas.reduce((acc, f) => acc + f.gastos, 0);
         return {
@@ -215,7 +227,16 @@ export function ImprimirReporteTraficoPage() {
         };
       }
       case 'viajes-concentrado': {
-        const filas = calcularListadoViajesConcentrado(viajes.items, clientes.items, operadores.items, unidades.items, cajas.items, gastosViaje.items, filtro);
+        const filas = calcularListadoViajesConcentrado(
+          viajes.items,
+          clientes.items,
+          operadores.items,
+          unidades.items,
+          cajas.items,
+          gastosViaje.items,
+          rutas.items,
+          filtro,
+        );
         const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);
         const totalGastos = filas.reduce((acc, f) => acc + f.gastos, 0);
         return {
@@ -239,7 +260,7 @@ export function ImprimirReporteTraficoPage() {
         };
       }
       case 'viajes-uso-trafico': {
-        const filas = calcularViajesUsoTrafico(viajes.items, operadores.items, unidades.items, filtro);
+        const filas = calcularViajesUsoTrafico(viajes.items, operadores.items, unidades.items, rutas.items, filtro);
         return {
           headers: ['Folio', 'Tramo', 'Fecha', 'Operador', 'Unidad', 'Origen', 'Destino', 'Cita', 'Hora Salida', 'Estatus'],
           rows: filas.map((f) => [
@@ -319,6 +340,7 @@ export function ImprimirReporteTraficoPage() {
     unidades.items,
     gastosViaje.items,
     cajas.items,
+    rutas.items,
     abonosDescuentoOperador.items,
     descuentosOperador.items,
     deduccionesOperador.items,

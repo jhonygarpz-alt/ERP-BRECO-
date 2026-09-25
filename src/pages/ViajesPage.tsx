@@ -31,6 +31,7 @@ import {
 } from '../lib/catalogosSat';
 import { hoyISO, fechaLocal } from '../lib/fechas';
 import { ordenServicioActivaDeUnidad } from '../lib/mantenimiento';
+import { destinoViaje, origenViaje } from '../lib/monitoreoViajes';
 
 const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
@@ -260,12 +261,12 @@ export function ViajesPage() {
         .filter((v) => todasLasFechas || v.fecha === fecha)
         .filter((v) => filtroDocumento === 'Todos' || v.tipoDocumento === filtroDocumento)
         .filter((v) =>
-          `${v.folio} ${v.loadNumber} ${clienteNombre(v.clienteId)} ${v.origen} ${v.destino} ${unidadNombre(v.unidadId)}`
+          `${v.folio} ${v.loadNumber} ${clienteNombre(v.clienteId)} ${origenViaje(v, rutas.items)} ${destinoViaje(v, rutas.items)} ${unidadNombre(v.unidadId)}`
             .toLowerCase()
             .includes(search.toLowerCase()),
         ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viajes.items, search, fecha, todasLasFechas, filtroDocumento, clientes.items, unidades.items],
+    [viajes.items, search, fecha, todasLasFechas, filtroDocumento, clientes.items, unidades.items, rutas.items],
   );
 
   function openNew() {
@@ -924,7 +925,7 @@ export function ViajesPage() {
     { header: 'Numero de Viaje del Cliente', render: (v) => v.loadNumber || '—' },
     { header: 'Unidad', render: (v) => unidadNombre(v.unidadId) },
     { header: 'Cliente', render: (v) => clienteNombre(v.clienteId) },
-    { header: 'Ruta', render: (v) => `${v.origen} -> ${v.destino}` },
+    { header: 'Ruta', render: (v) => `${origenViaje(v, rutas.items) || 'N/D'} -> ${destinoViaje(v, rutas.items) || 'N/D'}` },
     {
       header: 'Materiales / Caja',
       render: (v) => (

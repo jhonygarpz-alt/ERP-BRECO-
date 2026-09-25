@@ -8,12 +8,12 @@ import { ReporteFiltros } from '../../components/reportes-trafico/ReporteFiltros
 import { ReporteTabla } from '../../components/reportes-trafico/ReporteTabla';
 
 export function DetalladoViajesReportPage() {
-  const { viajes, clientes, operadores, unidades, gastosViaje } = useData();
+  const { viajes, clientes, operadores, unidades, gastosViaje, rutas } = useData();
   const [filtro, setFiltro] = useState<FiltroFechas>(rangoUltimosDias(30));
 
   const filas = useMemo(
-    () => calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, filtro),
-    [viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, filtro],
+    () => calcularDetalladoViajes(viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, rutas.items, filtro),
+    [viajes.items, clientes.items, operadores.items, unidades.items, gastosViaje.items, rutas.items, filtro],
   );
   const totalKm = filas.reduce((acc, f) => acc + f.kilometros, 0);
   const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);

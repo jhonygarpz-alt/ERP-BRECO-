@@ -24,11 +24,13 @@ import { GhostButton, Input, ToolbarButton, inputClass } from '../components/ui/
 import {
   HORAS_MAX_TRANSITO_RESPALDO,
   avanceTransito,
+  destinoViaje,
   etiquetaTablero,
   horasAutorizadas,
   inicioTransito,
   limiteTransito,
   normalizarEstatus,
+  origenViaje,
 } from '../lib/monitoreoViajes';
 import { fechaLocal, hoyISO } from '../lib/fechas';
 
@@ -140,6 +142,8 @@ function AvanceModal({
   const horasViaje = horasAutorizadas(viaje, rutas);
   const inicio = inicioTransito(viaje);
   const limite = limiteTransito(viaje, horasViaje);
+  const origen = origenViaje(viaje, rutas);
+  const destino = destinoViaje(viaje, rutas);
 
   async function agregar() {
     const valor = texto.trim();
@@ -156,8 +160,7 @@ function AvanceModal({
           <div>
             <h2 className="text-base font-semibold text-ink-100">Avance del viaje {viaje.folio}</h2>
             <p className="mt-0.5 text-sm text-ink-500">
-              Remolque {viaje.cajaEconomico || viaje.cajaNombre || 'N/D'} &middot; {viaje.origen || 'N/D'} &rarr;{' '}
-              {viaje.destino || 'N/D'}
+              Remolque {viaje.cajaEconomico || viaje.cajaNombre || 'N/D'} &middot; {origen || 'N/D'} &rarr; {destino || 'N/D'}
             </p>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-ink-500 transition hover:bg-bg-700 hover:text-ink-100">
@@ -166,7 +169,7 @@ function AvanceModal({
         </div>
 
         <div className="px-6 py-5">
-          <LineaTiempoRuta origen={viaje.origen} destino={viaje.destino} fraccion={avanceTransito(viaje, ahora, horasViaje)} />
+          <LineaTiempoRuta origen={origen} destino={destino} fraccion={avanceTransito(viaje, ahora, horasViaje)} />
 
           {inicio && limite ? (
             <p className="mb-4 text-xs text-ink-500">
@@ -186,7 +189,7 @@ function AvanceModal({
                 <span className="w-px flex-1 bg-line-700" style={{ minHeight: 16 }} />
               </div>
               <div className="pb-4 text-sm text-ink-300">
-                <span className="font-medium text-ink-100">Origen:</span> {viaje.origen || 'N/D'}
+                <span className="font-medium text-ink-100">Origen:</span> {origen || 'N/D'}
               </div>
             </div>
 
@@ -221,7 +224,7 @@ function AvanceModal({
             <div className="flex items-start gap-3">
               <span className="h-3 w-3 flex-shrink-0 rounded-full bg-emerald-500" />
               <div className="text-sm text-ink-300">
-                <span className="font-medium text-ink-100">Destino:</span> {viaje.destino || 'N/D'}
+                <span className="font-medium text-ink-100">Destino:</span> {destino || 'N/D'}
                 {normalizarEstatus(viaje.estatus) === 'entregado' && <span className="ml-2 text-xs text-emerald-400">Entregado</span>}
               </div>
             </div>
@@ -343,8 +346,8 @@ function Tablero({
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 uppercase">{v.origen || 'N/D'}</td>
-                  <td className="px-4 py-2.5 uppercase">{v.destino || 'N/D'}</td>
+                  <td className="px-4 py-2.5 uppercase">{origenViaje(v, rutas) || 'N/D'}</td>
+                  <td className="px-4 py-2.5 uppercase">{destinoViaje(v, rutas) || 'N/D'}</td>
                   <td className="px-4 py-2.5 font-semibold text-ink-100">{unidadNombre(v.unidadId)}</td>
                   <td className="px-4 py-2.5">
                     {puedeEditar ? (

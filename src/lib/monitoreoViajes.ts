@@ -30,6 +30,29 @@ export function horasAutorizadas(v: Viaje, rutas: Ruta[]): number {
   return ruta && ruta.horas > 0 ? ruta.horas : HORAS_MAX_TRANSITO_RESPALDO;
 }
 
+/**
+ * Origen/destino real del viaje, con 3 niveles de respaldo: el primer
+ * trayecto capturado, los campos legacy Viaje.origen/destino, y -- el caso
+ * mas comun cuando el viaje se armo eligiendo una Ruta del catalogo -- la
+ * direccion de esa Ruta (Ruta.origenDireccion/destinoDireccion). Al elegir
+ * una Ruta el formulario de Viaje solo copia rutaCodigo/rutaDescripcion (y
+ * los trayectos si la Ruta ya traia los suyos, lo cual casi nunca pasa), asi
+ * que sin este tercer nivel el origen/destino del viaje se ve vacio aunque
+ * la Ruta si lo tenga capturado.
+ */
+export function origenViaje(v: Viaje, rutas: Ruta[]): string {
+  if (v.trayectos[0]?.origen) return v.trayectos[0].origen;
+  if (v.origen) return v.origen;
+  const ruta = v.rutaCodigo ? rutas.find((r) => r.codigo === v.rutaCodigo) : undefined;
+  return ruta?.origenDireccion || '';
+}
+export function destinoViaje(v: Viaje, rutas: Ruta[]): string {
+  if (v.trayectos[0]?.destino) return v.trayectos[0].destino;
+  if (v.destino) return v.destino;
+  const ruta = v.rutaCodigo ? rutas.find((r) => r.codigo === v.rutaCodigo) : undefined;
+  return ruta?.destinoDireccion || '';
+}
+
 /** Inicio real del transito: fecha + hora de salida a ruta. null si aun no se ha registrado. */
 export function inicioTransito(v: Viaje): Date | null {
   if (!v.horaSalida) return null;

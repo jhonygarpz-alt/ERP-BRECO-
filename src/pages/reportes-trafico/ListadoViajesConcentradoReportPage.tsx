@@ -8,12 +8,22 @@ import { ReporteFiltros } from '../../components/reportes-trafico/ReporteFiltros
 import { ReporteTabla } from '../../components/reportes-trafico/ReporteTabla';
 
 export function ListadoViajesConcentradoReportPage() {
-  const { viajes, clientes, operadores, unidades, cajas, gastosViaje } = useData();
+  const { viajes, clientes, operadores, unidades, cajas, gastosViaje, rutas } = useData();
   const [filtro, setFiltro] = useState<FiltroFechas>(rangoUltimosDias(30));
 
   const filas = useMemo(
-    () => calcularListadoViajesConcentrado(viajes.items, clientes.items, operadores.items, unidades.items, cajas.items, gastosViaje.items, filtro),
-    [viajes.items, clientes.items, operadores.items, unidades.items, cajas.items, gastosViaje.items, filtro],
+    () =>
+      calcularListadoViajesConcentrado(
+        viajes.items,
+        clientes.items,
+        operadores.items,
+        unidades.items,
+        cajas.items,
+        gastosViaje.items,
+        rutas.items,
+        filtro,
+      ),
+    [viajes.items, clientes.items, operadores.items, unidades.items, cajas.items, gastosViaje.items, rutas.items, filtro],
   );
   const totalIngreso = filas.reduce((acc, f) => acc + f.ingreso, 0);
   const totalGastos = filas.reduce((acc, f) => acc + f.gastos, 0);

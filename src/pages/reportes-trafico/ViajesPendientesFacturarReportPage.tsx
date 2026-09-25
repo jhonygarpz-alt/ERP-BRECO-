@@ -8,12 +8,12 @@ import { ReporteFiltros } from '../../components/reportes-trafico/ReporteFiltros
 import { ReporteTabla } from '../../components/reportes-trafico/ReporteTabla';
 
 export function ViajesPendientesFacturarReportPage() {
-  const { viajes, facturas, clientes } = useData();
+  const { viajes, facturas, clientes, rutas } = useData();
   const [filtro, setFiltro] = useState<FiltroFechas>(rangoUltimosDias(30));
 
   const filas = useMemo(
-    () => calcularViajesPendientesFacturar(viajes.items, facturas.items, clientes.items, filtro),
-    [viajes.items, facturas.items, clientes.items, filtro],
+    () => calcularViajesPendientesFacturar(viajes.items, facturas.items, clientes.items, rutas.items, filtro),
+    [viajes.items, facturas.items, clientes.items, rutas.items, filtro],
   );
 
   function handleExportarExcel() {
