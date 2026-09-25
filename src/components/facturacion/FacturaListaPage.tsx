@@ -140,10 +140,16 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
     await descargarFacturasZip(filtered, clientes.items, viajes.items, empresa.value, `Facturas-${tipo}-${desde}-a-${hasta}.zip`);
   }
 
+  function foliosViajes(f: Factura) {
+    const folios = f.viajeIds.map((vid) => viajes.items.find((v) => v.id === vid)?.folio ?? vid);
+    return folios.length > 0 ? folios.join(', ') : 'N/D';
+  }
+
   const columns: Column<Factura>[] = [
     { header: 'Folio', render: (f) => <span className="font-mono text-xs font-semibold text-ink-100">{f.folio}</span> },
     { header: 'Fecha', render: (f) => f.fecha },
     { header: 'Cliente', render: (f) => nombreCliente(f.clienteId) },
+    { header: 'Viaje', render: (f) => <span className="font-mono text-xs text-ink-300">{foliosViajes(f)}</span> },
     { header: 'Moneda', render: (f) => (f.moneda === 'MXN' ? 'PESOS' : 'DOLARES') },
     { header: 'Total', render: (f) => <span className="font-semibold text-ink-100">{money(f.importe)}</span>, className: 'text-right' },
     { header: 'Estatus', render: (f) => <StatusBadge status={f.estatus} /> },
