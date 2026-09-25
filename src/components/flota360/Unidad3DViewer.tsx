@@ -40,6 +40,29 @@ interface MarcadorPantalla {
   danoActivo?: boolean;
 }
 
+/**
+ * Fondo tipo estudio fotografico automotriz: degradado vertical oscuro
+ * (mas oscuro arriba, un tono mas claro en el "horizonte"). Un fondo claro
+ * hacia una unidad blanca o de colores claros practicamente desaparece --
+ * el contraste oscuro es lo que hace que la carroceria "resalte" como en
+ * un configurador profesional.
+ */
+function crearFondoEstudio(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+  const gradiente = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradiente.addColorStop(0, '#12141a');
+  gradiente.addColorStop(0.65, '#1d2027');
+  gradiente.addColorStop(1, '#33363e');
+  ctx.fillStyle = gradiente;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const textura = new THREE.CanvasTexture(canvas);
+  textura.colorSpace = THREE.SRGBColorSpace;
+  return textura;
+}
+
 // El GLB pesa ~15MB -- se carga una sola vez por sesion de navegador y se
 // clona (barato) para cada unidad que se abra despues, en vez de
 // redescargarlo cada vez que se entra a Vista 360.
@@ -144,8 +167,8 @@ export function Unidad3DViewer({
     let tweenId = 0;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#e7e9ee');
-    scene.fog = new THREE.Fog('#e7e9ee', 30, 90);
+    scene.background = crearFondoEstudio();
+    scene.fog = new THREE.Fog('#1d2027', 35, 100);
 
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 500);
 
@@ -196,22 +219,22 @@ export function Unidad3DViewer({
 
         const ejes = calcularEjes(modelo);
 
-        const piso = new THREE.Mesh(
-          new THREE.CircleGeometry(ejes.radius * 6, 64),
-          new THREE.ShadowMaterial({ opacity: 0.28 }),
-        );
-        piso.rotation.x = -Math.PI / 2;
-        piso.position.y = ejes.center.y - ejes.size.y / 2;
-        piso.receiveShadow = true;
-        scene.add(piso);
         const pisoBase = new THREE.Mesh(
           new THREE.CircleGeometry(ejes.radius * 6, 64),
-          new THREE.MeshStandardMaterial({ color: '#eef0f3', roughness: 0.95 }),
+          new THREE.MeshStandardMaterial({ color: '#24262c', roughness: 0.45, metalness: 0.15 }),
         );
         pisoBase.rotation.x = -Math.PI / 2;
         pisoBase.position.y = ejes.center.y - ejes.size.y / 2 - 0.01;
         pisoBase.receiveShadow = true;
         scene.add(pisoBase);
+        const piso = new THREE.Mesh(
+          new THREE.CircleGeometry(ejes.radius * 6, 64),
+          new THREE.ShadowMaterial({ opacity: 0.55 }),
+        );
+        piso.rotation.x = -Math.PI / 2;
+        piso.position.y = ejes.center.y - ejes.size.y / 2;
+        piso.receiveShadow = true;
+        scene.add(piso);
 
         const keyLight = new THREE.DirectionalLight('#ffffff', 2.4);
         keyLight.position.copy(ejes.center.clone().add(ejes.forward.clone().multiplyScalar(ejes.radius)).add(new THREE.Vector3(ejes.radius * 0.8, ejes.radius * 2.2, 0)));
@@ -340,12 +363,12 @@ export function Unidad3DViewer({
     <div className="flex h-full flex-col gap-2">
       <div ref={containerRef} className="relative flex-1 overflow-hidden rounded-t-2xl">
         {cargando && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#e7e9ee] text-sm text-ink-600">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#1d2027] text-sm text-ink-400">
             Cargando modelo 3D...
           </div>
         )}
         {errorCarga && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#e7e9ee] text-sm text-red-600">{errorCarga}</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-[#1d2027] text-sm text-red-400">{errorCarga}</div>
         )}
         <MarcadoresOverlay
           overlayRef={overlayRef}
