@@ -165,7 +165,7 @@ export function UnidadDigital360Page() {
                 modoVista === '3d' ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400'
               }`}
             >
-              Diagrama 3D
+              Modelo 3D
             </button>
             {modoVista === '3d' && puedeCrear && (
               <GhostButton onClick={() => setBorradorDano({ zonaSugerida: '' })} className="ml-auto text-xs">
@@ -191,7 +191,7 @@ export function UnidadDigital360Page() {
           <p className="text-xs text-ink-600">
             {modoVista === 'foto'
               ? 'Gira entre las fotos reales de la unidad con las flechas. Los puntos naranjas son informacion capturada; los de color son danos.'
-              : 'Diagrama esquematico generico segun el tipo de unidad, coloreado con el color real -- no es el modelo exacto del fabricante. Arrastra para girar.'}
+              : 'Modelo 3D real del tractocamion, pintado con el color de la unidad. Arrastra para girar, usa la rueda para zoom y las camaras rapidas para cambiar de vista. Los puntos son componentes con informacion capturada; los de color senalan danos activos.'}
           </p>
         </div>
       )}

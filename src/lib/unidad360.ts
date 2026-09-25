@@ -157,12 +157,13 @@ const COLOR_MAP: Record<string, string> = {
   vino: '#7f1d1d',
 };
 
+/** Sin color capturado (o uno que no reconocemos), se asume blanco -- es el color mas comun en tractocamiones y remolques de carga. */
 export function colorHexUnidad(color: string): string {
   const clave = (color || '').trim().toLowerCase();
   for (const nombre of Object.keys(COLOR_MAP)) {
     if (clave.includes(nombre)) return COLOR_MAP[nombre];
   }
-  return '#9ca3af';
+  return '#f3f4f6';
 }
 
 /** Firma una URL temporal (1 hora) para mostrar una foto privada de Storage inline; null mientras carga o si no hay path. */
