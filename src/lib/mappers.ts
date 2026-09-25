@@ -861,6 +861,9 @@ export function empresaFromRow(row: Record<string, unknown>): Empresa {
     csfStoragePath: (row.csf_storage_path as string | null) ?? '',
     csfImportadaEn: (row.csf_importada_en as string | null) ?? undefined,
     alertasVencimientos: (row.alertas_vencimientos as Empresa['alertasVencimientos'] | null) ?? DEFAULT_ALERTAS_VENCIMIENTOS,
+    licenciasContratadas: (row.licencias_contratadas as number | null) ?? 1,
+    costoPorLicencia: (row.costo_por_licencia as number | null) ?? 0,
+    modulosContratados: (row.modulos_contratados as Empresa['modulosContratados'] | null) ?? [],
   };
 }
 export function empresaToRow(e: Empresa) {
@@ -879,6 +882,9 @@ export function empresaToRow(e: Empresa) {
     csf_storage_path: e.csfStoragePath,
     csf_importada_en: e.csfImportadaEn ?? null,
     alertas_vencimientos: e.alertasVencimientos,
+    licencias_contratadas: e.licenciasContratadas,
+    costo_por_licencia: e.costoPorLicencia,
+    modulos_contratados: e.modulosContratados,
   };
 }
 

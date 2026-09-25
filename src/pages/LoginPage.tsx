@@ -46,7 +46,14 @@ export function LoginPage() {
     };
   }, [email]);
 
-  if (estado === 'autenticado' || estado === 'sin-perfil' || estado === 'super-admin') return <Navigate to="/" replace />;
+  if (
+    estado === 'autenticado' ||
+    estado === 'sin-perfil' ||
+    estado === 'super-admin' ||
+    estado === 'suspendida' ||
+    estado === 'sin-licencia'
+  )
+    return <Navigate to="/" replace />;
 
   async function handleOlvidoPassword() {
     if (!email.trim()) {

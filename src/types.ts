@@ -638,11 +638,18 @@ export interface Empresa {
   email: string;
   sitioWeb: string;
   logoDataUrl: string;
-  estatus: 'activa' | 'inactiva';
+  /** 'suspendida' = el Super Admin la suspendio (ej. pago pendiente): bloquea el acceso a toda la empresa, tanto en la interfaz como en la base de datos (via has_permission). */
+  estatus: 'activa' | 'inactiva' | 'suspendida';
   /** Ruta en Supabase Storage (bucket "empresa-documentos") del ultimo PDF de Constancia de Situacion Fiscal importado. */
   csfStoragePath: string;
   csfImportadaEn?: string;
   alertasVencimientos: AlertasVencimientosConfig;
+  /** Cuantos usuarios de esta empresa pueden tener sesion abierta al mismo tiempo. */
+  licenciasContratadas: number;
+  /** Lo que el Super Admin cobra por licencia al mes (solo informativo, panel de Super Admin). */
+  costoPorLicencia: number;
+  /** Modulos que esta empresa contrato. Vacio = sin restriccion (todos). "Configuracion" siempre esta disponible aunque no se liste. */
+  modulosContratados: Modulo[];
 }
 
 export type EstatusTicketSoporte = 'Nuevo' | 'Atendido' | 'Cerrado';

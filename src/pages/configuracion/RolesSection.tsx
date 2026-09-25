@@ -47,10 +47,16 @@ function permisosVacios(): Record<Modulo, PermisoModulo> {
 
 export function RolesSection() {
   const { roles } = useData();
-  const { hasPermission } = useAuth();
+  const { hasPermission, empresaActual } = useAuth();
   const puedeCrear = hasPermission('Configuracion', 'crear');
   const puedeEditar = hasPermission('Configuracion', 'editar');
   const puedeEliminar = hasPermission('Configuracion', 'eliminar');
+  // Solo se ofrecen para asignar los modulos que la empresa realmente
+  // contrato (Configuracion siempre esta disponible) -- un arreglo vacio en
+  // modulosContratados significa "sin restriccion" (todos).
+  const modulosVisibles = modulos.filter(
+    (m) => m === 'Configuracion' || !empresaActual?.modulosContratados?.length || empresaActual.modulosContratados.includes(m),
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Rol | null>(null);
 
@@ -135,7 +141,7 @@ export function RolesSection() {
       header: 'Modulos con acceso',
       render: (r) => (
         <div className="flex flex-wrap gap-1">
-          {modulos
+          {modulosVisibles
             .filter((m) => r.permisos[m]?.ver)
             .map((m) => (
               <span key={m} className="rounded-full border border-line-700 bg-bg-900 px-2 py-0.5 text-[11px] text-ink-400">
@@ -196,7 +202,7 @@ export function RolesSection() {
                   </tr>
                 </thead>
                 <tbody>
-                  {modulos.map((m) => (
+                  {modulosVisibles.map((m) => (
                     <tr key={m} className="border-b border-line-800/70 last:border-0">
                       <td className="px-3 py-2 text-ink-300">{etiquetaModulo(m)}</td>
                       {acciones.map((a) => (
@@ -224,7 +230,7 @@ export function RolesSection() {
                 modulo completo.
               </p>
               <div className="space-y-2">
-                {modulos.map((m) => {
+                {modulosVisibles.map((m) => {
                   const pantallas = pantallasDeModulo(m);
                   if (pantallas.length === 0) return null;
                   return (

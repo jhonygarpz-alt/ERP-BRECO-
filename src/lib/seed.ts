@@ -20,4 +20,7 @@ export const seedEmpresa: Empresa = {
   estatus: 'activa',
   csfStoragePath: '',
   alertasVencimientos: DEFAULT_ALERTAS_VENCIMIENTOS,
+  licenciasContratadas: 1,
+  costoPorLicencia: 0,
+  modulosContratados: [],
 };
