@@ -21,6 +21,7 @@ import type {
   Factura,
   FacturaSistema,
   FormatoImpresion,
+  FolioAutorizado,
   GastoViaje,
   DeduccionOperador,
   DescuentoOperador,
@@ -1298,6 +1299,36 @@ export function formatoImpresionFromRow(row: Record<string, unknown>): FormatoIm
 }
 export function formatoImpresionToRow(f: FormatoImpresion) {
   return { id: f.id, area: f.area, clave: f.clave, nombre: f.nombre, descripcion: f.descripcion, activo: f.activo };
+}
+
+export function folioAutorizadoFromRow(row: Record<string, unknown>): FolioAutorizado {
+  return {
+    id: row.id as string,
+    documento: row.documento as FolioAutorizado['documento'],
+    sucursal: row.sucursal as string,
+    serie: row.serie as string,
+    folioInicial: Number(row.folio_inicial) || 0,
+    folioFinal: Number(row.folio_final) || 0,
+    noAprobacion: row.no_aprobacion as string,
+    anioAprobacion: Number(row.anio_aprobacion) || 0,
+    fechaAprobacion: (row.fecha_aprobacion as string) || '',
+    activo: row.activo as boolean,
+    creadoEn: row.creado_en as string | undefined,
+  };
+}
+export function folioAutorizadoToRow(f: FolioAutorizado) {
+  return {
+    id: f.id,
+    documento: f.documento,
+    sucursal: f.sucursal,
+    serie: f.serie,
+    folio_inicial: f.folioInicial,
+    folio_final: f.folioFinal,
+    no_aprobacion: f.noAprobacion,
+    anio_aprobacion: f.anioAprobacion || null,
+    fecha_aprobacion: f.fechaAprobacion || null,
+    activo: f.activo,
+  };
 }
 
 export function pagoClienteFromRow(row: Record<string, unknown>): PagoCliente {

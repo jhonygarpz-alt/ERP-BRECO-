@@ -73,6 +73,8 @@ import {
   facturaSistemaToRow,
   formatoImpresionFromRow,
   formatoImpresionToRow,
+  folioAutorizadoFromRow,
+  folioAutorizadoToRow,
   gastoViajeFromRow,
   gastoViajeToRow,
   deduccionOperadorFromRow,
@@ -130,6 +132,7 @@ import type {
   Factura,
   FacturaSistema,
   FormatoImpresion,
+  FolioAutorizado,
   GastoViaje,
   DeduccionOperador,
   DescuentoOperador,
@@ -216,6 +219,7 @@ interface DataContextValue {
   movimientosAlmacen: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MovimientoAlmacen>>;
   reportes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ReporteExterno>>;
   formatosImpresion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FormatoImpresion>>;
+  foliosAutorizados: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, FolioAutorizado>>;
   empresas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Empresa>>;
   /** Compatibilidad: la empresa del usuario conectado (antes era una tabla singleton "empresa"). */
   empresa: { value: Empresa; update: (patch: Partial<Empresa>) => Promise<void> };
@@ -289,6 +293,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'formatos_impresion',
     formatoImpresionFromRow,
     formatoImpresionToRow,
+  );
+  const foliosAutorizados = useSupabaseCollection<Record<string, unknown>, FolioAutorizado>(
+    'folios_autorizados',
+    folioAutorizadoFromRow,
+    folioAutorizadoToRow,
   );
   const tiposViaje = useSupabaseCollection<Record<string, unknown>, TipoViaje>(
     'tipos_viaje',
@@ -475,6 +484,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         gruposUnidad,
         rutas,
         formatosImpresion,
+        foliosAutorizados,
         tiposViaje,
         viajes,
         viajeUbicaciones,

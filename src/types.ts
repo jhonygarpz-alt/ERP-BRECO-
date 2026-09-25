@@ -985,6 +985,30 @@ export interface FormatoImpresion {
   activo: boolean;
 }
 
+/** Documentos que se conforman de Serie + Folio (a diferencia de "Invoice", que no se usa). */
+export type TipoDocumentoFolio = 'Factura' | 'CartaPorte' | 'NotaCredito';
+
+/**
+ * Catalogo de Folios (Configuracion): rangos de folios autorizados por
+ * documento/sucursal/serie, con sus datos de aprobacion. Por ahora es un
+ * catalogo de referencia/control administrativo -- no sustituye todavia la
+ * numeracion automatica de Factura/Viaje(Carta Porte)/NotaCredito, que sigue
+ * generando su propio folio.
+ */
+export interface FolioAutorizado {
+  id: string;
+  documento: TipoDocumentoFolio;
+  sucursal: string;
+  serie: string;
+  folioInicial: number;
+  folioFinal: number;
+  noAprobacion: string;
+  anioAprobacion: number;
+  fechaAprobacion: string;
+  activo: boolean;
+  creadoEn?: string;
+}
+
 /** "unidad" o "remolque" (Caja): a que catalogo pertenece el registro de Parque Vehicular. */
 export type EntidadParque = 'unidad' | 'remolque';
 
