@@ -41,7 +41,7 @@ interface MarcadorPantalla {
 }
 
 /**
- * Fondo tipo estudio fotografico automotriz: degradado vertical oscuro
+ * Fondo tipo estudio fotografico automotriz: degradado vertical azul marino
  * (mas oscuro arriba, un tono mas claro en el "horizonte"). Un fondo claro
  * hacia una unidad blanca o de colores claros practicamente desaparece --
  * el contraste oscuro es lo que hace que la carroceria "resalte" como en
@@ -53,9 +53,9 @@ function crearFondoEstudio(): THREE.CanvasTexture {
   canvas.height = 256;
   const ctx = canvas.getContext('2d')!;
   const gradiente = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradiente.addColorStop(0, '#12141a');
-  gradiente.addColorStop(0.65, '#1d2027');
-  gradiente.addColorStop(1, '#33363e');
+  gradiente.addColorStop(0, '#060a1a');
+  gradiente.addColorStop(0.65, '#0f1c3d');
+  gradiente.addColorStop(1, '#2a3f6e');
   ctx.fillStyle = gradiente;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   const textura = new THREE.CanvasTexture(canvas);
@@ -168,7 +168,7 @@ export function Unidad3DViewer({
 
     const scene = new THREE.Scene();
     scene.background = crearFondoEstudio();
-    scene.fog = new THREE.Fog('#1d2027', 35, 100);
+    scene.fog = new THREE.Fog('#0f1c3d', 35, 100);
 
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 500);
 
@@ -221,7 +221,7 @@ export function Unidad3DViewer({
 
         const pisoBase = new THREE.Mesh(
           new THREE.CircleGeometry(ejes.radius * 6, 64),
-          new THREE.MeshStandardMaterial({ color: '#24262c', roughness: 0.45, metalness: 0.15 }),
+          new THREE.MeshStandardMaterial({ color: '#16213f', roughness: 0.45, metalness: 0.15 }),
         );
         pisoBase.rotation.x = -Math.PI / 2;
         pisoBase.position.y = ejes.center.y - ejes.size.y / 2 - 0.01;
@@ -363,12 +363,12 @@ export function Unidad3DViewer({
     <div className="flex h-full flex-col gap-2">
       <div ref={containerRef} className="relative flex-1 overflow-hidden rounded-t-2xl">
         {cargando && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#1d2027] text-sm text-ink-400">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0f1c3d] text-sm text-ink-400">
             Cargando modelo 3D...
           </div>
         )}
         {errorCarga && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#1d2027] text-sm text-red-400">{errorCarga}</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0f1c3d] text-sm text-red-400">{errorCarga}</div>
         )}
         <MarcadoresOverlay
           overlayRef={overlayRef}
