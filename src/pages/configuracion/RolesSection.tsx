@@ -12,6 +12,7 @@ import { Field, GhostButton, Input, PrimaryButton } from '../../components/ui/fo
 
 const modulos: Modulo[] = [
   'Catalogos',
+  'Flota',
   'Viajes',
   'Facturacion',
   'Cobranza',
@@ -24,6 +25,7 @@ const modulos: Modulo[] = [
   'Configuracion',
 ];
 const MODULO_LABELS: Partial<Record<Modulo, string>> = {
+  Flota: 'Flota Digital 360',
   Monitoreo: 'Monitoreo',
   Cobranza: 'Cobranza',
   Banco: 'Banco',

@@ -31,6 +31,9 @@ export const PANTALLAS: PantallaInfo[] = [
   { id: '/catalogos/operadores', modulo: 'Catalogos', label: 'Operadores' },
   { id: '/parque-vehicular', modulo: 'Catalogos', label: 'Parque Vehicular' },
 
+  // ---- Flota Digital 360 ----
+  { id: '/flota-360', modulo: 'Flota', label: 'Flota Digital 360' },
+
   // ---- Viajes (Trafico) ----
   { id: '/viajes', modulo: 'Viajes', label: 'Asignacion de Viajes' },
   { id: '/gastos-viaje', modulo: 'Viajes', label: 'Gastos de Viaje' },

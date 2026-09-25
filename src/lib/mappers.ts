@@ -52,6 +52,10 @@ import type {
   TipoMovimientoAlmacen,
   TipoViaje,
   Unidad,
+  UnidadInspeccion,
+  UnidadFoto,
+  UnidadHotspot,
+  UnidadDano,
   Usuario,
   Viaje,
   ViajeUbicacion,
@@ -1937,5 +1941,123 @@ export function movimientoAlmacenToRow(m: MovimientoAlmacen) {
     origen: m.origen,
     origen_id: m.origenId || null,
     estatus: m.estatus,
+  };
+}
+
+export function unidadInspeccionFromRow(row: Record<string, unknown>): UnidadInspeccion {
+  return {
+    id: row.id as string,
+    unidadId: row.unidad_id as string,
+    tipoEvento: row.tipo_evento as UnidadInspeccion['tipoEvento'],
+    fecha: row.fecha as string,
+    kilometraje: row.kilometraje != null ? Number(row.kilometraje) : undefined,
+    responsable: (row.responsable as string) ?? '',
+    notas: (row.notas as string) ?? '',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function unidadInspeccionToRow(i: UnidadInspeccion) {
+  return {
+    id: i.id,
+    unidad_id: i.unidadId,
+    tipo_evento: i.tipoEvento,
+    fecha: i.fecha,
+    kilometraje: i.kilometraje ?? null,
+    responsable: i.responsable,
+    notas: i.notas,
+  };
+}
+
+export function unidadFotoFromRow(row: Record<string, unknown>): UnidadFoto {
+  return {
+    id: row.id as string,
+    unidadId: row.unidad_id as string,
+    inspeccionId: (row.inspeccion_id as string | null) ?? undefined,
+    categoria: row.categoria as UnidadFoto['categoria'],
+    storagePath: row.storage_path as string,
+    nombreArchivo: (row.nombre_archivo as string) ?? '',
+    subidoEn: (row.subido_en as string | null) ?? undefined,
+  };
+}
+export function unidadFotoToRow(f: UnidadFoto) {
+  return {
+    id: f.id,
+    unidad_id: f.unidadId,
+    inspeccion_id: f.inspeccionId || null,
+    categoria: f.categoria,
+    storage_path: f.storagePath,
+    nombre_archivo: f.nombreArchivo,
+  };
+}
+
+export function unidadHotspotFromRow(row: Record<string, unknown>): UnidadHotspot {
+  return {
+    id: row.id as string,
+    unidadId: row.unidad_id as string,
+    modo: row.modo as UnidadHotspot['modo'],
+    fotoId: (row.foto_id as string | null) ?? undefined,
+    xPct: row.x_pct != null ? Number(row.x_pct) : undefined,
+    yPct: row.y_pct != null ? Number(row.y_pct) : undefined,
+    posicion3d: (row.posicion_3d as string | null) ?? undefined,
+    tipo: row.tipo as UnidadHotspot['tipo'],
+    etiqueta: (row.etiqueta as string) ?? '',
+    datos: (row.datos as Record<string, string> | null) ?? {},
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function unidadHotspotToRow(h: UnidadHotspot) {
+  return {
+    id: h.id,
+    unidad_id: h.unidadId,
+    modo: h.modo,
+    foto_id: h.fotoId || null,
+    x_pct: h.xPct ?? null,
+    y_pct: h.yPct ?? null,
+    posicion_3d: h.posicion3d || null,
+    tipo: h.tipo,
+    etiqueta: h.etiqueta,
+    datos: h.datos,
+  };
+}
+
+export function unidadDanoFromRow(row: Record<string, unknown>): UnidadDano {
+  return {
+    id: row.id as string,
+    unidadId: row.unidad_id as string,
+    hotspotId: (row.hotspot_id as string | null) ?? undefined,
+    fotoId: (row.foto_id as string | null) ?? undefined,
+    xPct: row.x_pct != null ? Number(row.x_pct) : undefined,
+    yPct: row.y_pct != null ? Number(row.y_pct) : undefined,
+    zona: (row.zona as string) ?? '',
+    tipo: (row.tipo as string) ?? '',
+    severidad: row.severidad as UnidadDano['severidad'],
+    fecha: row.fecha as string,
+    kilometraje: row.kilometraje != null ? Number(row.kilometraje) : undefined,
+    observacion: (row.observacion as string) ?? '',
+    storagePath: (row.storage_path as string | null) ?? undefined,
+    estatus: row.estatus as UnidadDano['estatus'],
+    costo: row.costo != null ? Number(row.costo) : undefined,
+    reparacion: (row.reparacion as string) ?? '',
+    creadoEn: (row.creado_en as string | null) ?? undefined,
+  };
+}
+export function unidadDanoToRow(d: UnidadDano) {
+  return {
+    id: d.id,
+    unidad_id: d.unidadId,
+    hotspot_id: d.hotspotId || null,
+    foto_id: d.fotoId || null,
+    x_pct: d.xPct ?? null,
+    y_pct: d.yPct ?? null,
+    zona: d.zona,
+    tipo: d.tipo,
+    severidad: d.severidad,
+    fecha: d.fecha,
+    kilometraje: d.kilometraje ?? null,
+    observacion: d.observacion,
+    storage_path: d.storagePath || null,
+    estatus: d.estatus,
+    costo: d.costo ?? null,
+    reparacion: d.reparacion,
   };
 }

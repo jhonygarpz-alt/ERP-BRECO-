@@ -103,6 +103,14 @@ import {
   tipoViajeToRow,
   unidadFromRow,
   unidadToRow,
+  unidadInspeccionFromRow,
+  unidadInspeccionToRow,
+  unidadFotoFromRow,
+  unidadFotoToRow,
+  unidadHotspotFromRow,
+  unidadHotspotToRow,
+  unidadDanoFromRow,
+  unidadDanoToRow,
   usuarioFromRow,
   usuarioToRow,
   viajeFromRow,
@@ -163,6 +171,10 @@ import type {
   TipoMovimientoAlmacen,
   TipoViaje,
   Unidad,
+  UnidadInspeccion,
+  UnidadFoto,
+  UnidadHotspot,
+  UnidadDano,
   Usuario,
   Viaje,
   ViajeUbicacion,
@@ -191,6 +203,10 @@ interface DataContextValue {
   deduccionesOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DeduccionOperador>>;
   descuentosOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DescuentoOperador>>;
   abonosDescuentoOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, AbonoDescuentoOperador>>;
+  unidadInspecciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, UnidadInspeccion>>;
+  unidadFotos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, UnidadFoto>>;
+  unidadHotspots: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, UnidadHotspot>>;
+  unidadDanos: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, UnidadDano>>;
   estatusViajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>>;
   incidenciasViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, IncidenciaViaje>>;
   mensajesViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, MensajeViaje>>;
@@ -329,6 +345,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'abonos_descuento_operador',
     abonoDescuentoOperadorFromRow,
     abonoDescuentoOperadorToRow,
+  );
+  const unidadInspecciones = useSupabaseCollection<Record<string, unknown>, UnidadInspeccion>(
+    'unidad_inspecciones',
+    unidadInspeccionFromRow,
+    unidadInspeccionToRow,
+  );
+  const unidadFotos = useSupabaseCollection<Record<string, unknown>, UnidadFoto>(
+    'unidad_fotos',
+    unidadFotoFromRow,
+    unidadFotoToRow,
+  );
+  const unidadHotspots = useSupabaseCollection<Record<string, unknown>, UnidadHotspot>(
+    'unidad_hotspots',
+    unidadHotspotFromRow,
+    unidadHotspotToRow,
+  );
+  const unidadDanos = useSupabaseCollection<Record<string, unknown>, UnidadDano>(
+    'unidad_danos',
+    unidadDanoFromRow,
+    unidadDanoToRow,
   );
   const estatusViajes = useSupabaseCollection<Record<string, unknown>, EstatusViajeCustom>(
     'estatus_viaje',
@@ -492,6 +528,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deduccionesOperador,
         descuentosOperador,
         abonosDescuentoOperador,
+        unidadInspecciones,
+        unidadFotos,
+        unidadHotspots,
+        unidadDanos,
         estatusViajes,
         incidenciasViaje,
         mensajesViaje,

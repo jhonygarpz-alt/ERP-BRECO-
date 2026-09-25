@@ -682,6 +682,7 @@ export interface TicketSoporte {
 
 export type Modulo =
   | 'Catalogos'
+  | 'Flota'
   | 'Viajes'
   | 'Facturacion'
   | 'Cobranza'
@@ -1506,5 +1507,93 @@ export interface MovimientoAlmacen {
   origen: OrigenMovimientoAlmacen;
   origenId?: string;
   estatus: EstatusMovimientoAlmacen;
+  creadoEn?: string;
+}
+
+// ============================================================================
+// Flota Digital 360 -- gemelo digital de cada unidad: fotos reales por
+// angulo/categoria, puntos de informacion (hotspots) sobre esas fotos o
+// sobre el diagrama 3D generico, incidencias/danos marcados sobre la unidad,
+// e inspecciones (eventos con su propio juego de fotos) para comparar el
+// estado de la unidad a traves del tiempo.
+// ============================================================================
+
+export type TipoEventoInspeccionUnidad = 'Recepcion' | 'Inspeccion' | 'Operacion' | 'Mantenimiento' | 'Entrega';
+
+/** Un evento de inspeccion (recepcion, inspeccion de retorno, entrega, etc.): agrupa el juego de fotos tomado ese dia para poder compararlo despues con otro. */
+export interface UnidadInspeccion {
+  id: string;
+  unidadId: string;
+  tipoEvento: TipoEventoInspeccionUnidad;
+  fecha: string;
+  kilometraje?: number;
+  responsable: string;
+  notas: string;
+  creadoEn?: string;
+}
+
+export type CategoriaFotoUnidad =
+  | 'frontal'
+  | 'trasera'
+  | 'lateral_izquierdo'
+  | 'lateral_derecho'
+  | 'cabina'
+  | 'motor'
+  | 'chasis'
+  | 'llantas'
+  | 'caja_remolque'
+  | 'otro';
+
+/** Una foto real de la unidad. Si inspeccionId esta vacio, es la foto "actual" que se ve en Vista 360 por defecto; si tiene valor, pertenece a un evento de inspeccion (para comparar). */
+export interface UnidadFoto {
+  id: string;
+  unidadId: string;
+  inspeccionId?: string;
+  categoria: CategoriaFotoUnidad;
+  storagePath: string;
+  nombreArchivo: string;
+  subidoEn?: string;
+}
+
+export type ModoHotspotUnidad = 'foto' | '3d';
+export type TipoHotspotUnidad = 'componente' | 'llanta' | 'motor' | 'cabina' | 'bateria' | 'caja';
+
+/** Un punto de informacion sobre la unidad: en modo "foto" va posicionado (x%,y%) sobre una UnidadFoto real; en modo "3d" va sobre una posicion logica fija del diagrama generico (ver POSICIONES_3D_UNIDAD). */
+export interface UnidadHotspot {
+  id: string;
+  unidadId: string;
+  modo: ModoHotspotUnidad;
+  fotoId?: string;
+  xPct?: number;
+  yPct?: number;
+  posicion3d?: string;
+  tipo: TipoHotspotUnidad;
+  etiqueta: string;
+  /** Datos libres segun el tipo -- ej. llanta: {marca, medida, profundidad, kilometraje, fechaInstalacion, condicion}. */
+  datos: Record<string, string>;
+  creadoEn?: string;
+}
+
+export type SeveridadDanoUnidad = 'Leve' | 'Media' | 'Grave';
+export type EstatusDanoUnidad = 'Activo' | 'En revision' | 'Programado' | 'Resuelto';
+
+/** Un dano/incidencia registrado sobre la unidad durante una inspeccion. */
+export interface UnidadDano {
+  id: string;
+  unidadId: string;
+  hotspotId?: string;
+  fotoId?: string;
+  xPct?: number;
+  yPct?: number;
+  zona: string;
+  tipo: string;
+  severidad: SeveridadDanoUnidad;
+  fecha: string;
+  kilometraje?: number;
+  observacion: string;
+  storagePath?: string;
+  estatus: EstatusDanoUnidad;
+  costo?: number;
+  reparacion: string;
   creadoEn?: string;
 }

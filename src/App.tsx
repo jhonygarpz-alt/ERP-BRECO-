@@ -36,6 +36,8 @@ import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
 import { ParqueVehicularPage } from './pages/ParqueVehicularPage';
 import { ImprimirParqueVehicularPage } from './pages/ImprimirParqueVehicularPage';
+import { FlotaDigital360HubPage } from './pages/flota360/FlotaDigital360HubPage';
+import { UnidadDigital360Page } from './pages/flota360/UnidadDigital360Page';
 import { FacturacionPage } from './pages/FacturacionPage';
 import { FacturacionPorViajePage } from './pages/facturacion/FacturacionPorViajePage';
 import { FacturacionPorConceptoPage } from './pages/facturacion/FacturacionPorConceptoPage';
@@ -161,6 +163,11 @@ function App() {
                   <Route path="/catalogos/unidades" element={<UnidadesPage />} />
                   <Route path="/catalogos/remolques" element={<RemolquesPage />} />
                   <Route path="/catalogos/operadores" element={<OperadoresPage />} />
+                </Route>
+
+                <Route element={<RequirePermission modulo="Flota" />}>
+                  <Route path="/flota-360" element={<FlotaDigital360HubPage />} />
+                  <Route path="/flota-360/:unidadId" element={<UnidadDigital360Page />} />
                 </Route>
 
                 <Route element={<RequirePermission modulo="Viajes" />}>

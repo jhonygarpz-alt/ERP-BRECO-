@@ -44,6 +44,7 @@ import {
   PackageSearch,
   X,
   MinusCircle,
+  Orbit,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -224,6 +225,7 @@ export function Sidebar({
   const effectiveCollapsed = collapsed && !mobileOpen;
 
   const puedeCatalogos = hasPermission('Catalogos', 'ver');
+  const puedeFlota = hasPermission('Flota', 'ver');
   const puedeFacturacion = hasPermission('Facturacion', 'ver');
   const puedeMonitoreo = hasPermission('Monitoreo', 'ver');
   const puedeCobranza = hasPermission('Cobranza', 'ver');
@@ -357,6 +359,12 @@ export function Sidebar({
             {puedeVer('Catalogos', '/parque-vehicular') && (
               <NavRow to="/parque-vehicular" label="Parque Vehicular" icon={Truck} collapsed={effectiveCollapsed} />
             )}
+          </NavGroup>
+        )}
+
+        {puedeFlota && puedeVer('Flota', '/flota-360') && (
+          <NavGroup>
+            <NavRow to="/flota-360" label="Flota Digital 360" icon={Orbit} collapsed={effectiveCollapsed} />
           </NavGroup>
         )}
 

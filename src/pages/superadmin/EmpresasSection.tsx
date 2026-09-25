@@ -14,6 +14,7 @@ import { StatusBadge } from '../../components/ui/Badge';
 
 const modulos: Modulo[] = [
   'Catalogos',
+  'Flota',
   'Viajes',
   'Facturacion',
   'Cobranza',
@@ -30,6 +31,7 @@ const modulos: Modulo[] = [
 // empresa pueda gestionar su cuenta -- no se ofrece como modulo contratable.
 const modulosContratables = modulos.filter((m) => m !== 'Configuracion');
 const MODULO_LABELS: Partial<Record<Modulo, string>> = {
+  Flota: 'Flota Digital 360',
   Monitoreo: 'Monitoreo',
   Cobranza: 'Cobranza',
   Banco: 'Banco',
