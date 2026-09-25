@@ -706,6 +706,16 @@ export interface Rol {
   nombre: string;
   descripcion: string;
   permisos: Record<Modulo, PermisoModulo>;
+  /**
+   * Permisos finos por pantalla (opcionales): si una pantalla no aparece
+   * aqui, hereda el permiso de su modulo en `permisos` -- asi los roles ya
+   * creados antes de que existiera esto siguen funcionando identico. Solo
+   * controla que ve/usa la interfaz (sidebar y rutas); la seguridad real en
+   * la base de datos sigue siendo por modulo completo via `permisos`.
+   * La llave es el id de pantalla (la ruta, o "configuracion:tab" para las
+   * pestanas de Configuracion que no son rutas separadas).
+   */
+  permisosPantalla?: Record<string, PermisoModulo>;
   /** Solo se manda explicito cuando el super admin siembra los roles de una empresa nueva. */
   empresaId?: string;
 }

@@ -224,9 +224,7 @@ export function Sidebar({
   const effectiveCollapsed = collapsed && !mobileOpen;
 
   const puedeCatalogos = hasPermission('Catalogos', 'ver');
-  const puedeViajes = hasPermission('Viajes', 'ver');
   const puedeFacturacion = hasPermission('Facturacion', 'ver');
-  const puedePrograma = hasPermission('Programa', 'ver');
   const puedeMonitoreo = hasPermission('Monitoreo', 'ver');
   const puedeCobranza = hasPermission('Cobranza', 'ver');
   const puedeBanco = hasPermission('Banco', 'ver');
@@ -235,15 +233,20 @@ export function Sidebar({
   const puedeReportes = hasPermission('Reportes', 'ver');
   const puedeConfiguracion = hasPermission('Configuracion', 'ver');
 
+  // Permiso fino por pantalla (Rol.permisosPantalla): si el rol no tiene un
+  // override para esta ruta, hereda el permiso del modulo -- por eso cada
+  // link de abajo pasa su propia ruta como pantallaId ademas del modulo.
+  const puedeVer = (modulo: Parameters<typeof hasPermission>[0], ruta: string) => hasPermission(modulo, 'ver', ruta);
+
   const traficoLinks = [
-    puedeViajes && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
-    puedeViajes && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet, end: true },
-    puedeViajes && { to: '/descuentos-operador', label: 'Descuentos a Operador', icon: MinusCircle },
-    puedeViajes && { to: '/gastos-viaje/detallado', label: 'Detallado de Gastos por Viaje', icon: BarChart3 },
-    puedeViajes && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
-    puedeViajes && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
-    puedePrograma && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
-    puedeViajes && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart },
+    puedeVer('Viajes', '/viajes') && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
+    puedeVer('Viajes', '/gastos-viaje') && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet, end: true },
+    puedeVer('Viajes', '/descuentos-operador') && { to: '/descuentos-operador', label: 'Descuentos a Operador', icon: MinusCircle },
+    puedeVer('Viajes', '/gastos-viaje/detallado') && { to: '/gastos-viaje/detallado', label: 'Detallado de Gastos por Viaje', icon: BarChart3 },
+    puedeVer('Viajes', '/viajes-del-dia') && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
+    puedeVer('Viajes', '/aeropuerto') && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
+    puedeVer('Programa', '/programa') && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
+    puedeVer('Viajes', '/trafico/reportes') && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart },
   ].filter(Boolean) as { to: string; label: string; icon: LucideIcon; end?: boolean }[];
 
   const monitoreoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeMonitoreo
@@ -256,7 +259,7 @@ export function Sidebar({
         { to: '/monitoreo/alertas', label: 'Alertas', icon: BellRing },
         { to: '/monitoreo/comunicacion', label: 'Comunicacion', icon: MessageSquare },
         { to: '/monitoreo/reportes', label: 'Reportes de Monitoreo', icon: FileBarChart },
-      ]
+      ].filter((l) => puedeVer('Monitoreo', l.to))
     : [];
 
   const facturacionLinks: { to: string; label: string; icon: LucideIcon }[] = puedeFacturacion
@@ -264,7 +267,7 @@ export function Sidebar({
         { to: '/facturacion', label: 'Facturacion Diaria', icon: Receipt },
         { to: '/facturacion/por-viaje', label: 'Por Viaje', icon: Route },
         { to: '/facturacion/por-concepto', label: 'Por Concepto', icon: FileText },
-      ]
+      ].filter((l) => puedeVer('Facturacion', l.to))
     : [];
 
   const cobranzaLinks: { to: string; label: string; icon: LucideIcon }[] = puedeCobranza
@@ -272,7 +275,7 @@ export function Sidebar({
         { to: '/cobranza/complementos-pago', label: 'Complementos de Pago', icon: HandCoins },
         { to: '/cobranza/notas-credito', label: 'Notas de Credito', icon: FileMinus },
         { to: '/cobranza/estados-cuenta', label: 'Estados de Cuenta', icon: ScrollText },
-      ]
+      ].filter((l) => puedeVer('Cobranza', l.to))
     : [];
 
   const bancoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeBanco
@@ -281,7 +284,7 @@ export function Sidebar({
         { to: '/banco/cuentas-por-pagar', label: 'Cuentas por Pagar', icon: FileClock },
         { to: '/banco/conciliaciones', label: 'Conciliaciones', icon: GitCompareArrows },
         { to: '/banco/reportes', label: 'Reportes', icon: PieChart },
-      ]
+      ].filter((l) => puedeVer('Banco', l.to))
     : [];
 
   const mantenimientoLinks: { to: string; label: string; icon: LucideIcon }[] = puedeMantenimiento
@@ -291,7 +294,7 @@ export function Sidebar({
         { to: '/mantenimiento/ordenes-servicio', label: 'Ordenes de Servicios', icon: Wrench },
         { to: '/mantenimiento/servicios-programados', label: 'Servicios Programados', icon: CalendarClock },
         { to: '/mantenimiento/checklist', label: 'Checklist Fisicomecanico Rapido', icon: ClipboardCheck },
-      ]
+      ].filter((l) => puedeVer('Mantenimiento', l.to))
     : [];
 
   const almacenLinks: { to: string; label: string; icon: LucideIcon }[] = puedeAlmacen
@@ -303,7 +306,7 @@ export function Sidebar({
         { to: '/almacen/compras', label: 'Compras', icon: ShoppingBasket },
         { to: '/almacen/movimientos', label: 'Movimientos de Almacen', icon: Warehouse },
         { to: '/almacen/inventario', label: 'Inventario de Almacen', icon: PackageSearch },
-      ]
+      ].filter((l) => puedeVer('Almacen', l.to))
     : [];
 
   return (
@@ -346,10 +349,14 @@ export function Sidebar({
           <NavRow to="/" end label="Resumen" icon={LayoutDashboard} collapsed={effectiveCollapsed} />
         </NavGroup>
 
-        {puedeCatalogos && (
+        {puedeCatalogos && (puedeVer('Catalogos', '/catalogos') || puedeVer('Catalogos', '/parque-vehicular')) && (
           <NavGroup>
-            <NavRow to="/catalogos" label="Catalogos" icon={Boxes} collapsed={effectiveCollapsed} />
-            <NavRow to="/parque-vehicular" label="Parque Vehicular" icon={Truck} collapsed={effectiveCollapsed} />
+            {puedeVer('Catalogos', '/catalogos') && (
+              <NavRow to="/catalogos" label="Catalogos" icon={Boxes} collapsed={effectiveCollapsed} />
+            )}
+            {puedeVer('Catalogos', '/parque-vehicular') && (
+              <NavRow to="/parque-vehicular" label="Parque Vehicular" icon={Truck} collapsed={effectiveCollapsed} />
+            )}
           </NavGroup>
         )}
 
@@ -416,10 +423,14 @@ export function Sidebar({
           onExpandCollapsed={() => setCollapsed(false)}
         />
 
-        {puedeReportes && (
+        {puedeReportes && (puedeVer('Reportes', '/reportes') || puedeVer('Reportes', '/reportes-operativos')) && (
           <NavGroup>
-            <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} collapsed={effectiveCollapsed} />
-            <NavRow to="/reportes-operativos" label="Reportes Operativos" icon={BarChart3} collapsed={effectiveCollapsed} />
+            {puedeVer('Reportes', '/reportes') && (
+              <NavRow to="/reportes" label="Reportes" icon={FileSpreadsheet} collapsed={effectiveCollapsed} />
+            )}
+            {puedeVer('Reportes', '/reportes-operativos') && (
+              <NavRow to="/reportes-operativos" label="Reportes Operativos" icon={BarChart3} collapsed={effectiveCollapsed} />
+            )}
           </NavGroup>
         )}
       </nav>

@@ -11,7 +11,7 @@ interface AuthContextValue {
   rolActual: ReturnType<typeof useData>['roles']['items'][number] | null;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
-  hasPermission: (modulo: Modulo, accion: keyof PermisoModulo) => boolean;
+  hasPermission: (modulo: Modulo, accion: keyof PermisoModulo, pantallaId?: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -71,7 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }
 
-  function hasPermission(modulo: Modulo, accion: keyof PermisoModulo) {
+  function hasPermission(modulo: Modulo, accion: keyof PermisoModulo, pantallaId?: string) {
+    const permisoPantalla = pantallaId ? rolActual?.permisosPantalla?.[pantallaId] : undefined;
+    if (permisoPantalla) return permisoPantalla[accion];
     return rolActual?.permisos?.[modulo]?.[accion] ?? false;
   }
 

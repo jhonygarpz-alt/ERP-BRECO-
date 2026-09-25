@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { uid } from '../../lib/storage';
+import { pantallasDeModulo } from '../../lib/pantallas';
 import type { Modulo, PermisoModulo, Rol } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -100,6 +102,32 @@ export function RolesSection() {
     });
   }
 
+  /** Valor efectivo de una pantalla para una accion: su override si tiene uno, si no el del modulo. */
+  function valorPantalla(pantallaId: string, modulo: Modulo, accion: keyof PermisoModulo): boolean {
+    const override = form.permisosPantalla?.[pantallaId];
+    if (override) return override[accion];
+    return form.permisos[modulo]?.[accion] ?? false;
+  }
+
+  function togglePantalla(pantallaId: string, modulo: Modulo, accion: keyof PermisoModulo) {
+    setForm((f) => {
+      const delModulo = f.permisos[modulo] ?? { ver: false, crear: false, editar: false, eliminar: false };
+      const actual = f.permisosPantalla?.[pantallaId] ?? delModulo;
+      const nuevo = { ...actual, [accion]: !actual[accion] };
+      const permisosPantalla = { ...(f.permisosPantalla ?? {}) };
+      // Si el override quedo identico al permiso del modulo, se quita -- asi
+      // el rol no acumula overrides "fantasma" que en realidad no cambian nada.
+      const igualQueModulo =
+        nuevo.ver === delModulo.ver && nuevo.crear === delModulo.crear && nuevo.editar === delModulo.editar && nuevo.eliminar === delModulo.eliminar;
+      if (igualQueModulo) {
+        delete permisosPantalla[pantallaId];
+      } else {
+        permisosPantalla[pantallaId] = nuevo;
+      }
+      return { ...f, permisosPantalla };
+    });
+  }
+
   const columns: Column<Rol>[] = [
     { header: 'Rol', render: (r) => <span className="font-medium text-ink-100">{r.nombre}</span> },
     { header: 'Descripcion', render: (r) => <span className="text-xs">{r.descripcion}</span> },
@@ -185,6 +213,71 @@ export function RolesSection() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-ink-200">Permisos finos por pantalla (opcional)</p>
+              <p className="mb-3 text-xs text-ink-500">
+                Por defecto cada pantalla usa el permiso de su modulo (de arriba). Abre un modulo para ocultarle o
+                permitirle una pantalla especifica a este rol -- por ejemplo, dar "Catalogos" completo pero ocultar
+                "Proveedores". Esto solo controla la interfaz; la seguridad real en la base de datos sigue siendo por
+                modulo completo.
+              </p>
+              <div className="space-y-2">
+                {modulos.map((m) => {
+                  const pantallas = pantallasDeModulo(m);
+                  if (pantallas.length === 0) return null;
+                  return (
+                    <details key={m} className="overflow-hidden rounded-xl border border-line-800">
+                      <summary className="flex cursor-pointer list-none items-center justify-between bg-bg-700/50 px-3 py-2 text-sm text-ink-200">
+                        <span>
+                          {etiquetaModulo(m)}{' '}
+                          <span className="text-xs text-ink-600">
+                            ({pantallas.length} pantalla{pantallas.length === 1 ? '' : 's'}
+                            {Object.keys(form.permisosPantalla ?? {}).some((id) => pantallas.some((p) => p.id === id))
+                              ? ' · con overrides'
+                              : ''}
+                            )
+                          </span>
+                        </span>
+                        <ChevronDown size={15} className="text-ink-500" />
+                      </summary>
+                      <table className="w-full text-left text-sm">
+                        <thead>
+                          <tr className="border-b border-t border-line-800 bg-bg-900 text-xs uppercase tracking-wide text-ink-500">
+                            <th className="px-3 py-2 font-medium">Pantalla</th>
+                            {acciones.map((a) => (
+                              <th key={a.key} className="px-3 py-2 text-center font-medium">
+                                {a.label}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pantallas.map((p) => (
+                            <tr key={p.id} className="border-b border-line-800/70 last:border-0">
+                              <td className="px-3 py-2 text-ink-300">
+                                {p.label}
+                                {form.permisosPantalla?.[p.id] && <span className="ml-1.5 text-[10px] text-breco-500">(personalizado)</span>}
+                              </td>
+                              {acciones.map((a) => (
+                                <td key={a.key} className="px-3 py-2 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={valorPantalla(p.id, m, a.key)}
+                                    onChange={() => togglePantalla(p.id, m, a.key)}
+                                    className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </details>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="flex justify-end gap-2">

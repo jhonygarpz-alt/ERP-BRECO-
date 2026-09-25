@@ -805,12 +805,19 @@ export function rolFromRow(row: Record<string, unknown>): Rol {
     nombre: row.nombre as string,
     descripcion: row.descripcion as string,
     permisos: row.permisos as Rol['permisos'],
+    permisosPantalla: (row.permisos_pantalla as Rol['permisosPantalla']) || undefined,
     empresaId: (row.empresa_id as string | null) ?? undefined,
   };
 }
 export function rolToRow(r: Rol) {
-  const { empresaId, ...resto } = r;
-  return { ...resto, ...(empresaId ? { empresa_id: empresaId } : {}) };
+  return {
+    id: r.id,
+    nombre: r.nombre,
+    descripcion: r.descripcion,
+    permisos: r.permisos,
+    permisos_pantalla: r.permisosPantalla ?? {},
+    ...(r.empresaId ? { empresa_id: r.empresaId } : {}),
+  };
 }
 
 export function usuarioFromRow(row: Record<string, unknown>): Usuario {
