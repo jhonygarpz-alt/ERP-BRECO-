@@ -32,6 +32,7 @@ import {
 import { hoyISO, fechaLocal } from '../lib/fechas';
 import { ordenServicioActivaDeUnidad } from '../lib/mantenimiento';
 import { destinoViaje, origenViaje } from '../lib/monitoreoViajes';
+import { siguienteFolioDocumento } from '../lib/folios';
 
 const COLORES_DISPONIBLES = Object.keys(TONES) as Tone[];
 const UNIDADES_EMPAQUE = ['BALDES', 'CAJAS', 'TARIMAS', 'BULTOS', 'PIEZAS', 'ROLLOS', 'SACOS', 'TAMBOS'];
@@ -97,6 +98,7 @@ export function ViajesPage() {
     facturas,
     formatosImpresion,
     ordenesServicio,
+    foliosAutorizados,
   } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Viajes', 'crear');
@@ -308,13 +310,23 @@ export function ViajesPage() {
     openEdit(viajeSeleccionado);
   }
 
+  /** Folio para un nuevo documento de Carta Porte: sale del Catalogo de
+   * Folios (Configuracion) si hay un rango activo para 'CartaPorte', o del
+   * consecutivo V-#### de siempre si no se ha configurado ninguno. */
+  function folioParaCartaPorte(): { folio: string; error: string | null } {
+    const cartasPorte = viajes.items.filter((v) => v.tipoDocumento === 'CartaPorte');
+    const r = siguienteFolioDocumento('CartaPorte', foliosAutorizados.items, cartasPorte.map((v) => v.folio), () => nextFolio(viajes.items));
+    return { folio: r.folio ?? '', error: r.error };
+  }
+
   function clonarViajeSeleccionado() {
     if (!viajeSeleccionado) return;
     const { id: _idOriginal, ...resto } = viajeSeleccionado;
     setEditing(null);
+    const folio = resto.tipoDocumento === 'CartaPorte' ? folioParaCartaPorte().folio : nextFolio(viajes.items);
     setForm({
       ...resto,
-      folio: nextFolio(viajes.items),
+      folio,
       loadNumber: '',
       estatus: 'Programado',
       estatusFecha: hoyISO(),
@@ -346,7 +358,7 @@ export function ViajesPage() {
    * seleccionado en la tabla. */
   function abrirNuevaCartaPorte() {
     setEditing(null);
-    setForm({ ...emptyForm(), tipoDocumento: 'CartaPorte' });
+    setForm({ ...emptyForm(), tipoDocumento: 'CartaPorte', folio: folioParaCartaPorte().folio });
     setTab('general');
     setTrayectoSeleccionadoId(null);
     setSoloLectura(false);
@@ -423,6 +435,10 @@ export function ViajesPage() {
       cajaEconomico: remolquePrincipal?.economico || form.cajaEconomico,
       cajaNombre: remolquePrincipal?.marca || form.cajaNombre,
     };
+    if (!editing && payload.tipoDocumento === 'CartaPorte' && !payload.folio.trim()) {
+      setError('No hay folio disponible para Carta Porte. Agrega un nuevo rango en Configuracion > Catalogo de Folios antes de continuar.');
+      return;
+    }
     if (payload.tipoDocumento === 'CartaPorte') {
       const faltantes = validarCartaPorteCompleta(
         payload,

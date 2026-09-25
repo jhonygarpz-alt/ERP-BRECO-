@@ -6,8 +6,9 @@ import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
 import { porcentajeDeTexto } from '../../lib/facturacion';
 import { calcularTotalesNotaCredito, facturasPendientesDePago, nextFolioCobranza } from '../../lib/cobranza';
+import { siguienteFolioDocumento } from '../../lib/folios';
 import { TIMBRADO_VACIO } from '../../lib/timbrado';
-import type { NotaCredito, NotaCreditoLinea } from '../../types';
+import type { FolioAutorizado, NotaCredito, NotaCreditoLinea } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, ToolbarButton } from '../ui/form';
@@ -18,9 +19,13 @@ function money(n: number) {
 
 const emptyLineaForm = { concepto: '', unidadMedida: 'SERVICIO', importe: 0, traslada: '' };
 
-function construirNotaCredito(notas: NotaCredito[]): Omit<NotaCredito, 'id'> {
-  return {
-    folio: nextFolioCobranza(notas, 'NC-'),
+function construirNotaCredito(
+  notas: NotaCredito[],
+  foliosAutorizados: FolioAutorizado[],
+): { notaCredito: Omit<NotaCredito, 'id'>; error: string | null } {
+  const resultadoFolio = siguienteFolioDocumento('NotaCredito', foliosAutorizados, notas.map((n) => n.folio), () => nextFolioCobranza(notas, 'NC-'));
+  const notaCredito: Omit<NotaCredito, 'id'> = {
+    folio: resultadoFolio.folio ?? '',
     fecha: hoyISO(),
     timbrado: TIMBRADO_VACIO,
     sucursal: 'MA',
@@ -37,6 +42,7 @@ function construirNotaCredito(notas: NotaCredito[]): Omit<NotaCredito, 'id'> {
     total: 0,
     estatus: 'Activa',
   };
+  return { notaCredito, error: resultadoFolio.error };
 }
 
 export function NotaCreditoFormModal({
@@ -50,11 +56,17 @@ export function NotaCreditoFormModal({
   onClose: () => void;
   onGuardar: (datos: Omit<NotaCredito, 'id'>) => void;
 }) {
-  const { clientes, facturas, pagosCliente, notasCredito } = useData();
-  const [form, setForm] = useState<Omit<NotaCredito, 'id'>>(editing ? { ...editing } : construirNotaCredito(notasCredito.items));
+  const { clientes, facturas, pagosCliente, notasCredito, foliosAutorizados } = useData();
+  const [inicial] = useState(() =>
+    editing ? { form: { ...editing }, error: '' } : (() => {
+      const { notaCredito, error } = construirNotaCredito(notasCredito.items, foliosAutorizados.items);
+      return { form: notaCredito, error: error ?? '' };
+    })(),
+  );
+  const [form, setForm] = useState<Omit<NotaCredito, 'id'>>(inicial.form);
   const [clientePickerOpen, setClientePickerOpen] = useState(false);
   const [lineaForm, setLineaForm] = useState(emptyLineaForm);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(inicial.error);
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
 
@@ -104,6 +116,10 @@ export function NotaCreditoFormModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!editing && !form.folio.trim()) {
+      setError('No hay folio disponible. Agrega un nuevo rango en Configuracion > Catalogo de Folios antes de continuar.');
+      return;
+    }
     if (!form.clienteId) {
       setError('Selecciona el cliente al que se le hara la nota de credito.');
       return;

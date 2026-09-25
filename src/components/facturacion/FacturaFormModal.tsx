@@ -14,6 +14,8 @@ import {
   porcentajeDeTexto,
   viajesPendientesDeFacturar,
 } from '../../lib/facturacion';
+import { siguienteFolioDocumento } from '../../lib/folios';
+import type { FolioAutorizado } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, ToolbarButton } from '../ui/form';
@@ -33,9 +35,14 @@ const emptyLineaForm = {
   retiene: '',
 };
 
-function construirFactura(tipo: TipoFactura, facturas: Factura[]): Omit<Factura, 'id'> {
-  return {
-    folio: nextFolioFactura(facturas),
+function construirFactura(
+  tipo: TipoFactura,
+  facturas: Factura[],
+  foliosAutorizados: FolioAutorizado[],
+): { factura: Omit<Factura, 'id'>; error: string | null } {
+  const resultadoFolio = siguienteFolioDocumento('Factura', foliosAutorizados, facturas.map((f) => f.folio), () => nextFolioFactura(facturas));
+  const factura: Omit<Factura, 'id'> = {
+    folio: resultadoFolio.folio ?? '',
     fecha: hoyISO(),
     timbrado: TIMBRADO_VACIO,
     viajeId: '',
@@ -58,6 +65,7 @@ function construirFactura(tipo: TipoFactura, facturas: Factura[]): Omit<Factura,
     subtotal: 0,
     descuentoTotal: 0,
   };
+  return { factura, error: resultadoFolio.error };
 }
 
 export function FacturaFormModal({
@@ -76,25 +84,29 @@ export function FacturaFormModal({
   onClose: () => void;
   onGuardar: (datos: Omit<Factura, 'id'>) => void;
 }) {
-  const { clientes, viajes, facturas, conceptosFacturacion } = useData();
-  const [form, setForm] = useState<Omit<Factura, 'id'>>(() => {
-    if (editing) return { ...editing };
-    const base = construirFactura(tipo, facturas.items);
+  const { clientes, viajes, facturas, conceptosFacturacion, foliosAutorizados } = useData();
+  const [inicial] = useState(() => {
+    if (editing) return { form: { ...editing }, error: '' };
+    const { factura: base, error: errorFolio } = construirFactura(tipo, facturas.items, foliosAutorizados.items);
     const viajesSel = (viajesPreseleccionados ?? [])
       .map((id) => viajes.items.find((v) => v.id === id))
       .filter((v): v is NonNullable<typeof v> => Boolean(v));
-    if (viajesSel.length === 0) return base;
+    if (viajesSel.length === 0) return { form: base, error: errorFolio ?? '' };
     return {
-      ...base,
-      clienteId: viajesSel[0].clienteId || base.clienteId,
-      viajeIds: viajesSel.map((v) => v.id),
-      lineas: viajesSel.flatMap((v) => lineasDesdeViaje(v)),
+      form: {
+        ...base,
+        clienteId: viajesSel[0].clienteId || base.clienteId,
+        viajeIds: viajesSel.map((v) => v.id),
+        lineas: viajesSel.flatMap((v) => lineasDesdeViaje(v)),
+      },
+      error: errorFolio ?? '',
     };
   });
+  const [form, setForm] = useState<Omit<Factura, 'id'>>(inicial.form);
   const [clientePickerOpen, setClientePickerOpen] = useState(false);
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [lineaForm, setLineaForm] = useState(emptyLineaForm);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(inicial.error);
   const [paso, setPaso] = useState<'formulario' | 'preguntarTimbrar' | 'aviso72h'>('formulario');
   const [datosPendientes, setDatosPendientes] = useState<Omit<Factura, 'id'> | null>(null);
 
@@ -167,6 +179,10 @@ export function FacturaFormModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!editing && !form.folio.trim()) {
+      setError('No hay folio disponible. Agrega un nuevo rango en Configuracion > Catalogo de Folios antes de continuar.');
+      return;
+    }
     if (!form.clienteId) {
       setError('Selecciona el cliente a facturar.');
       return;

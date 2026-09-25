@@ -13,6 +13,8 @@ import { Receipt, CheckCircle2, Clock } from 'lucide-react';
 import { ImportarFacturacionModal } from '../components/reportes/ImportarFacturacionModal';
 import { hoyISO } from '../lib/fechas';
 import { TIMBRADO_VACIO } from '../lib/timbrado';
+import { nextFolioFactura } from '../lib/facturacion';
+import { siguienteFolioDocumento } from '../lib/folios';
 
 function formatearMXN(n: number): string {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -20,16 +22,8 @@ function formatearMXN(n: number): string {
 
 const estatuses: EstatusFactura[] = ['Pendiente', 'Facturado', 'Pagado', 'Cancelado'];
 
-function nextFolio(facturas: Factura[]) {
-  const max = facturas.reduce((acc, f) => {
-    const n = Number(f.folio.split('-')[1] ?? 0);
-    return Number.isFinite(n) ? Math.max(acc, n) : acc;
-  }, 1000);
-  return `F-${max + 1}`;
-}
-
 export function FacturacionPage() {
-  const { facturas, viajes, clientes, facturasSistema } = useData();
+  const { facturas, viajes, clientes, facturasSistema, foliosAutorizados } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Facturacion', 'crear');
   const puedeEditar = hasPermission('Facturacion', 'editar');
@@ -39,6 +33,14 @@ export function FacturacionPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Factura | null>(null);
   const [importarOpen, setImportarOpen] = useState(false);
+  const [error, setError] = useState('');
+
+  function folioSugerido(): { folio: string; error: string | null } {
+    const r = siguienteFolioDocumento('Factura', foliosAutorizados.items, facturas.items.map((f) => f.folio), () =>
+      nextFolioFactura(facturas.items),
+    );
+    return { folio: r.folio ?? '', error: r.error };
+  }
 
   const facturasDelDia = useMemo(
     () => facturas.items.filter((f) => f.fecha === fecha),
@@ -51,7 +53,7 @@ export function FacturacionPage() {
   );
 
   const emptyForm: Omit<Factura, 'id'> = {
-    folio: nextFolio(facturas.items),
+    folio: folioSugerido().folio,
     fecha,
     timbrado: TIMBRADO_VACIO,
     viajeId: viajes.items[0]?.id ?? '',
@@ -82,13 +84,16 @@ export function FacturacionPage() {
 
   function openNew() {
     setEditing(null);
-    setForm({ ...emptyForm, fecha, folio: nextFolio(facturas.items) });
+    const { folio, error: err } = folioSugerido();
+    setForm({ ...emptyForm, fecha, folio });
+    setError(err ?? '');
     setModalOpen(true);
   }
 
   function openEdit(f: Factura) {
     setEditing(f);
     setForm(f);
+    setError('');
     setModalOpen(true);
   }
 
@@ -99,6 +104,10 @@ export function FacturacionPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!editing && !form.folio.trim()) {
+      setError('No hay folio disponible. Agrega un nuevo rango en Configuracion > Catalogo de Folios antes de continuar.');
+      return;
+    }
     if (editing) {
       facturas.update(editing.id, form);
     } else {
@@ -222,6 +231,9 @@ export function FacturacionPage() {
           wide
         >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {error && (
+              <p className="rounded-lg bg-breco-500/10 px-3 py-2 text-sm text-breco-500 sm:col-span-2">{error}</p>
+            )}
             <Field label="Folio">
               <Input required value={form.folio} onChange={(e) => setForm({ ...form, folio: e.target.value })} />
             </Field>
