@@ -536,6 +536,8 @@ export type TipoFactura = 'Viaje' | 'Concepto';
 export interface FacturaLinea {
   id: string;
   conceptoFacturacionId?: string;
+  /** Si este renglon se genero automaticamente al marcar un viaje (Facturacion por Viaje), el id de ese viaje -- permite quitar el renglon exacto al desmarcarlo, sin tocar renglones agregados a mano. */
+  viajeId?: string;
   concepto: string;
   unidadMedida: string;
   cantidad: number;

@@ -20,6 +20,7 @@ export function lineasDesdeViaje(viaje: Viaje): FacturaLinea[] {
   return viaje.conceptosFacturacionViaje.map((c) => ({
     id: uid('fl'),
     conceptoFacturacionId: c.conceptoFacturacionId,
+    viajeId: viaje.id,
     concepto: c.concepto,
     unidadMedida: c.unidadMedida,
     cantidad: 1,

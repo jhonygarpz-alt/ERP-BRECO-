@@ -113,10 +113,20 @@ export function FacturaFormModal({
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = creditoDisponibleDeCliente(clienteSeleccionado, facturas.items.filter((f) => f.id !== editing?.id));
 
-  const viajesPendientes = useMemo(
-    () => (tipo === 'Viaje' ? viajesPendientesDeFacturar(viajes.items, facturas.items.filter((f) => f.id !== editing?.id), form.clienteId) : []),
-    [tipo, viajes.items, facturas.items, form.clienteId, editing?.id],
-  );
+  // Al facturar desde un viaje puntual (boton "Facturar" de Asignacion de
+  // Viajes) la lista se fija a ese unico viaje -- no deben aparecer ni
+  // poder agregarse otros viajes pendientes del mismo cliente.
+  const viajesBloqueados = !editing && (viajesPreseleccionados?.length ?? 0) > 0;
+
+  const viajesPendientes = useMemo(() => {
+    if (tipo !== 'Viaje') return [];
+    if (viajesBloqueados) {
+      return (viajesPreseleccionados ?? [])
+        .map((id) => viajes.items.find((v) => v.id === id))
+        .filter((v): v is NonNullable<typeof v> => Boolean(v));
+    }
+    return viajesPendientesDeFacturar(viajes.items, facturas.items.filter((f) => f.id !== editing?.id), form.clienteId);
+  }, [tipo, viajesBloqueados, viajesPreseleccionados, viajes.items, facturas.items, form.clienteId, editing?.id]);
 
   const totales = calcularTotalesFactura(form.lineas);
 
@@ -128,7 +138,13 @@ export function FacturaFormModal({
     setForm((f) => {
       const yaIncluido = f.viajeIds.includes(viajeId);
       if (yaIncluido) {
-        return { ...f, viajeIds: f.viajeIds.filter((id) => id !== viajeId) };
+        // Quita solo los renglones que se generaron automaticamente al marcar
+        // este viaje -- los agregados a mano (sin viajeId) se quedan igual.
+        return {
+          ...f,
+          viajeIds: f.viajeIds.filter((id) => id !== viajeId),
+          lineas: f.lineas.filter((l) => l.viajeId !== viajeId),
+        };
       }
       const viaje = viajes.items.find((v) => v.id === viajeId);
       const nuevasLineas = viaje ? lineasDesdeViaje(viaje) : [];
@@ -251,9 +267,11 @@ export function FacturaFormModal({
           <Field label="Cliente">
             <div className="flex items-center gap-2">
               <Input readOnly value={clienteSeleccionado ? `${clienteSeleccionado.numeroCliente} - ${clienteSeleccionado.nombre}` : ''} placeholder="Sin cliente seleccionado" />
-              <ToolbarButton type="button" onClick={() => setClientePickerOpen(true)}>
-                ...
-              </ToolbarButton>
+              {!viajesBloqueados && (
+                <ToolbarButton type="button" onClick={() => setClientePickerOpen(true)}>
+                  ...
+                </ToolbarButton>
+              )}
             </div>
           </Field>
 
@@ -313,7 +331,9 @@ export function FacturaFormModal({
           {tipo === 'Viaje' && (
             <div>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">
-                Viajes pendientes por facturar {clienteSeleccionado ? `de ${clienteSeleccionado.nombre}` : '(selecciona un cliente)'}
+                {viajesBloqueados
+                  ? 'Viaje a facturar'
+                  : `Viajes pendientes por facturar ${clienteSeleccionado ? `de ${clienteSeleccionado.nombre}` : '(selecciona un cliente)'}`}
               </h3>
               <div className="max-h-56 overflow-auto rounded-xl border border-line-800">
                 {!clienteSeleccionado ? (
@@ -335,11 +355,17 @@ export function FacturaFormModal({
                       {viajesPendientes.map((v) => (
                         <tr
                           key={v.id}
-                          onClick={() => toggleViaje(v.id)}
-                          className="cursor-pointer border-t border-line-800/70 hover:bg-bg-800"
+                          onClick={viajesBloqueados ? undefined : () => toggleViaje(v.id)}
+                          className={`border-t border-line-800/70 ${viajesBloqueados ? '' : 'cursor-pointer hover:bg-bg-800'}`}
                         >
                           <td className="px-3 py-2">
-                            <input type="checkbox" readOnly checked={form.viajeIds.includes(v.id)} className="h-4 w-4 accent-breco-500" />
+                            <input
+                              type="checkbox"
+                              readOnly
+                              disabled={viajesBloqueados}
+                              checked={form.viajeIds.includes(v.id)}
+                              className="h-4 w-4 accent-breco-500"
+                            />
                           </td>
                           <td className="px-3 py-2 font-semibold text-ink-100">{v.folio}</td>
                           <td className="px-3 py-2 text-ink-300">{v.fecha}</td>
