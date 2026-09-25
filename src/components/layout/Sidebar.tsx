@@ -321,13 +321,13 @@ export function Sidebar({
           collapsed ? 'md:w-20' : 'md:w-72'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-4 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
+        <div className={`flex items-center gap-3 border-b border-sb-border px-4 py-3 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
         {empresa.value.logoDataUrl ? (
-          <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg ${collapsed ? 'md:h-10 md:w-10' : ''}`}>
+          <div className={`flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg ${collapsed ? 'md:h-12 md:w-12' : ''}`}>
             <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-2xl font-black italic text-white shadow-md shadow-breco-glow ${collapsed ? 'md:h-10 md:w-10 md:text-base' : ''}`}>
+          <div className={`flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-3xl font-black italic text-white shadow-md shadow-breco-glow ${collapsed ? 'md:h-12 md:w-12 md:text-lg' : ''}`}>
             B
           </div>
         )}
