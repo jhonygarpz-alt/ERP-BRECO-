@@ -85,7 +85,7 @@ export function MonitoreoAlertasPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-ink-100">{NOMBRE_TIPO[a.tipo]}</p>
+                  <p className="text-card-header font-medium text-ink-100">{NOMBRE_TIPO[a.tipo]}</p>
                   <span className="text-xs text-ink-600">{new Date(a.creadoEn).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}</span>
                 </div>
                 <p className="mt-0.5 text-sm text-ink-300">

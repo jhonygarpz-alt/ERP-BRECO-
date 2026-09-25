@@ -39,9 +39,9 @@ export function CrudTable<T>({
   return (
     <div className="overflow-hidden rounded-2xl border border-line-800 bg-bg-800">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-max text-left text-sm">
+        <table className="w-full min-w-max text-left text-table">
           <thead>
-            <tr className="border-b border-line-800 bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+            <tr className="border-b border-line-800 bg-bg-700/50 text-xs font-medium tracking-wide text-ink-500 uppercase">
               {columns.map((col) => (
                 <th key={col.header} className={`px-4 py-3 font-medium ${col.className ?? ''}`}>
                   {col.header}

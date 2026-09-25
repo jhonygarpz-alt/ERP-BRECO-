@@ -53,7 +53,7 @@ export function AlertasVencimientosSection() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">
-          <h3 className="mb-3 text-sm font-semibold text-ink-100">Vencimiento de Doc. Unidad</h3>
+          <h3 className="mb-3 text-card-header font-medium text-ink-100">Vencimiento de Doc. Unidad</h3>
           <div className="space-y-2">
             {CHECKS_UNIDAD.map((c) => (
               <label key={c.key} className="flex items-center gap-2 text-sm text-ink-300">
@@ -83,7 +83,7 @@ export function AlertasVencimientosSection() {
         </div>
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">
-          <h3 className="mb-3 text-sm font-semibold text-ink-100">Vencimiento de Doc. Operador</h3>
+          <h3 className="mb-3 text-card-header font-medium text-ink-100">Vencimiento de Doc. Operador</h3>
           <div className="space-y-2">
             {CHECKS_OPERADOR.map((c) => (
               <label key={c.key} className="flex items-center gap-2 text-sm text-ink-300">

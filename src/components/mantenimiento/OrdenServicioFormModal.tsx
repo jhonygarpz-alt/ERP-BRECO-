@@ -421,7 +421,7 @@ export function OrdenServicioFormModal({
                       </tbody>
                     </table>
                   </div>
-                  <p className="mt-2 text-right text-sm font-semibold text-ink-100">
+                  <p className="mt-2 text-right text-card-header font-medium text-ink-100">
                     Total mano de obra: {totalManoObraOrden.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
                   </p>
                 </div>

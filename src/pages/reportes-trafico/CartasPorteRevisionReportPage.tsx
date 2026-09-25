@@ -55,7 +55,7 @@ export function CartasPorteRevisionReportPage() {
           {filas.map((f) => (
             <div key={f.folio} className="rounded-2xl border border-line-800 bg-bg-800 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-semibold text-ink-100">
+                <p className="text-card-header font-medium text-ink-100">
                   {f.folio} · {f.cliente}
                 </p>
                 <p className="text-xs text-ink-500">

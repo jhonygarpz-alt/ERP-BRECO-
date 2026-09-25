@@ -369,7 +369,7 @@ export function EmpresasSection() {
           wide
         >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-ink-100 sm:col-span-2">
+            <div className="flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
               <Building2 size={16} />
               Datos de la empresa
             </div>
@@ -390,7 +390,7 @@ export function EmpresasSection() {
               </Field>
             </div>
 
-            <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-ink-100 sm:col-span-2">
+            <div className="mt-2 flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
               Licenciamiento
             </div>
             <Field label="Licencias contratadas">
@@ -417,7 +417,7 @@ export function EmpresasSection() {
               </Field>
             </div>
 
-            <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-ink-100 sm:col-span-2">
+            <div className="mt-2 flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
               <UserPlus size={16} />
               Primer usuario administrador
             </div>

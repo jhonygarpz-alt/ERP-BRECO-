@@ -145,7 +145,7 @@ export function MovimientosBancariosPage() {
               cuentaId === c.id ? 'border-breco-500 bg-breco-500/5' : 'border-line-800 bg-bg-800 hover:border-line-700'
             }`}
           >
-            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink-100">
+            <div className="mb-2 flex items-center gap-2 text-card-header font-medium text-ink-100">
               <Landmark size={16} className="text-breco-500" /> {c.banco}
             </div>
             <p className="text-xs text-ink-500">•••• {c.numero.slice(-4)}</p>

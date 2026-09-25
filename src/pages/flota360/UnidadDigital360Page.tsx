@@ -315,7 +315,7 @@ export function UnidadDigital360Page() {
                     className="flex w-full items-center justify-between px-4 py-3 text-left"
                   >
                     <div>
-                      <span className="text-sm font-semibold text-ink-100">{i.tipoEvento}</span>
+                      <span className="text-card-header font-medium text-ink-100">{i.tipoEvento}</span>
                       <span className="ml-2 text-xs text-ink-500">{i.fecha}</span>
                       {i.responsable && <span className="ml-2 text-xs text-ink-600">· {i.responsable}</span>}
                     </div>

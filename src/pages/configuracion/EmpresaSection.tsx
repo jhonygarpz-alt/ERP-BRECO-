@@ -32,7 +32,7 @@ export function EmpresaSection() {
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       <fieldset disabled={!puedeEditar} className="space-y-6">
       <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
-        <h2 className="mb-4 text-sm font-semibold text-ink-100">Logotipo</h2>
+        <h2 className="mb-4 text-card-header font-medium text-ink-100">Logotipo</h2>
         <div className="flex items-center gap-5">
           <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line-700 bg-bg-900">
             {form.logoDataUrl ? (
@@ -53,7 +53,7 @@ export function EmpresaSection() {
       </div>
 
       <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
-        <h2 className="mb-4 text-sm font-semibold text-ink-100">Datos de la empresa</h2>
+        <h2 className="mb-4 text-card-header font-medium text-ink-100">Datos de la empresa</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nombre comercial">
             <Input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />

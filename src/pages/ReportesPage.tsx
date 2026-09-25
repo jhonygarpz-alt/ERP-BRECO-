@@ -93,7 +93,7 @@ export function ReportesPage() {
                 </div>
               </div>
 
-              <h2 className="mt-3 text-sm font-semibold text-ink-100">{r.nombre}</h2>
+              <h2 className="mt-3 text-card-header font-medium text-ink-100">{r.nombre}</h2>
               {r.descripcion && <p className="mt-1 text-xs text-ink-500">{r.descripcion}</p>}
               {r.actualizado && <p className="mt-2 text-[11px] text-ink-600">{r.actualizado}</p>}
 

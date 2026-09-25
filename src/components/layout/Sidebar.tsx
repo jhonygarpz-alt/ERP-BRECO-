@@ -71,10 +71,10 @@ function NavRow({
       end={end}
       title={collapsed ? label : undefined}
       className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
+        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-nav font-medium transition ${collapsed ? 'justify-center px-0' : ''} ${
           isActive
-            ? 'bg-breco-500 font-semibold text-white shadow-md shadow-breco-glow'
-            : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
+            ? 'bg-breco-500 text-white shadow-md shadow-breco-glow'
+            : 'text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
         }`
       }
     >
@@ -117,10 +117,10 @@ function NavCollapsibleGroup({
       <button
         onClick={() => (collapsed ? (onExpandCollapsed(), setOpen(true)) : setOpen((v) => !v))}
         title={collapsed ? label : undefined}
-        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition ${collapsed ? 'justify-center px-0' : ''} ${
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-nav font-medium transition ${collapsed ? 'justify-center px-0' : ''} ${
           routes.some((r) => location.pathname.startsWith(r))
-            ? 'font-semibold text-sb-text'
-            : 'font-medium text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
+            ? 'text-sb-text'
+            : 'text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text'
         }`}
       >
         <Icon size={18} strokeWidth={2} className="flex-shrink-0" />
@@ -317,17 +317,17 @@ export function Sidebar({
         <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={onCloseMobile} aria-hidden="true" />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex h-full w-72 flex-shrink-0 flex-col border-r border-sb-border bg-sb-bg transition-transform duration-200 md:static md:z-auto md:translate-x-0 md:transition-[width] ${
+        className={`font-heading fixed inset-y-0 left-0 z-40 flex h-full w-72 flex-shrink-0 flex-col border-r border-sb-border bg-sb-bg transition-transform duration-200 md:static md:z-auto md:translate-x-0 md:transition-[width] ${
           collapsed ? 'md:w-20' : 'md:w-72'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-5 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
+        <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-4 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
         {empresa.value.logoDataUrl ? (
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sb-bg-active">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sb-bg-active">
             <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-base font-black italic text-white shadow-md shadow-breco-glow">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-xl font-black italic text-white shadow-md shadow-breco-glow">
             B
           </div>
         )}
@@ -335,7 +335,7 @@ export function Sidebar({
           <div className="truncate text-[15px] font-semibold tracking-tight text-sb-text">
             <BrandName nombre={empresa.value.nombre} />
           </div>
-          <div className="text-[11px] font-medium uppercase tracking-widest text-breco-500">Trafico ERP</div>
+          <div className="text-[11px] font-medium tracking-widest text-breco-500 uppercase">Trafico ERP</div>
         </div>
         <button
           onClick={onCloseMobile}

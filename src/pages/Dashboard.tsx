@@ -41,7 +41,7 @@ function tiempoRelativo(iso: string): string {
 }
 
 export function Dashboard() {
-  const { viajes, unidades, operadores, facturas, clientes, estatusViajes, empresa } = useData();
+  const { viajes, unidades, operadores, facturas, clientes, estatusViajes } = useData();
   const { alertas, marcarAtendida, marcarTodasAtendidas } = useAlertas();
   const estatusTono = (nombre: string): Tone | null =>
     (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
@@ -106,7 +106,7 @@ export function Dashboard() {
       <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-ink-100">Resumen de trafico</h1>
-          <p className="mt-1 text-sm text-ink-500">Vista general de la operacion diaria de {empresa.value.nombre}.</p>
+          <p className="mt-1.5 text-sm text-ink-500">Consulta y seguimiento de la operacion diaria.</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export function Dashboard() {
       <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-5 xl:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-ink-100">Proximos viajes</h2>
+            <h2 className="text-card-header font-medium text-ink-100">Proximos viajes</h2>
             <Link to="/programa" className="flex items-center gap-1 text-xs font-medium text-breco-500 hover:underline">
               Ver programa diario <ArrowUpRight size={13} />
             </Link>
@@ -176,7 +176,7 @@ export function Dashboard() {
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-ink-100">Alertas</h2>
+            <h2 className="text-card-header font-medium text-ink-100">Alertas</h2>
             {alertas.length > 0 && (
               <button
                 type="button"
@@ -220,7 +220,7 @@ export function Dashboard() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
-          <h2 className="mb-4 text-sm font-semibold text-ink-100">Unidades por estado</h2>
+          <h2 className="mb-4 text-card-header font-medium text-ink-100">Unidades por estado</h2>
           {unidades.items.length === 0 ? (
             <p className="py-6 text-center text-sm text-ink-600">Sin unidades registradas.</p>
           ) : (
@@ -248,7 +248,7 @@ export function Dashboard() {
         </div>
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-5 xl:col-span-2">
-          <h2 className="mb-4 text-sm font-semibold text-ink-100">Actividad reciente</h2>
+          <h2 className="mb-4 text-card-header font-medium text-ink-100">Actividad reciente</h2>
           <div className="space-y-1">
             {actividad.length === 0 && (
               <p className="py-6 text-center text-sm text-ink-600">Sin actividad registrada todavia.</p>

@@ -2,16 +2,58 @@
 
 @theme {
   /*
-   * -apple-system/BlinkMacSystemFont resolve to the real San Francisco on
-   * macOS, iOS and Chromium, automatically switching between the Display
-   * and Text optical sizes by weight/size (exactly the SF Pro Display vs
-   * SF Pro Text split). Named fallbacks below only kick in on browsers
-   * that expose those PostScript names directly; Segoe UI/Roboto cover
-   * Windows/Android/Linux, which cannot legally ship San Francisco itself.
+   * Identidad tipografica corporativa (sistema de diseño):
+   * - IBM Plex Sans para titulos, encabezados y navegacion (--font-heading).
+   * - Inter para formularios, tablas, botones e indicadores (--font-sans,
+   *   sigue siendo el default de <body> asi que todo el contenido general
+   *   ya usa Inter sin tocar cada componente).
+   * Los nombres de sistema quedan como fallback si las fuentes web tardan
+   * en cargar o el usuario esta offline.
    */
+  --font-heading:
+    'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
   --font-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto,
-    Helvetica, Arial, sans-serif;
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /*
+   * Jerarquia tipografica global: al redefinir aqui los tamaños de fuente
+   * que Tailwind ya genera como utilidades (text-xl, text-2xl, etc.) y los
+   * pesos (font-bold), TODA la app hereda la nueva jerarquia sin tener que
+   * editar cada pantalla -- exactamente igual al patron ya usado arriba
+   * para los colores de tema claro/oscuro.
+   *
+   *   Titulos principales   (text-xl + font-bold): 22px / 600
+   *   Indicadores           (text-2xl + font-semibold): 26px / 600
+   *   Subtitulos            (text-sm, sin negrita): 14px / 400
+   *   Informacion secundaria(text-xs, sin negrita): 12px / 400
+   *
+   * "font-bold" pasa de 700 a 600: evita el uso de negritas excesivas en
+   * toda la interfaz (los titulos ya distinguen su jerarquia por tamaño).
+   */
+  --font-weight-bold: 600;
+
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.55;
+  --text-xl: 1.375rem; /* 22px */
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.625rem; /* 26px */
+  --text-2xl--line-height: 1.2;
+
+  /*
+   * Tokens semanticos nuevos (Tailwind genera automaticamente las
+   * utilidades text-card-header / text-nav / text-table / text-button a
+   * partir de estas variables). Se aplican en los componentes compartidos
+   * (form.tsx, CrudTable.tsx, Sidebar.tsx) para que cubran toda la app.
+   */
+  --text-card-header: 0.8125rem; /* 13px */
+  --text-card-header--line-height: 1.4;
+  --text-nav: 0.8125rem; /* 13px */
+  --text-nav--line-height: 1.4;
+  --text-table: 0.8125rem; /* 13px */
+  --text-table--line-height: 1.5;
+  --text-button: 0.8125rem; /* 13px */
+  --text-button--line-height: 1;
 
   --color-bg-950: #08090d;
   --color-bg-900: #0c0e14;
@@ -152,9 +194,11 @@ body {
   font-feature-settings: 'cv11', 'ss01';
 }
 
-/* Titulos y nombres importantes van en font-bold/font-semibold (600-700) en cada componente. */
+/* Titulos, encabezados de tarjeta (h2/h3) y navegacion van en IBM Plex Sans;
+   el peso (600-700 originalmente, hoy 600) lo sigue poniendo cada componente. */
 h1, h2, h3 {
-  letter-spacing: -0.015em;
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
 }
 
 #root {

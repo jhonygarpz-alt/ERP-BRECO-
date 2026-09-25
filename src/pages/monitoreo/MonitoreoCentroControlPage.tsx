@@ -135,7 +135,7 @@ export function MonitoreoCentroControlPage() {
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4 lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-ink-100">Mapa en Tiempo Real</h2>
+            <h2 className="text-card-header font-medium text-ink-100">Mapa en Tiempo Real</h2>
             <Link to="/monitoreo/mapa" className="text-xs text-breco-500 hover:underline">
               Ver mapa completo
             </Link>
@@ -145,7 +145,7 @@ export function MonitoreoCentroControlPage() {
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-ink-100">Alertas en Tiempo Real</h2>
+            <h2 className="text-card-header font-medium text-ink-100">Alertas en Tiempo Real</h2>
             <Link to="/monitoreo/alertas" className="text-xs text-breco-500 hover:underline">
               Ver todas
             </Link>
@@ -173,7 +173,7 @@ export function MonitoreoCentroControlPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="overflow-hidden rounded-2xl border border-line-800 bg-bg-800 lg:col-span-2">
           <div className="flex items-center justify-between border-b border-line-800 px-4 py-3">
-            <h2 className="text-sm font-semibold text-ink-100">Viajes en Monitoreo</h2>
+            <h2 className="text-card-header font-medium text-ink-100">Viajes en Monitoreo</h2>
             <Link to="/monitoreo/viajes" className="text-xs text-breco-500 hover:underline">
               Ver todos
             </Link>
@@ -235,7 +235,7 @@ export function MonitoreoCentroControlPage() {
         </div>
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-ink-100">Ultimos Eventos</h2>
+          <h2 className="mb-3 text-card-header font-medium text-ink-100">Ultimos Eventos</h2>
           <div className="space-y-3">
             {eventos.length === 0 && <p className="text-sm text-ink-600">Sin eventos registrados.</p>}
             {eventos.map((e) => (

@@ -13,7 +13,7 @@ import { useCampoResaltado, estaLleno } from '../../lib/CampoResaltadoContext';
  * falta por llenar en un formulario largo.
  */
 const baseInputClass =
-  'w-full rounded-lg border px-3 py-2 text-sm text-ink-100 placeholder:text-ink-600 outline-none transition focus:border-breco-500 focus:ring-2 focus:ring-breco-glow read-only:border-line-700 read-only:bg-bg-900 read-only:text-ink-500 disabled:cursor-not-allowed disabled:border-line-800 disabled:bg-bg-800 disabled:text-ink-600';
+  'w-full rounded-lg border px-3 py-2 text-table text-ink-100 placeholder:text-ink-600 outline-none transition focus:border-breco-500 focus:ring-2 focus:ring-breco-glow read-only:border-line-700 read-only:bg-bg-900 read-only:text-ink-500 disabled:cursor-not-allowed disabled:border-line-800 disabled:bg-bg-800 disabled:text-ink-600';
 const vacioClass = 'border-blue-400/30 bg-blue-400/5';
 const llenoClass = 'border-emerald-500/40 bg-emerald-500/10';
 
@@ -26,7 +26,7 @@ export function campoClass(lleno: boolean) {
 export function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium uppercase tracking-wide text-ink-500">
+      <span className="text-xs font-medium tracking-wide text-ink-500 uppercase">
         {label}
         {required && <span className="ml-0.5 text-breco-500">*</span>}
       </span>
@@ -57,7 +57,7 @@ export function PrimaryButton(props: React.ButtonHTMLAttributes<HTMLButtonElemen
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg bg-breco-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-breco-glow transition hover:bg-breco-600 disabled:cursor-not-allowed disabled:opacity-50 ${props.className ?? ''}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg bg-breco-500 px-4 py-2 text-button font-medium text-white shadow-lg shadow-breco-glow transition hover:bg-breco-600 disabled:cursor-not-allowed disabled:opacity-50 ${props.className ?? ''}`}
     />
   );
 }
@@ -66,7 +66,7 @@ export function GhostButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-line-700 bg-bg-800 px-4 py-2 text-sm font-medium text-ink-300 transition hover:border-line-600 hover:text-ink-100 ${props.className ?? ''}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-line-700 bg-bg-800 px-4 py-2 text-button font-medium text-ink-300 transition hover:border-line-600 hover:text-ink-100 ${props.className ?? ''}`}
     />
   );
 }
@@ -75,7 +75,7 @@ export function ToolbarButton(props: React.ButtonHTMLAttributes<HTMLButtonElemen
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-blue-400/50 bg-blue-400/5 px-4 py-2 text-sm font-medium text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10 disabled:cursor-not-allowed disabled:border-line-700 disabled:bg-transparent disabled:text-ink-600 ${props.className ?? ''}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-blue-400/50 bg-blue-400/5 px-4 py-2 text-button font-medium text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10 disabled:cursor-not-allowed disabled:border-line-700 disabled:bg-transparent disabled:text-ink-600 ${props.className ?? ''}`}
     />
   );
 }

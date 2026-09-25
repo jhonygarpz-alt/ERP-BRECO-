@@ -18,7 +18,7 @@ export function SuperAdminLayout() {
             <ShieldCheck size={18} />
           </span>
           <div className="leading-tight">
-            <div className="text-sm font-semibold text-ink-100">Panel de plataforma</div>
+            <div className="text-card-header font-medium text-ink-100">Panel de plataforma</div>
             <div className="text-xs text-ink-500">{usuarioActual?.nombre}</div>
           </div>
         </div>

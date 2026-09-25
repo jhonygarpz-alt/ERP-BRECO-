@@ -237,11 +237,11 @@ export function RegistrarPagoModal({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg border border-line-800 p-3 text-center">
               <div className="text-xs text-ink-500">Saldo Total</div>
-              <div className="text-sm font-semibold text-ink-100">{money(saldoTotal)}</div>
+              <div className="text-card-header font-medium text-ink-100">{money(saldoTotal)}</div>
             </div>
             <div className="rounded-lg border border-line-800 p-3 text-center">
               <div className="text-xs text-ink-500">Importe a Pagar</div>
-              <div className="text-sm font-semibold text-ink-100">{money(importeAPagar)}</div>
+              <div className="text-card-header font-medium text-ink-100">{money(importeAPagar)}</div>
             </div>
             <div className="rounded-lg border border-line-800 p-3 text-center">
               <div className="text-xs text-ink-500">Saldo a favor</div>
@@ -249,7 +249,7 @@ export function RegistrarPagoModal({
             </div>
             <div className="rounded-lg border border-line-800 p-3 text-center">
               <div className="text-xs text-ink-500">Compensacion</div>
-              <div className="text-sm font-semibold text-ink-100">{money(compensacion)}</div>
+              <div className="text-card-header font-medium text-ink-100">{money(compensacion)}</div>
             </div>
           </div>
         </fieldset>

@@ -42,7 +42,7 @@ export function Topbar({ onOpenMenu }: { onOpenMenu?: () => void }) {
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-600" />
         <input
           placeholder="Buscar clientes, unidades, viajes..."
-          className="w-full rounded-lg border border-line-700 bg-bg-800 py-2 pl-9 pr-3 text-sm text-ink-100 placeholder:text-ink-600 outline-none transition focus:border-breco-500 focus:ring-2 focus:ring-breco-glow"
+          className="w-full rounded-lg border border-line-700 bg-bg-800 py-2 pr-3 pl-9 text-table text-ink-100 placeholder:text-ink-600 outline-none transition focus:border-breco-500 focus:ring-2 focus:ring-breco-glow"
         />
       </div>
 

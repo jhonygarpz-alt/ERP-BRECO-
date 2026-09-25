@@ -53,7 +53,7 @@ export function MonitoreoComunicacionPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-ink-100">Mensajes recientes</h2>
+          <h2 className="mb-3 text-card-header font-medium text-ink-100">Mensajes recientes</h2>
           <div className="space-y-2">
             {recientes.length === 0 && <p className="text-sm text-ink-600">Sin mensajes todavia.</p>}
             {recientes.map((m) => {

@@ -96,7 +96,7 @@ function ReportTable({ headers, rows }: { headers: string[]; rows: ReactNode[][]
 function SeccionReporte({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-2xl border border-line-800 bg-bg-800 p-5">
-      <h3 className="mb-3 text-sm font-semibold text-ink-100">{title}</h3>
+      <h3 className="mb-3 text-card-header font-medium text-ink-100">{title}</h3>
       {children}
     </div>
   );

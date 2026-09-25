@@ -164,7 +164,7 @@ export function ChecklistFisicomecanicoFormModal({
                             className="mt-0.5 h-4 w-4 flex-shrink-0 accent-breco-500"
                           />
                           <span>
-                            <span className="block text-sm font-semibold text-ink-100">{i.concepto}</span>
+                            <span className="block text-card-header font-medium text-ink-100">{i.concepto}</span>
                             <span className="block text-xs text-ink-500">{i.descripcion}</span>
                           </span>
                         </label>

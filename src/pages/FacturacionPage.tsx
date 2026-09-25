@@ -177,7 +177,7 @@ export function FacturacionPage() {
       />
 
       <div className="mt-8 rounded-2xl border border-line-800 bg-bg-800 p-5">
-        <h3 className="mb-3 text-sm font-semibold text-ink-100">
+        <h3 className="mb-3 text-card-header font-medium text-ink-100">
           Facturacion por Sistema (importada de Excel/imagen) - {facturasSistemaDelDia.length} registro
           {facturasSistemaDelDia.length === 1 ? '' : 's'}
         </h3>
