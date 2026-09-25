@@ -460,18 +460,33 @@ function AbonarDescuentoModal({
 function CatalogoDeduccionesModal({ onClose }: { onClose: () => void }) {
   const { deduccionesOperador } = useData();
   const [editing, setEditing] = useState<DeduccionOperador | null>(null);
-  const [numero, setNumero] = useState('');
+  const [numero, setNumero] = useState(() => siguienteNumeroDeduccion(deduccionesOperador.items));
   const [nombre, setNombre] = useState('');
+  const [error, setError] = useState('');
 
   function nuevo() {
     setEditing(null);
     setNumero(siguienteNumeroDeduccion(deduccionesOperador.items));
     setNombre('');
+    setError('');
   }
 
   function guardar(e: React.FormEvent) {
     e.preventDefault();
-    if (!nombre.trim()) return;
+    if (!nombre.trim()) {
+      setError('Captura un nombre para la deduccion.');
+      return;
+    }
+    if (!numero.trim()) {
+      setError('Captura un numero para la deduccion.');
+      return;
+    }
+    const duplicado = deduccionesOperador.items.some((d) => d.id !== editing?.id && d.numero.trim() === numero.trim());
+    if (duplicado) {
+      setError(`Ya existe una deduccion con el numero "${numero.trim()}".`);
+      return;
+    }
+    setError('');
     if (editing) {
       deduccionesOperador.update(editing.id, { numero, nombre: nombre.trim().toUpperCase() });
     } else {
@@ -486,6 +501,7 @@ function CatalogoDeduccionesModal({ onClose }: { onClose: () => void }) {
     setEditing(d);
     setNumero(d.numero);
     setNombre(d.nombre);
+    setError('');
   }
 
   function eliminar(d: DeduccionOperador) {
@@ -495,6 +511,7 @@ function CatalogoDeduccionesModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Catalogo de Deducciones" onClose={onClose}>
       <div className="space-y-4">
+        {error && <p className="rounded-lg bg-breco-500/10 px-3 py-2 text-sm text-breco-500">{error}</p>}
         <form onSubmit={guardar} className="grid grid-cols-1 gap-3 sm:grid-cols-[100px_1fr_auto]">
           <Field label="Numero">
             <Input value={numero} onChange={(e) => setNumero(e.target.value)} />
@@ -532,7 +549,9 @@ function CatalogoDeduccionesModal({ onClose }: { onClose: () => void }) {
               ) : (
                 deduccionesOperador.items.map((d) => (
                   <tr key={d.id} className="border-t border-line-800/70">
-                    <td className="px-3 py-2">{d.numero}</td>
+                    <td className="px-3 py-2">
+                      {d.numero || <span className="text-amber-500">Sin numero -- editala</span>}
+                    </td>
                     <td className="px-3 py-2">{d.nombre}</td>
                     <td className="px-3 py-2">
                       <StatusBadge status={d.activa ? 'Si' : 'No'} tone={d.activa ? 'green' : 'red'} />
