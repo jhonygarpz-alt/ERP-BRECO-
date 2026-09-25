@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { crearUsuarioAuth } from '../../lib/crearUsuario';
+import { actualizarEmailUsuario } from '../../lib/actualizarEmailUsuario';
 import type { Estatus, Usuario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -56,13 +57,26 @@ export function UsuariosSection() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError('');
     if (editing) {
-      usuarios.update(editing.id, form);
+      const emailNuevo = form.email.trim();
+      if (emailNuevo !== editing.email) {
+        setCreando(true);
+        try {
+          const resultado = await actualizarEmailUsuario(editing.id, emailNuevo);
+          if ('error' in resultado) {
+            setError(resultado.error);
+            return;
+          }
+        } finally {
+          setCreando(false);
+        }
+      }
+      await usuarios.update(editing.id, { ...form, email: emailNuevo });
       setModalOpen(false);
       return;
     }
 
-    setError('');
     setCreando(true);
     try {
       const resultado = await crearUsuarioAuth(form.email.trim(), passwordTemporal);
@@ -125,6 +139,11 @@ export function UsuariosSection() {
                 tiempo. Comparte esa contrasena con la persona para que inicie sesion y la cambie despues.
               </div>
             )}
+            {editing && (
+              <div className="rounded-xl border border-line-700 bg-bg-900 p-3 text-xs text-ink-400 sm:col-span-2">
+                Si cambias el email, la persona debera iniciar sesion con el nuevo desde ese momento.
+              </div>
+            )}
             <div className="sm:col-span-2">
               <Field label="Nombre completo">
                 <Input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
@@ -134,7 +153,6 @@ export function UsuariosSection() {
               <Input
                 type="email"
                 required
-                disabled={!!editing}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
@@ -179,7 +197,7 @@ export function UsuariosSection() {
                 Cancelar
               </GhostButton>
               <PrimaryButton type="submit" disabled={creando}>
-                {creando ? 'Creando...' : editing ? 'Guardar cambios' : 'Crear usuario'}
+                {creando ? 'Guardando...' : editing ? 'Guardar cambios' : 'Crear usuario'}
               </PrimaryButton>
             </div>
           </form>
