@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Building2, UserPlus } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
-import { supabaseAuthAlta } from '../../lib/supabaseClient';
-import { mensajeDeError } from '../../lib/errors';
+import { crearUsuarioAuth } from '../../lib/crearUsuario';
 import { uid } from '../../lib/storage';
 import { DEFAULT_ALERTAS_VENCIMIENTOS } from '../../lib/alertasVencimientosConfig';
 import type { Empresa, Modulo, PermisoModulo, Rol } from '../../types';
@@ -92,19 +91,12 @@ export function EmpresasSection() {
     try {
       const empresaId = uid('emp');
 
-      const { data, error: errAuth } = await supabaseAuthAlta.auth.signUp({
-        email: form.adminEmail.trim(),
-        password: form.adminPassword,
-      });
-      if (errAuth) {
-        setError(mensajeDeError(errAuth));
+      const resultado = await crearUsuarioAuth(form.adminEmail.trim(), form.adminPassword);
+      if ('error' in resultado) {
+        setError(resultado.error);
         return;
       }
-      const nuevoUid = data.user?.id;
-      if (!nuevoUid) {
-        setError('Supabase no devolvio el usuario creado. Intenta de nuevo.');
-        return;
-      }
+      const nuevoUid = resultado.id;
 
       const nuevaEmpresa: Empresa = {
         id: empresaId,
@@ -138,11 +130,7 @@ export function EmpresasSection() {
       });
 
       setModalOpen(false);
-      alert(
-        data.session
-          ? `Empresa creada. Su administrador ya puede iniciar sesion con ${form.adminEmail.trim()} y la contrasena capturada.`
-          : `Empresa creada. Supabase le va a pedir a ${form.adminEmail.trim()} confirmar su correo antes de poder iniciar sesion.`,
-      );
+      alert(`Empresa creada. Su administrador ya puede iniciar sesion con ${form.adminEmail.trim()} y la contrasena capturada.`);
     } finally {
       setCreando(false);
     }

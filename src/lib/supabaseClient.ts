@@ -17,12 +17,3 @@ if (!url || !anonKey) {
 export const supabase = createClient(url, anonKey, {
   auth: { detectSessionInUrl: false },
 });
-
-// Cliente "desechable" usado solo para dar de alta la cuenta de un usuario
-// nuevo (supabase.auth.signUp) desde Configuracion > Usuarios. Con
-// persistSession/autoRefreshToken apagados y su propio storageKey no toca
-// localStorage ni la sesion del cliente de arriba, asi que crear a otra
-// persona no cierra la sesion del administrador que la esta dando de alta.
-export const supabaseAuthAlta = createClient(url, anonKey, {
-  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'breco-alta-usuario' },
-});

@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
-import { supabaseAuthAlta } from '../../lib/supabaseClient';
-import { mensajeDeError } from '../../lib/errors';
+import { crearUsuarioAuth } from '../../lib/crearUsuario';
 import type { Estatus, Usuario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -66,26 +65,14 @@ export function UsuariosSection() {
     setError('');
     setCreando(true);
     try {
-      const { data, error: errAuth } = await supabaseAuthAlta.auth.signUp({
-        email: form.email.trim(),
-        password: passwordTemporal,
-      });
-      if (errAuth) {
-        setError(mensajeDeError(errAuth));
+      const resultado = await crearUsuarioAuth(form.email.trim(), passwordTemporal);
+      if ('error' in resultado) {
+        setError(resultado.error);
         return;
       }
-      const nuevoId = data.user?.id;
-      if (!nuevoId) {
-        setError('Supabase no devolvio el usuario creado. Intenta de nuevo.');
-        return;
-      }
-      await usuarios.add({ id: nuevoId, ...form });
+      await usuarios.add({ id: resultado.id, ...form });
       setModalOpen(false);
-      alert(
-        data.session
-          ? `Usuario creado. Ya puede iniciar sesion con ${form.email.trim()} y la contrasena que capturaste.`
-          : `Usuario creado. Supabase le va a pedir confirmar ${form.email.trim()} por correo antes de poder iniciar sesion.`,
-      );
+      alert(`Usuario creado. Ya puede iniciar sesion con ${form.email.trim()} y la contrasena que capturaste.`);
     } finally {
       setCreando(false);
     }
