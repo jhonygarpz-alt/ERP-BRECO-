@@ -323,16 +323,16 @@ export function Sidebar({
       >
         <div className={`flex items-center gap-3 border-b border-sb-border px-5 py-4 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
         {empresa.value.logoDataUrl ? (
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sb-bg-active">
+          <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg ${collapsed ? 'md:h-10 md:w-10' : ''}`}>
             <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-xl font-black italic text-white shadow-md shadow-breco-glow">
+          <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-2xl font-black italic text-white shadow-md shadow-breco-glow ${collapsed ? 'md:h-10 md:w-10 md:text-base' : ''}`}>
             B
           </div>
         )}
         <div className={`min-w-0 flex-1 leading-tight ${collapsed ? 'md:hidden' : ''}`}>
-          <div className="truncate text-[15px] font-semibold tracking-tight text-sb-text">
+          <div className="truncate text-base font-semibold tracking-tight text-sb-text">
             <BrandName nombre={empresa.value.nombre} />
           </div>
           <div className="text-[11px] font-medium tracking-widest text-breco-500 uppercase">Trafico ERP</div>
