@@ -549,6 +549,13 @@ export function ViajesPage() {
       rutaDescripcion: r.descripcion,
       kilometros: r.kilometros || f.kilometros,
       clienteId: f.clienteId || r.clienteId || '',
+      // Origen/Destino (y Cargar En/Descargar En, que en Carta Porte son
+      // obligatorios) se prellenan con la direccion capturada en la Ruta,
+      // sin pisar lo que el usuario ya haya escrito a mano.
+      origen: f.origen || r.origenDireccion || f.origen,
+      destino: f.destino || r.destinoDireccion || f.destino,
+      cargarEn: f.cargarEn || r.origenDireccion || f.cargarEn,
+      descargarEn: f.descargarEn || r.destinoDireccion || f.descargarEn,
       trayectos: trayectosCopiados.length > 0 ? trayectosCopiados : f.trayectos,
       conceptosFacturacionViaje: conceptosCopiados.length > 0 ? conceptosCopiados : f.conceptosFacturacionViaje,
       materialesCarga: materialesCopiados.length > 0 ? materialesCopiados : f.materialesCarga,
