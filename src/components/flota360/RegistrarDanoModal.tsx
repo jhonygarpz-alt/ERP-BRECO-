@@ -4,6 +4,9 @@ import { uid } from '../../lib/storage';
 import { mensajeDeError } from '../../lib/errors';
 import { subirFotoUnidad } from '../../lib/unidad360';
 import { nextFolioMantenimiento } from '../../lib/mantenimiento';
+import { supabase } from '../../lib/supabaseClient';
+import { reporteFallaToRow } from '../../lib/mappers';
+import { POSICIONES_LLANTA } from '../../lib/unidad360Diagrama';
 import type { ReporteFalla, SeveridadDanoUnidad, Unidad } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea } from '../ui/form';
@@ -20,6 +23,8 @@ const SEVERIDADES: SeveridadDanoUnidad[] = ['Leve', 'Media', 'Grave'];
 
 export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unidad; borrador: Borrador; onClose: () => void }) {
   const { unidadDanos, reportesFalla, empresa } = useData();
+  const [esLlanta, setEsLlanta] = useState(false);
+  const [posicionLlantaKey, setPosicionLlantaKey] = useState('');
   const [zona, setZona] = useState(borrador.zonaSugerida ?? '');
   const [tipo, setTipo] = useState('Golpe');
   const [severidad, setSeveridad] = useState<SeveridadDanoUnidad>('Media');
@@ -30,8 +35,18 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
 
+  function elegirPosicionLlanta(key: string) {
+    setPosicionLlantaKey(key);
+    const posicion = POSICIONES_LLANTA.find((p) => p.key === key);
+    if (posicion) setZona(posicion.label);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (esLlanta && !posicionLlantaKey) {
+      setError('Selecciona la posicion de la llanta afectada.');
+      return;
+    }
     setError('');
     setGuardando(true);
     try {
@@ -58,7 +73,14 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
         documentos: [],
         estatus: 'Abierto',
       };
-      await reportesFalla.add(nuevoReporte);
+      // Insercion directa (no via reportesFalla.add): esa funcion nunca
+      // lanza en caso de error de RLS/red -- solo hace un alert() y sigue
+      // -- lo que dejaria crear el dano igual aunque el reporte fallara,
+      // sin que el usuario lo note. Aqui, si falla, se aborta todo (el
+      // catch de abajo lo muestra como error real dentro del modal).
+      const { error: errReporte } = await supabase.from('reportes_falla').insert(reporteFallaToRow(nuevoReporte) as never);
+      if (errReporte) throw errReporte;
+      reportesFalla.reload();
       await unidadDanos.add({
         id: uid('dano'),
         unidadId: unidad.id,
@@ -76,6 +98,7 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
         estatus: 'Activo',
         reparacion: '',
         reporteFallaId: nuevoReporte.id,
+        posicion3d: esLlanta ? posicionLlantaKey : undefined,
       });
       onClose();
     } catch (err) {
@@ -88,6 +111,32 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
   return (
     <Modal title="Registrar dano" subtitle={unidad.economico} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <label className="flex items-center gap-2 text-sm text-ink-300">
+          <input
+            type="checkbox"
+            checked={esLlanta}
+            onChange={(e) => {
+              setEsLlanta(e.target.checked);
+              if (!e.target.checked) setPosicionLlantaKey('');
+            }}
+            className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+          />
+          Es un dano de llanta
+        </label>
+
+        {esLlanta && (
+          <Field label="Posicion de la llanta">
+            <Select value={posicionLlantaKey} onChange={(e) => elegirPosicionLlanta(e.target.value)}>
+              <option value="">Selecciona...</option>
+              {POSICIONES_LLANTA.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+
         <Field label="Zona">
           <Input required value={zona} onChange={(e) => setZona(e.target.value)} placeholder="Ej. Defensa, lateral derecho" />
         </Field>

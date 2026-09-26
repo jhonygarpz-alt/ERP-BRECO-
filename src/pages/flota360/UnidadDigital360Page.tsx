@@ -72,6 +72,7 @@ export function UnidadDigital360Page() {
     const set = new Set<string>();
     for (const d of danosUnidad) {
       if (d.estatus === 'Resuelto') continue;
+      if (d.posicion3d) set.add(d.posicion3d);
       const hs = hotspotsUnidad.find((h) => h.id === d.hotspotId);
       if (hs?.posicion3d) set.add(hs.posicion3d);
     }

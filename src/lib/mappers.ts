@@ -2080,6 +2080,7 @@ export function unidadDanoFromRow(row: Record<string, unknown>): UnidadDano {
     costo: row.costo != null ? Number(row.costo) : undefined,
     reparacion: (row.reparacion as string) ?? '',
     reporteFallaId: (row.reporte_falla_id as string | null) ?? undefined,
+    posicion3d: (row.posicion_3d as string | null) ?? undefined,
     creadoEn: (row.creado_en as string | null) ?? undefined,
   };
 }
@@ -2102,5 +2103,6 @@ export function unidadDanoToRow(d: UnidadDano) {
     costo: d.costo ?? null,
     reparacion: d.reparacion,
     reporte_falla_id: d.reporteFallaId || null,
+    posicion_3d: d.posicion3d || null,
   };
 }

@@ -1629,5 +1629,7 @@ export interface UnidadDano {
   reparacion: string;
   /** Reporte de Falla (Mantenimiento) generado automaticamente al registrar este dano. */
   reporteFallaId?: string;
+  /** Llave fija del diagrama 3D (ver HOTSPOTS_CASCADIA) sobre la que se pinta este dano -- ej. al elegir la posicion de una llanta. Independiente de hotspotId (que liga a un UnidadHotspot con datos capturados). */
+  posicion3d?: string;
   creadoEn?: string;
 }
