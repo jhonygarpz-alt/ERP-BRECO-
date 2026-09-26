@@ -10,6 +10,7 @@ import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, ToolbarButton } from '../ui/form';
 import { LineaArticuloModal } from './LineaArticuloModal';
+import { NuevoProveedorModal } from './NuevoProveedorModal';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -43,6 +44,7 @@ export function CompraFormModal({
   const [observaciones, setObservaciones] = useState(editing?.observaciones ?? '');
   const [tipoMovimientoEntradaId, setTipoMovimientoEntradaId] = useState('');
   const [proveedorPickerOpen, setProveedorPickerOpen] = useState(false);
+  const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
   const [lineaModalOpen, setLineaModalOpen] = useState(false);
   const [error, setError] = useState('');
   const [cargandoXml, setCargandoXml] = useState(false);
@@ -381,6 +383,19 @@ export function CompraFormModal({
             setProveedorPickerOpen(false);
           }}
           onClose={() => setProveedorPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Proveedor', onClick: () => (setProveedorPickerOpen(false), setNuevoProveedorOpen(true)) }}
+        />
+      )}
+
+      {nuevoProveedorOpen && (
+        <NuevoProveedorModal
+          onClose={() => setNuevoProveedorOpen(false)}
+          onCreado={(p) => {
+            setProveedorId(p.id);
+            setOrdenesSeleccionadas(new Set());
+            setLineas((ls) => ls.filter((l) => !l.ordenCompraId));
+            setNuevoProveedorOpen(false);
+          }}
         />
       )}
     </Modal>

@@ -5,6 +5,8 @@ import type { LineaArticuloAlmacen } from '../../types';
 import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, ToolbarButton } from '../ui/form';
+import { NuevoArticuloModal } from './NuevoArticuloModal';
+import { NuevoAlmacenModal } from './NuevoAlmacenModal';
 
 export function LineaArticuloModal({
   editing,
@@ -31,6 +33,8 @@ export function LineaArticuloModal({
   const [almacenId, setAlmacenId] = useState(almacenIdInicial ?? '');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [almacenPickerOpen, setAlmacenPickerOpen] = useState(false);
+  const [nuevoArticuloOpen, setNuevoArticuloOpen] = useState(false);
+  const [nuevoAlmacenOpen, setNuevoAlmacenOpen] = useState(false);
   const [error, setError] = useState('');
 
   const almacenSeleccionado = almacenes.items.find((a) => a.id === almacenId);
@@ -147,6 +151,17 @@ export function LineaArticuloModal({
           )}
           onSelect={elegirArticulo}
           onClose={() => setPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Articulo', onClick: () => (setPickerOpen(false), setNuevoArticuloOpen(true)) }}
+        />
+      )}
+
+      {nuevoArticuloOpen && (
+        <NuevoArticuloModal
+          onClose={() => setNuevoArticuloOpen(false)}
+          onCreado={(a) => {
+            elegirArticulo(a);
+            setNuevoArticuloOpen(false);
+          }}
         />
       )}
 
@@ -166,6 +181,17 @@ export function LineaArticuloModal({
             setAlmacenPickerOpen(false);
           }}
           onClose={() => setAlmacenPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Almacen', onClick: () => (setAlmacenPickerOpen(false), setNuevoAlmacenOpen(true)) }}
+        />
+      )}
+
+      {nuevoAlmacenOpen && (
+        <NuevoAlmacenModal
+          onClose={() => setNuevoAlmacenOpen(false)}
+          onCreado={(a) => {
+            setAlmacenId(a.id);
+            setNuevoAlmacenOpen(false);
+          }}
         />
       )}
     </Modal>

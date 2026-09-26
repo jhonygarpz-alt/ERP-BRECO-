@@ -9,6 +9,7 @@ import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, ToolbarButton } from '../ui/form';
 import { LineaArticuloModal } from './LineaArticuloModal';
+import { NuevoProveedorModal } from './NuevoProveedorModal';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -36,6 +37,7 @@ export function CotizacionFormModal({
   const [proveedorPickerOpen, setProveedorPickerOpen] = useState(false);
   const [lineaModalOpen, setLineaModalOpen] = useState(false);
   const [lineaEditando, setLineaEditando] = useState<LineaArticuloAlmacen | null>(null);
+  const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
   const [error, setError] = useState('');
 
   const proveedorSeleccionado = proveedores.items.find((p) => p.id === proveedorId);
@@ -222,6 +224,17 @@ export function CotizacionFormModal({
             setProveedorPickerOpen(false);
           }}
           onClose={() => setProveedorPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Proveedor', onClick: () => (setProveedorPickerOpen(false), setNuevoProveedorOpen(true)) }}
+        />
+      )}
+
+      {nuevoProveedorOpen && (
+        <NuevoProveedorModal
+          onClose={() => setNuevoProveedorOpen(false)}
+          onCreado={(p) => {
+            setProveedorId(p.id);
+            setNuevoProveedorOpen(false);
+          }}
         />
       )}
     </Modal>

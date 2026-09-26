@@ -9,6 +9,8 @@ import { Modal } from '../ui/Modal';
 import { ListaSeleccionModal } from '../ui/ListaSeleccionModal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea, ToolbarButton } from '../ui/form';
 import { LineaArticuloModal } from './LineaArticuloModal';
+import { NuevoProveedorModal } from './NuevoProveedorModal';
+import { NuevoAlmacenModal } from './NuevoAlmacenModal';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -39,6 +41,8 @@ export function RequisicionFormModal({
   const [almacenPickerOpen, setAlmacenPickerOpen] = useState(false);
   const [lineaModalOpen, setLineaModalOpen] = useState(false);
   const [lineaEditando, setLineaEditando] = useState<LineaArticuloAlmacen | null>(null);
+  const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
+  const [nuevoAlmacenOpen, setNuevoAlmacenOpen] = useState(false);
   const [error, setError] = useState('');
 
   const proveedorSeleccionado = proveedores.items.find((p) => p.id === proveedorId);
@@ -246,6 +250,17 @@ export function RequisicionFormModal({
             setProveedorPickerOpen(false);
           }}
           onClose={() => setProveedorPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Proveedor', onClick: () => (setProveedorPickerOpen(false), setNuevoProveedorOpen(true)) }}
+        />
+      )}
+
+      {nuevoProveedorOpen && (
+        <NuevoProveedorModal
+          onClose={() => setNuevoProveedorOpen(false)}
+          onCreado={(p) => {
+            setProveedorId(p.id);
+            setNuevoProveedorOpen(false);
+          }}
         />
       )}
 
@@ -265,6 +280,17 @@ export function RequisicionFormModal({
             setAlmacenPickerOpen(false);
           }}
           onClose={() => setAlmacenPickerOpen(false)}
+          accionExtra={{ label: 'Agregar Almacen', onClick: () => (setAlmacenPickerOpen(false), setNuevoAlmacenOpen(true)) }}
+        />
+      )}
+
+      {nuevoAlmacenOpen && (
+        <NuevoAlmacenModal
+          onClose={() => setNuevoAlmacenOpen(false)}
+          onCreado={(a) => {
+            setAlmacenId(a.id);
+            setNuevoAlmacenOpen(false);
+          }}
         />
       )}
     </Modal>
