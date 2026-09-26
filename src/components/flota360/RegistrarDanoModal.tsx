@@ -6,7 +6,7 @@ import { subirFotoUnidad } from '../../lib/unidad360';
 import { nextFolioMantenimiento } from '../../lib/mantenimiento';
 import { supabase } from '../../lib/supabaseClient';
 import { reporteFallaToRow } from '../../lib/mappers';
-import { POSICIONES_LLANTA } from '../../lib/unidad360Diagrama';
+import { POSICIONES_LLANTA_NUMERADAS } from '../../lib/unidad360Diagrama';
 import type { ReporteFalla, SeveridadDanoUnidad, Unidad } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, Select, Textarea } from '../ui/form';
@@ -24,7 +24,7 @@ const SEVERIDADES: SeveridadDanoUnidad[] = ['Leve', 'Media', 'Grave'];
 export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unidad; borrador: Borrador; onClose: () => void }) {
   const { unidadDanos, reportesFalla, empresa } = useData();
   const [esLlanta, setEsLlanta] = useState(false);
-  const [posicionLlantaKey, setPosicionLlantaKey] = useState('');
+  const [numeroLlanta, setNumeroLlanta] = useState<number | ''>('');
   const [zona, setZona] = useState(borrador.zonaSugerida ?? '');
   const [tipo, setTipo] = useState('Golpe');
   const [severidad, setSeveridad] = useState<SeveridadDanoUnidad>('Media');
@@ -35,16 +35,17 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
 
-  function elegirPosicionLlanta(key: string) {
-    setPosicionLlantaKey(key);
-    const posicion = POSICIONES_LLANTA.find((p) => p.key === key);
-    if (posicion) setZona(posicion.label);
+  function elegirPosicionLlanta(valor: string) {
+    const num = valor ? Number(valor) : '';
+    setNumeroLlanta(num);
+    const posicion = POSICIONES_LLANTA_NUMERADAS.find((p) => p.numero === num);
+    if (posicion) setZona(`Llanta ${posicion.label}`);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (esLlanta && !posicionLlantaKey) {
-      setError('Selecciona la posicion de la llanta afectada.');
+    if (esLlanta && numeroLlanta === '') {
+      setError('Selecciona el numero de la llanta afectada.');
       return;
     }
     setError('');
@@ -98,7 +99,10 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
         estatus: 'Activo',
         reparacion: '',
         reporteFallaId: nuevoReporte.id,
-        posicion3d: esLlanta ? posicionLlantaKey : undefined,
+        posicion3d:
+          esLlanta && numeroLlanta !== ''
+            ? POSICIONES_LLANTA_NUMERADAS.find((p) => p.numero === numeroLlanta)?.clusterKey
+            : undefined,
       });
       onClose();
     } catch (err) {
@@ -117,7 +121,7 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
             checked={esLlanta}
             onChange={(e) => {
               setEsLlanta(e.target.checked);
-              if (!e.target.checked) setPosicionLlantaKey('');
+              if (!e.target.checked) setNumeroLlanta('');
             }}
             className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
           />
@@ -125,11 +129,11 @@ export function RegistrarDanoModal({ unidad, borrador, onClose }: { unidad: Unid
         </label>
 
         {esLlanta && (
-          <Field label="Posicion de la llanta">
-            <Select value={posicionLlantaKey} onChange={(e) => elegirPosicionLlanta(e.target.value)}>
+          <Field label="Numero de la llanta">
+            <Select value={numeroLlanta} onChange={(e) => elegirPosicionLlanta(e.target.value)}>
               <option value="">Selecciona...</option>
-              {POSICIONES_LLANTA.map((p) => (
-                <option key={p.key} value={p.key}>
+              {POSICIONES_LLANTA_NUMERADAS.map((p) => (
+                <option key={p.numero} value={p.numero}>
                   {p.label}
                 </option>
               ))}
