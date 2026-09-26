@@ -945,6 +945,36 @@ export interface GastoViaje {
   creadoEn?: string;
 }
 
+export type EstatusValeCombustible = 'Vigente' | 'Surtido' | 'Cancelado';
+
+/**
+ * Vale de Combustible: submodulo de Trafico -- autorizacion que se entrega
+ * al operador (y a la estacion de servicio) para cargar un numero de litros
+ * a una unidad, antes de que exista el gasto real. Es un documento propio
+ * (con su folio consecutivo) independiente de Gastos de Viaje; una vez que
+ * la carga se comprueba, el gasto real se sigue capturando normalmente en
+ * Gastos de Viaje (v1 no los enlaza automaticamente).
+ */
+export interface ValeCombustible {
+  id: string;
+  folio: string;
+  fecha: string;
+  viajeId?: string;
+  operadorId?: string;
+  unidadId?: string;
+  combustibleTipo: TipoCombustible;
+  litrosAutorizados: number;
+  precioLitroEstimado?: number;
+  proveedorId?: string;
+  numeroReferencia: string;
+  moneda: string;
+  monto: number;
+  estatus: EstatusValeCombustible;
+  notas: string;
+  /** Solo la pone la base de datos (default now()); nunca se escribe desde la app. */
+  creadoEn?: string;
+}
+
 /** Catalogo de conceptos de deduccion para Descuentos a Operador (Prestamo, Uniforme, Herramienta, etc.). */
 export interface DeduccionOperador {
   id: string;

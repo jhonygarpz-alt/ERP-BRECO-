@@ -30,10 +30,12 @@ import { RemolquesPage } from './pages/catalogos/RemolquesPage';
 import { OperadoresPage } from './pages/catalogos/OperadoresPage';
 import { ViajesPage } from './pages/ViajesPage';
 import { GastosViajePage } from './pages/GastosViajePage';
+import { ValesCombustiblePage } from './pages/ValesCombustiblePage';
 import { DescuentosOperadorPage } from './pages/DescuentosOperadorPage';
 import { GastosPorViajeDetalladoPage } from './pages/GastosPorViajeDetalladoPage';
 import { ImprimirViajePage } from './pages/ImprimirViajePage';
 import { ImprimirGastoViajePage } from './pages/ImprimirGastoViajePage';
+import { ImprimirValeCombustiblePage } from './pages/ImprimirValeCombustiblePage';
 import { ParqueVehicularPage } from './pages/ParqueVehicularPage';
 import { ImprimirParqueVehicularPage } from './pages/ImprimirParqueVehicularPage';
 import { FlotaDigital360HubPage } from './pages/flota360/FlotaDigital360HubPage';
@@ -173,6 +175,7 @@ function App() {
                 <Route element={<RequirePermission modulo="Viajes" />}>
                   <Route path="/viajes" element={<ViajesPage />} />
                   <Route path="/gastos-viaje" element={<GastosViajePage />} />
+                  <Route path="/vales-combustible" element={<ValesCombustiblePage />} />
                   <Route path="/gastos-viaje/detallado" element={<GastosPorViajeDetalladoPage />} />
                   <Route path="/descuentos-operador" element={<DescuentosOperadorPage />} />
                   <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
@@ -280,6 +283,7 @@ function App() {
 
               <Route path="/viajes/imprimir/:id" element={<ImprimirViajePage />} />
               <Route path="/gastos-viaje/imprimir/:id" element={<ImprimirGastoViajePage />} />
+              <Route path="/vales-combustible/imprimir/:id" element={<ImprimirValeCombustiblePage />} />
               <Route path="/parque-vehicular/imprimir" element={<ImprimirParqueVehicularPage />} />
               <Route path="/facturacion/imprimir/:id" element={<ImprimirFacturaPage />} />
               <Route path="/cobranza/complementos-pago/imprimir/:id" element={<ImprimirPagoClientePage />} />

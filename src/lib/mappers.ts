@@ -57,6 +57,7 @@ import type {
   UnidadHotspot,
   UnidadDano,
   Usuario,
+  ValeCombustible,
   Viaje,
   ViajeUbicacion,
 } from '../types';
@@ -1195,6 +1196,46 @@ export function gastoViajeToRow(g: GastoViaje) {
     combustible_tipo: g.combustibleTipo || null,
     litros: g.litros ?? null,
     precio_litro: g.precioLitro ?? null,
+  };
+}
+
+export function valeCombustibleFromRow(row: Record<string, unknown>): ValeCombustible {
+  return {
+    id: row.id as string,
+    folio: row.folio as string,
+    fecha: row.fecha as string,
+    viajeId: (row.viaje_id as string) || undefined,
+    operadorId: (row.operador_id as string) || undefined,
+    unidadId: (row.unidad_id as string) || undefined,
+    combustibleTipo: row.combustible_tipo as ValeCombustible['combustibleTipo'],
+    litrosAutorizados: Number(row.litros_autorizados) || 0,
+    precioLitroEstimado: row.precio_litro_estimado != null ? Number(row.precio_litro_estimado) : undefined,
+    proveedorId: (row.proveedor_id as string) || undefined,
+    numeroReferencia: (row.numero_referencia as string) ?? '',
+    moneda: row.moneda as string,
+    monto: Number(row.monto) || 0,
+    estatus: row.estatus as ValeCombustible['estatus'],
+    notas: (row.notas as string) ?? '',
+    creadoEn: (row.creado_en as string) || undefined,
+  };
+}
+export function valeCombustibleToRow(v: ValeCombustible) {
+  return {
+    id: v.id,
+    folio: v.folio,
+    fecha: v.fecha,
+    viaje_id: v.viajeId || null,
+    operador_id: v.operadorId || null,
+    unidad_id: v.unidadId || null,
+    combustible_tipo: v.combustibleTipo,
+    litros_autorizados: v.litrosAutorizados,
+    precio_litro_estimado: v.precioLitroEstimado ?? null,
+    proveedor_id: v.proveedorId || null,
+    numero_referencia: v.numeroReferencia,
+    moneda: v.moneda,
+    monto: v.monto,
+    estatus: v.estatus,
+    notas: v.notas,
   };
 }
 

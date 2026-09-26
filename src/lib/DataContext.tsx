@@ -113,6 +113,8 @@ import {
   unidadDanoToRow,
   usuarioFromRow,
   usuarioToRow,
+  valeCombustibleFromRow,
+  valeCombustibleToRow,
   viajeFromRow,
   viajeToRow,
   viajeUbicacionFromRow,
@@ -176,6 +178,7 @@ import type {
   UnidadHotspot,
   UnidadDano,
   Usuario,
+  ValeCombustible,
   Viaje,
   ViajeUbicacion,
 } from '../types';
@@ -200,6 +203,7 @@ interface DataContextValue {
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
   gastosViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GastoViaje>>;
+  valesCombustible: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ValeCombustible>>;
   deduccionesOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DeduccionOperador>>;
   descuentosOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DescuentoOperador>>;
   abonosDescuentoOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, AbonoDescuentoOperador>>;
@@ -330,6 +334,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'gastos_viaje',
     gastoViajeFromRow,
     gastoViajeToRow,
+  );
+  const valesCombustible = useSupabaseCollection<Record<string, unknown>, ValeCombustible>(
+    'vales_combustible',
+    valeCombustibleFromRow,
+    valeCombustibleToRow,
   );
   const deduccionesOperador = useSupabaseCollection<Record<string, unknown>, DeduccionOperador>(
     'deducciones_operador',
@@ -525,6 +534,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         viajes,
         viajeUbicaciones,
         gastosViaje,
+        valesCombustible,
         deduccionesOperador,
         descuentosOperador,
         abonosDescuentoOperador,

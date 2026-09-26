@@ -45,6 +45,7 @@ import {
   X,
   MinusCircle,
   Orbit,
+  Fuel,
   type LucideIcon,
 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
@@ -181,6 +182,7 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
 const traficoRoutes = [
   '/viajes',
   '/gastos-viaje',
+  '/vales-combustible',
   '/gastos-viaje/detallado',
   '/descuentos-operador',
   '/viajes-del-dia',
@@ -243,6 +245,7 @@ export function Sidebar({
   const traficoLinks = [
     puedeVer('Viajes', '/viajes') && { to: '/viajes', label: 'Asignacion de Viajes', icon: Route },
     puedeVer('Viajes', '/gastos-viaje') && { to: '/gastos-viaje', label: 'Gastos de Viaje', icon: Wallet, end: true },
+    puedeVer('Viajes', '/vales-combustible') && { to: '/vales-combustible', label: 'Vales de Combustible', icon: Fuel },
     puedeVer('Viajes', '/descuentos-operador') && { to: '/descuentos-operador', label: 'Descuentos a Operador', icon: MinusCircle },
     puedeVer('Viajes', '/gastos-viaje/detallado') && { to: '/gastos-viaje/detallado', label: 'Detallado de Gastos por Viaje', icon: BarChart3 },
     puedeVer('Viajes', '/viajes-del-dia') && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
