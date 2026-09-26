@@ -1597,5 +1597,7 @@ export interface UnidadDano {
   estatus: EstatusDanoUnidad;
   costo?: number;
   reparacion: string;
+  /** Reporte de Falla (Mantenimiento) generado automaticamente al registrar este dano. */
+  reporteFallaId?: string;
   creadoEn?: string;
 }

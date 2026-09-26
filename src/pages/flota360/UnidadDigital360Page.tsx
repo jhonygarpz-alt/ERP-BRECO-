@@ -230,6 +230,7 @@ export function UnidadDigital360Page() {
                     <th className="px-4 py-3 font-medium">Fecha</th>
                     <th className="px-4 py-3 font-medium">Km</th>
                     <th className="px-4 py-3 font-medium">Estatus</th>
+                    <th className="px-4 py-3 font-medium">Reporte de Falla</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -362,8 +363,9 @@ export function UnidadDigital360Page() {
 }
 
 function FilaDano({ dano, puedeEditar }: { dano: UnidadDano; puedeEditar: boolean }) {
-  const { unidadDanos } = useData();
+  const { unidadDanos, reportesFalla } = useData();
   const url = useSignedUrl(dano.storagePath);
+  const reporte = reportesFalla.items.find((r) => r.id === dano.reporteFallaId);
 
   return (
     <tr className="border-b border-line-800/70 last:border-0">
@@ -398,6 +400,15 @@ function FilaDano({ dano, puedeEditar }: { dano: UnidadDano; puedeEditar: boolea
             <span className="h-2 w-2 rounded-full" style={{ background: colorEstatusDano(dano.estatus) }} />
             {ESTATUS_DANO.find((e) => e.id === dano.estatus)?.label}
           </span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        {reporte ? (
+          <Link to="/mantenimiento/reportes-falla" className="text-xs font-medium text-breco-500 hover:underline">
+            {reporte.folio}
+          </Link>
+        ) : (
+          <span className="text-xs text-ink-600">N/D</span>
         )}
       </td>
     </tr>

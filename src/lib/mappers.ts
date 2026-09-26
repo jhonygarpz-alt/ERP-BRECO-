@@ -2038,6 +2038,7 @@ export function unidadDanoFromRow(row: Record<string, unknown>): UnidadDano {
     estatus: row.estatus as UnidadDano['estatus'],
     costo: row.costo != null ? Number(row.costo) : undefined,
     reparacion: (row.reparacion as string) ?? '',
+    reporteFallaId: (row.reporte_falla_id as string | null) ?? undefined,
     creadoEn: (row.creado_en as string | null) ?? undefined,
   };
 }
@@ -2059,5 +2060,6 @@ export function unidadDanoToRow(d: UnidadDano) {
     estatus: d.estatus,
     costo: d.costo ?? null,
     reparacion: d.reparacion,
+    reporte_falla_id: d.reporteFallaId || null,
   };
 }
