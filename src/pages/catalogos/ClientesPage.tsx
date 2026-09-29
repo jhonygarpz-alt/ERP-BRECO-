@@ -38,6 +38,7 @@ const emptyForm: Omit<Cliente, 'id'> = {
   nombreCorto: '',
   fechaAlta: hoyISO(),
   rfc: '',
+  regimenFiscal: '',
   tipo: 'Nacional',
   moneda: 'MXN',
   iva: 'IVA 16%',
@@ -254,6 +255,13 @@ export function ClientesPage() {
                 </Field>
                 <Field label="RFC" required>
                   <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
+                </Field>
+                <Field label="Regimen Fiscal (SAT)">
+                  <Input
+                    value={form.regimenFiscal}
+                    onChange={(e) => setForm({ ...form, regimenFiscal: e.target.value })}
+                    placeholder="Ej. 601 - General de Ley Personas Morales"
+                  />
                 </Field>
                 <Field label="Tipo Cliente">
                   <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as Cliente['tipo'] })}>

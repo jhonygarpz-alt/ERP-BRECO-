@@ -129,7 +129,7 @@ export async function leerRemolquesExcel(file: File): Promise<{ totalFilasHoja: 
       pesoTaraTon: numero(col('pesoTaraTon', fila)),
       acorazado: false,
       numeroLlantas: 0,
-      llantasRefaccion: 0,
+      llantasRefaccion: '',
       marcaLlanta: '',
       modeloLlanta: '',
       medidaLlanta: '',

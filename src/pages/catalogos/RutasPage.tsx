@@ -248,6 +248,7 @@ export function RutasPage() {
       nombreCorto: '',
       fechaAlta: hoyISO(),
       rfc,
+      regimenFiscal: '',
       tipo: nuevoClienteForm.tipo,
       moneda: nuevoClienteForm.moneda,
       iva: 'IVA 16%',

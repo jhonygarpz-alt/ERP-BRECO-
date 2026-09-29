@@ -135,7 +135,7 @@ export async function leerUnidadesExcel(file: File): Promise<{ totalFilasHoja: n
       tipoDiferencialDelantero: '',
       tipoDiferencialTrasero: '',
       numeroLlantas: 0,
-      llantasRefaccion: 0,
+      llantasRefaccion: '',
       marcaLlanta: '',
       modeloLlanta: '',
       medidaLlanta: '',

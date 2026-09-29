@@ -7,6 +7,7 @@ import { mensajeDeError } from '../../lib/errors';
 import { cajaToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { SUBTIPO_REMOLQUE_SAT } from '../../lib/catalogosSat';
+import { OPCIONES_LLANTA_REFACCION } from '../../lib/catalogosLlantas';
 import {
   descargarPlantillaRemolques,
   guardarRemolquesImportados,
@@ -55,7 +56,7 @@ const emptyForm: Omit<Caja, 'id'> = {
   pesoTaraTon: 0,
   acorazado: false,
   numeroLlantas: 0,
-  llantasRefaccion: 0,
+  llantasRefaccion: '',
   marcaLlanta: '',
   modeloLlanta: '',
   medidaLlanta: '',
@@ -419,7 +420,14 @@ export function RemolquesPage() {
                   <Input type="number" value={form.numeroLlantas || ''} onChange={(e) => setForm({ ...form, numeroLlantas: Number(e.target.value) })} />
                 </Field>
                 <Field label="Llantas de refacción">
-                  <Input type="number" value={form.llantasRefaccion || ''} onChange={(e) => setForm({ ...form, llantasRefaccion: Number(e.target.value) })} />
+                  <Select value={form.llantasRefaccion} onChange={(e) => setForm({ ...form, llantasRefaccion: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {OPCIONES_LLANTA_REFACCION.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </Select>
                 </Field>
                 <Field label="Marca de la llanta">
                   <Input value={form.marcaLlanta} onChange={(e) => setForm({ ...form, marcaLlanta: e.target.value })} />

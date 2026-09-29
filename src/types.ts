@@ -50,6 +50,8 @@ export interface Cliente {
   nombreCorto: string;
   fechaAlta: string;
   rfc: string;
+  /** Clave + descripcion del catalogo SAT c_RegimenFiscal (ej. "601 - General de Ley Personas Morales"), para el CFDI que se le facture. */
+  regimenFiscal: string;
   tipo: TipoCliente;
   moneda: MonedaCliente;
   iva: IvaCliente;
@@ -186,7 +188,8 @@ export interface Unidad {
   tipoDiferencialTrasero: string;
   // Llantas
   numeroLlantas: number;
-  llantasRefaccion: number;
+  /** Una de OPCIONES_LLANTA_REFACCION (src/lib/catalogosLlantas.ts). Vacio = sin capturar. */
+  llantasRefaccion: string;
   marcaLlanta: string;
   modeloLlanta: string;
   medidaLlanta: string;
@@ -284,7 +287,8 @@ export interface Caja {
   acorazado: boolean;
   // Llantas
   numeroLlantas: number;
-  llantasRefaccion: number;
+  /** Una de OPCIONES_LLANTA_REFACCION (src/lib/catalogosLlantas.ts). Vacio = sin capturar. */
+  llantasRefaccion: string;
   marcaLlanta: string;
   modeloLlanta: string;
   medidaLlanta: string;

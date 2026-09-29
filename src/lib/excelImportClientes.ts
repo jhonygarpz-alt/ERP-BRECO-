@@ -117,6 +117,7 @@ export async function leerClientesExcel(file: File): Promise<{ totalFilasHoja: n
       nombreCorto: texto(col('nombreCorto', fila)),
       fechaAlta: hoyISO(),
       rfc,
+      regimenFiscal: '',
       tipo: (texto(col('tipo', fila)) as Cliente['tipo']) || 'Nacional',
       moneda: (texto(col('moneda', fila)).toUpperCase() as Cliente['moneda']) || 'MXN',
       iva: (texto(col('iva', fila)) as Cliente['iva']) || 'IVA 16%',
