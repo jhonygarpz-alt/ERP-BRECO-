@@ -39,6 +39,32 @@ export const USO_CFDI_SAT: ClaveSat[] = [
   { clave: 'CN01', descripcion: 'Nomina' },
 ];
 
+/** c_RegimenFiscal -- regimen fiscal del cliente ante el SAT, para timbrar su CFDI correctamente. */
+export const REGIMEN_FISCAL_SAT: ClaveSat[] = [
+  { clave: '601', descripcion: 'General de Ley Personas Morales' },
+  { clave: '603', descripcion: 'Personas Morales con Fines no Lucrativos' },
+  { clave: '605', descripcion: 'Sueldos y Salarios e Ingresos Asimilados a Salarios' },
+  { clave: '606', descripcion: 'Arrendamiento' },
+  { clave: '607', descripcion: 'Regimen de Enajenacion o Adquisicion de Bienes' },
+  { clave: '608', descripcion: 'Demas ingresos' },
+  { clave: '610', descripcion: 'Residentes en el Extranjero sin Establecimiento Permanente en Mexico' },
+  { clave: '611', descripcion: 'Ingresos por Dividendos (socios y accionistas)' },
+  { clave: '612', descripcion: 'Personas Fisicas con Actividades Empresariales y Profesionales' },
+  { clave: '614', descripcion: 'Ingresos por intereses' },
+  { clave: '615', descripcion: 'Regimen de los ingresos por obtencion de premios' },
+  { clave: '616', descripcion: 'Sin obligaciones fiscales' },
+  { clave: '620', descripcion: 'Sociedades Cooperativas de Produccion que optan por diferir sus ingresos' },
+  { clave: '621', descripcion: 'Incorporacion Fiscal' },
+  { clave: '622', descripcion: 'Actividades Agricolas, Ganaderas, Silvicolas y Pesqueras' },
+  { clave: '623', descripcion: 'Opcional para Grupos de Sociedades' },
+  { clave: '624', descripcion: 'Coordinados' },
+  { clave: '625', descripcion: 'Regimen de las Actividades Empresariales con ingresos a traves de Plataformas Tecnologicas' },
+  { clave: '626', descripcion: 'Regimen Simplificado de Confianza' },
+  { clave: '628', descripcion: 'Hidrocarburos' },
+  { clave: '629', descripcion: 'De los Regimenes Fiscales Preferentes y de las Empresas Multinacionales' },
+  { clave: '630', descripcion: 'Enajenacion de acciones en bolsa de valores' },
+];
+
 /** c_ConfigAutotransporte -- configuracion vehicular del vehiculo motriz (Unidades). Fuente: catalogo oficial SAT Carta Porte 3.1 (34 claves). */
 export const CONFIG_AUTOTRANSPORTE_SAT: ClaveSat[] = [
   { clave: 'C2', descripcion: 'Camión Unitario (2 llantas en el eje delantero y 4 llantas en el eje trasero)' },

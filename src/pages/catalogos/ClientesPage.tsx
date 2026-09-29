@@ -18,6 +18,7 @@ import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalo
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 import { hoyISO } from '../../lib/fechas';
+import { REGIMEN_FISCAL_SAT } from '../../lib/catalogosSat';
 
 // Mismos nombres oficiales que usa el Catalogo Nacional de Codigos Postales
 // (Correos de Mexico), para que el autocompletado por C.P. siempre calce con
@@ -257,11 +258,14 @@ export function ClientesPage() {
                   <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
                 </Field>
                 <Field label="Regimen Fiscal (SAT)">
-                  <Input
-                    value={form.regimenFiscal}
-                    onChange={(e) => setForm({ ...form, regimenFiscal: e.target.value })}
-                    placeholder="Ej. 601 - General de Ley Personas Morales"
-                  />
+                  <Select value={form.regimenFiscal} onChange={(e) => setForm({ ...form, regimenFiscal: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {REGIMEN_FISCAL_SAT.map((r) => (
+                      <option key={r.clave} value={`${r.clave} - ${r.descripcion}`}>
+                        {r.clave} - {r.descripcion}
+                      </option>
+                    ))}
+                  </Select>
                 </Field>
                 <Field label="Tipo Cliente">
                   <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as Cliente['tipo'] })}>
