@@ -681,6 +681,8 @@ export interface Empresa {
   costoPorLicencia: number;
   /** Modulos que esta empresa contrato. Vacio = sin restriccion (todos). "Configuracion" siempre esta disponible aunque no se liste. */
   modulosContratados: Modulo[];
+  /** Features personalizadas habilitadas SOLO para esta empresa (a diferencia de modulosContratados, que es todo-o-nada por modulo). Sirve para cambios que un cliente pidio y que no deben verse en las demas empresas. Vacio = ninguna. Ver src/lib/featureFlags.ts. */
+  featuresHabilitadas: string[];
 }
 
 export type EstatusTicketSoporte = 'Nuevo' | 'Atendido' | 'Cerrado';

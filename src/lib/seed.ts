@@ -23,4 +23,5 @@ export const seedEmpresa: Empresa = {
   licenciasContratadas: 1,
   costoPorLicencia: 0,
   modulosContratados: [],
+  featuresHabilitadas: [],
 };

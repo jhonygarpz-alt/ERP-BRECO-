@@ -20,6 +20,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   hasPermission: (modulo: Modulo, accion: keyof PermisoModulo, pantallaId?: string) => boolean;
+  tieneFeature: (flag: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -143,8 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return rolActual?.permisos?.[modulo]?.[accion] ?? false;
   }
 
+  /** Personalizaciones activadas solo para esta empresa (ver src/lib/featureFlags.ts). */
+  function tieneFeature(flag: string) {
+    return empresaActual?.featuresHabilitadas?.includes(flag) ?? false;
+  }
+
   return (
-    <AuthContext.Provider value={{ estado, usuarioActual, rolActual, empresaActual, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ estado, usuarioActual, rolActual, empresaActual, login, logout, hasPermission, tieneFeature }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,6 +5,7 @@ import { crearUsuarioAuth } from '../../lib/crearUsuario';
 import { resetearPasswordUsuario } from '../../lib/resetearPassword';
 import { uid } from '../../lib/storage';
 import { DEFAULT_ALERTAS_VENCIMIENTOS } from '../../lib/alertasVencimientosConfig';
+import { FEATURE_FLAGS } from '../../lib/featureFlags';
 import type { Empresa, Modulo, PermisoModulo, Rol, Usuario } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
@@ -84,6 +85,7 @@ interface FormEmpresa {
   licenciasContratadas: string;
   costoPorLicencia: string;
   modulosContratados: Modulo[];
+  featuresHabilitadas: string[];
 }
 
 const emptyFormEmpresa: FormEmpresa = {
@@ -94,6 +96,7 @@ const emptyFormEmpresa: FormEmpresa = {
   licenciasContratadas: '1',
   costoPorLicencia: '0',
   modulosContratados: [...modulosContratables],
+  featuresHabilitadas: [],
 };
 
 function ModulosCheckboxes({
@@ -114,6 +117,38 @@ function ModulosCheckboxes({
             className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
           />
           {etiquetaModulo(m)}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Personalizaciones que solo aplican a esta empresa (no a todas las demas),
+ * a diferencia de "Modulos contratados". El catalogo se registra en
+ * src/lib/featureFlags.ts; mientras no tenga entradas, esta seccion solo
+ * explica para que sirve.
+ */
+function FeaturesCheckboxes({ seleccionadas, onToggle }: { seleccionadas: string[]; onToggle: (key: string) => void }) {
+  if (FEATURE_FLAGS.length === 0) {
+    return (
+      <p className="rounded-xl border border-dashed border-line-800 p-3 text-xs text-ink-500">
+        Todavia no hay features personalizadas registradas. Se agregan en src/lib/featureFlags.ts cuando se construye un
+        cambio exclusivo para una empresa.
+      </p>
+    );
+  }
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-xl border border-line-800 p-3 sm:grid-cols-3">
+      {FEATURE_FLAGS.map((f) => (
+        <label key={f.key} className="flex items-center gap-2 text-sm text-ink-300" title={f.descripcion}>
+          <input
+            type="checkbox"
+            checked={seleccionadas.includes(f.key)}
+            onChange={() => onToggle(f.key)}
+            className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+          />
+          {f.label}
         </label>
       ))}
     </div>
@@ -176,6 +211,7 @@ export function EmpresasSection() {
         licenciasContratadas: Number(formNueva.licenciasContratadas) || 1,
         costoPorLicencia: Number(formNueva.costoPorLicencia) || 0,
         modulosContratados: formNueva.modulosContratados,
+        featuresHabilitadas: formNueva.featuresHabilitadas,
       };
       await empresas.add(nuevaEmpresa);
 
@@ -210,6 +246,7 @@ export function EmpresasSection() {
       licenciasContratadas: String(e.licenciasContratadas),
       costoPorLicencia: String(e.costoPorLicencia),
       modulosContratados: e.modulosContratados.length > 0 ? e.modulosContratados : [...modulosContratables],
+      featuresHabilitadas: e.featuresHabilitadas,
     });
   }
 
@@ -226,6 +263,7 @@ export function EmpresasSection() {
         licenciasContratadas: Number(formEditar.licenciasContratadas) || 1,
         costoPorLicencia: Number(formEditar.costoPorLicencia) || 0,
         modulosContratados: formEditar.modulosContratados,
+        featuresHabilitadas: formEditar.featuresHabilitadas,
       });
       setEmpresaEditando(null);
     } finally {
@@ -253,6 +291,20 @@ export function EmpresasSection() {
     setFormEditar((f) => ({
       ...f,
       modulosContratados: f.modulosContratados.includes(m) ? f.modulosContratados.filter((x) => x !== m) : [...f.modulosContratados, m],
+    }));
+  }
+
+  function toggleFeatureNueva(key: string) {
+    setFormNueva((f) => ({
+      ...f,
+      featuresHabilitadas: f.featuresHabilitadas.includes(key) ? f.featuresHabilitadas.filter((x) => x !== key) : [...f.featuresHabilitadas, key],
+    }));
+  }
+
+  function toggleFeatureEditar(key: string) {
+    setFormEditar((f) => ({
+      ...f,
+      featuresHabilitadas: f.featuresHabilitadas.includes(key) ? f.featuresHabilitadas.filter((x) => x !== key) : [...f.featuresHabilitadas, key],
     }));
   }
 
@@ -416,6 +468,11 @@ export function EmpresasSection() {
                 <ModulosCheckboxes seleccionados={formNueva.modulosContratados} onToggle={toggleModuloNueva} />
               </Field>
             </div>
+            <div className="sm:col-span-2">
+              <Field label="Features personalizadas">
+                <FeaturesCheckboxes seleccionadas={formNueva.featuresHabilitadas} onToggle={toggleFeatureNueva} />
+              </Field>
+            </div>
 
             <div className="mt-2 flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
               <UserPlus size={16} />
@@ -509,6 +566,11 @@ export function EmpresasSection() {
             <div className="sm:col-span-2">
               <Field label="Modulos contratados">
                 <ModulosCheckboxes seleccionados={formEditar.modulosContratados} onToggle={toggleModuloEditar} />
+              </Field>
+            </div>
+            <div className="sm:col-span-2">
+              <Field label="Features personalizadas">
+                <FeaturesCheckboxes seleccionadas={formEditar.featuresHabilitadas} onToggle={toggleFeatureEditar} />
               </Field>
             </div>
 

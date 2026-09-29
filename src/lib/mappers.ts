@@ -919,6 +919,7 @@ export function empresaFromRow(row: Record<string, unknown>): Empresa {
     licenciasContratadas: (row.licencias_contratadas as number | null) ?? 1,
     costoPorLicencia: (row.costo_por_licencia as number | null) ?? 0,
     modulosContratados: (row.modulos_contratados as Empresa['modulosContratados'] | null) ?? [],
+    featuresHabilitadas: (row.features_habilitadas as string[] | null) ?? [],
   };
 }
 export function empresaToRow(e: Empresa) {
@@ -940,6 +941,7 @@ export function empresaToRow(e: Empresa) {
     licencias_contratadas: e.licenciasContratadas,
     costo_por_licencia: e.costoPorLicencia,
     modulos_contratados: e.modulosContratados,
+    features_habilitadas: e.featuresHabilitadas,
   };
 }
 
