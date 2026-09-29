@@ -56,6 +56,7 @@ import type {
   UnidadFoto,
   UnidadHotspot,
   UnidadDano,
+  PosicionGpsUnidad,
   Usuario,
   ValeCombustible,
   Viaje,
@@ -167,7 +168,7 @@ export function unidadFromRow(row: Record<string, unknown>): Unidad {
     esPermisionario: row.es_permisionario as boolean,
     descripcion: row.descripcion as string,
     sucursal: row.sucursal as string,
-    identidadSatelital: row.identidad_satelital as string,
+    identificadorGps: (row.identificador_gps as string | null) ?? '',
     identificadorConvoy: row.identificador_convoy as string,
     numeroSerie: row.numero_serie as string,
     color: row.color as string,
@@ -235,7 +236,7 @@ export function unidadToRow(u: Unidad) {
     es_permisionario: u.esPermisionario,
     descripcion: u.descripcion,
     sucursal: u.sucursal,
-    identidad_satelital: u.identidadSatelital,
+    identificador_gps: u.identificadorGps,
     identificador_convoy: u.identificadorConvoy,
     numero_serie: u.numeroSerie,
     color: u.color,
@@ -454,7 +455,6 @@ export function operadorFromRow(row: Record<string, unknown>): Operador {
     sucursal: row.sucursal as string,
     telefono: row.telefono as string,
     celular: row.celular as string,
-    hashGmtgps: row.hash_gmtgps as string,
     registroPatronal: row.registro_patronal as string,
     fotoDataUrl: row.foto_data_url as string,
     observaciones: row.observaciones as string,
@@ -506,7 +506,6 @@ export function operadorToRow(o: Operador) {
     sucursal: o.sucursal,
     telefono: o.telefono,
     celular: o.celular,
-    hash_gmtgps: o.hashGmtgps,
     registro_patronal: o.registroPatronal,
     foto_data_url: o.fotoDataUrl,
     observaciones: o.observaciones,
@@ -1126,6 +1125,28 @@ export function viajeUbicacionFromRow(row: Record<string, unknown>): ViajeUbicac
 }
 export function viajeUbicacionToRow(u: ViajeUbicacion) {
   return { id: u.id, viaje_id: u.viajeId, texto: u.texto };
+}
+
+export function posicionGpsUnidadFromRow(row: Record<string, unknown>): PosicionGpsUnidad {
+  return {
+    id: row.unidad_id as string,
+    latitud: row.latitud as number,
+    longitud: row.longitud as number,
+    velocidadKmh: (row.velocidad_kmh as number | null) ?? undefined,
+    rumboGrados: (row.rumbo_grados as number | null) ?? undefined,
+    fechaHoraGps: row.fecha_hora_gps as string,
+    actualizadoEn: (row.actualizado_en as string | null) ?? undefined,
+  };
+}
+export function posicionGpsUnidadToRow(p: PosicionGpsUnidad) {
+  return {
+    unidad_id: p.id,
+    latitud: p.latitud,
+    longitud: p.longitud,
+    velocidad_kmh: p.velocidadKmh ?? null,
+    rumbo_grados: p.rumboGrados ?? null,
+    fecha_hora_gps: p.fechaHoraGps,
+  };
 }
 
 export function proveedorFromRow(row: Record<string, unknown>): Proveedor {

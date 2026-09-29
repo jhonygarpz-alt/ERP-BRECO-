@@ -30,7 +30,8 @@ import { fechaLocal } from '../../lib/fechas';
 const ICONO_ALERTA = { retraso: Clock3, sin_actualizacion: WifiOff } as const;
 
 export function MonitoreoCentroControlPage() {
-  const { viajes, rutas, unidades, operadores, clientes, estatusViajes, viajeUbicaciones, incidenciasViaje, mensajesViaje } = useData();
+  const { viajes, rutas, unidades, operadores, clientes, estatusViajes, viajeUbicaciones, incidenciasViaje, mensajesViaje, posicionesGps } =
+    useData();
   const [ahora, setAhora] = useState(new Date());
 
   useEffect(() => {
@@ -48,9 +49,11 @@ export function MonitoreoCentroControlPage() {
 
   const filasMonitoreo = useMemo(
     () =>
-      viajesActivos.map((v) => construirFilaMonitoreo(v, ahora, rutas.items, unidades.items, operadores.items, clientes.items, colorEstatus)),
+      viajesActivos.map((v) =>
+        construirFilaMonitoreo(v, ahora, rutas.items, unidades.items, operadores.items, clientes.items, colorEstatus, posicionesGps.items),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viajesActivos, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items],
+    [viajesActivos, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items, posicionesGps.items],
   );
 
   const alertas = useMemo(
@@ -76,6 +79,7 @@ export function MonitoreoCentroControlPage() {
       posicion: f.posicion as [number, number],
       demorado: f.etiqueta.texto === 'DEMORADO',
       trazo: f.trazo ?? undefined,
+      enVivo: f.posicionEnVivo,
     }));
 
   const eventos = useMemo(() => {

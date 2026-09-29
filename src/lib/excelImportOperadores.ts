@@ -141,7 +141,6 @@ export async function leerOperadoresExcel(file: File): Promise<{ totalFilasHoja:
       sucursal: texto(col('sucursal', fila)) || 'Matriz',
       telefono: texto(col('telefono', fila)),
       celular: texto(col('celular', fila)),
-      hashGmtgps: '',
       registroPatronal: '',
       fotoDataUrl: '',
       observaciones: '',

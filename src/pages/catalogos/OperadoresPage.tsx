@@ -52,7 +52,6 @@ const emptyForm: Omit<Operador, 'id'> = {
   sucursal: 'Matriz',
   telefono: '',
   celular: '',
-  hashGmtgps: '',
   registroPatronal: '',
   fotoDataUrl: '',
   observaciones: '',
@@ -377,9 +376,6 @@ export function OperadoresPage() {
                   </Field>
                   <Field label="Celular">
                     <Input value={form.celular} onChange={(e) => setForm({ ...form, celular: e.target.value })} />
-                  </Field>
-                  <Field label="Hash GMTGPS">
-                    <Input value={form.hashGmtgps} onChange={(e) => setForm({ ...form, hashGmtgps: e.target.value })} />
                   </Field>
                   <Field label="Registro Patronal">
                     <Input value={form.registroPatronal} onChange={(e) => setForm({ ...form, registroPatronal: e.target.value })} />

@@ -1,5 +1,20 @@
-import type { Cliente, Operador, Ruta, Unidad, Viaje } from '../types';
+import type { Cliente, Operador, PosicionGpsUnidad, Ruta, Unidad, Viaje } from '../types';
 import type { Tone } from '../components/ui/Badge';
+
+// Si el proveedor de GPS de la unidad deja de reportar (se apago, perdio
+// senal) su ultima posicion se vuelve vieja -- pasado este tiempo se deja de
+// mostrar como "en vivo" y se regresa a la posicion CALCULADA sobre la Ruta,
+// para nunca mostrar una señal real como si fuera actual cuando ya no lo es.
+const MINUTOS_VIGENCIA_POSICION_GPS = 30;
+
+function posicionGpsVigente(posicion: PosicionGpsUnidad | undefined, ahora: Date): [number, number] | null {
+  if (!posicion) return null;
+  const fecha = new Date(posicion.fechaHoraGps);
+  if (Number.isNaN(fecha.getTime())) return null;
+  const minutos = (ahora.getTime() - fecha.getTime()) / 60000;
+  if (minutos < 0 || minutos > MINUTOS_VIGENCIA_POSICION_GPS) return null;
+  return [posicion.latitud, posicion.longitud];
+}
 
 // Solo se usa como respaldo cuando el viaje no tiene una Ruta capturada (o
 // esa Ruta no trae sus horas estimadas) -- siempre que se pueda, el limite
@@ -128,13 +143,18 @@ export interface FilaMonitoreo {
   etiqueta: EtiquetaEstatus;
   fraccion: number | null;
   posicion: [number, number] | null;
+  /** true si `posicion` viene de una plataforma de GPS real conectada (reciente); false si es la posicion calculada sobre el trazo de la Ruta. */
+  posicionEnVivo: boolean;
   trazo: [number, number][] | null;
   eta: string;
 }
 
 /** Arma una fila de tabla/mapa de Monitoreo con todo lo ya calculado (etiqueta,
  * avance, posicion) para un viaje, reusado por Centro de Control, Monitoreo
- * de Viajes y Mapa GPS para garantizar que las 3 pantallas siempre coincidan. */
+ * de Viajes y Mapa GPS para garantizar que las 3 pantallas siempre coincidan.
+ * `posicionesGps` (opcional) es la ultima lectura real por unidad -- si hay
+ * una vigente para la unidad de este viaje, se usa en vez de la posicion
+ * calculada sobre la Ruta. */
 export function construirFilaMonitoreo(
   v: Viaje,
   ahora: Date,
@@ -143,12 +163,18 @@ export function construirFilaMonitoreo(
   operadores: Operador[],
   clientes: Cliente[],
   colorEstatus: (nombre: string) => Tone | null,
+  posicionesGps: PosicionGpsUnidad[] = [],
 ): FilaMonitoreo {
   const horasViaje = horasAutorizadas(v, rutas);
   const etiqueta = etiquetaTablero(v, ahora, colorEstatus(v.estatus), horasViaje);
   const fraccion = avanceTransito(v, ahora, horasViaje);
   const ruta = v.rutaCodigo ? rutas.find((r) => r.codigo === v.rutaCodigo) : undefined;
-  const posicion = posicionEnRuta(ruta, fraccion);
+  const posicionGps = posicionGpsVigente(
+    posicionesGps.find((p) => p.id === v.unidadId),
+    ahora,
+  );
+  const posicionEnVivo = posicionGps !== null;
+  const posicion = posicionGps ?? posicionEnRuta(ruta, fraccion);
   const limite = limiteTransito(v, horasViaje);
   let trazo: [number, number][] | null = null;
   if (ruta?.trazoRuta) {
@@ -166,6 +192,7 @@ export function construirFilaMonitoreo(
     etiqueta,
     fraccion,
     posicion,
+    posicionEnVivo,
     trazo,
     eta: limite ? limite.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '--:--',
   };

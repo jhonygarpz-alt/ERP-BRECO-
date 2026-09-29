@@ -812,7 +812,7 @@ export function ViajesPage() {
       esPermisionario: false,
       descripcion: '',
       sucursal: 'Matriz',
-      identidadSatelital: '',
+      identificadorGps: '',
       identificadorConvoy: '',
       numeroSerie: '',
       color: '',

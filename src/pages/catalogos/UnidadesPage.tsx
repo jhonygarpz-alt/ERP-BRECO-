@@ -52,7 +52,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
   esPermisionario: false,
   descripcion: '',
   sucursal: 'Matriz',
-  identidadSatelital: '',
+  identificadorGps: '',
   identificadorConvoy: '',
   numeroSerie: '',
   color: '',
@@ -375,8 +375,12 @@ export function UnidadesPage() {
                   <Field label="Sucursal">
                     <Input required value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })} />
                   </Field>
-                  <Field label="Identidad satelital">
-                    <Input value={form.identidadSatelital} onChange={(e) => setForm({ ...form, identidadSatelital: e.target.value })} />
+                  <Field label="Identificador GPS">
+                    <Input
+                      value={form.identificadorGps}
+                      onChange={(e) => setForm({ ...form, identificadorGps: e.target.value })}
+                      placeholder="Clave de esta unidad en la plataforma de rastreo GPS"
+                    />
                   </Field>
                   <Field label="Identificador de convoy">
                     <Input value={form.identificadorConvoy} onChange={(e) => setForm({ ...form, identificadorConvoy: e.target.value })} />

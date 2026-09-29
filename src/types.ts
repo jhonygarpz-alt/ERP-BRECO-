@@ -164,7 +164,8 @@ export interface Unidad {
   esPermisionario: boolean;
   descripcion: string;
   sucursal: string;
-  identidadSatelital: string;
+  /** Identificador/clave que la plataforma de rastreo GPS del cliente asigna a esta unidad (para poder cruzar las posiciones que reporte con este registro). Vacio = la unidad no esta dada de alta en ningun proveedor de GPS todavia. */
+  identificadorGps: string;
   identificadorConvoy: string;
   numeroSerie: string;
   color: string;
@@ -343,7 +344,6 @@ export interface Operador {
   sucursal: string;
   telefono: string;
   celular: string;
-  hashGmtgps: string;
   registroPatronal: string;
   fotoDataUrl: string;
   observaciones: string;
@@ -555,6 +555,27 @@ export interface ViajeUbicacion {
   viajeId: string;
   texto: string;
   creadoEn?: string;
+}
+
+/**
+ * Ultima posicion REAL reportada por la plataforma de rastreo GPS del
+ * cliente para una unidad (Unidad.identificadorGps la relaciona con esa
+ * plataforma). Una sola fila por unidad -- se sobrescribe en cada
+ * actualizacion, no guarda historico de recorrido. La escribe la Edge
+ * Function que recibe el webhook/polling del proveedor de GPS que se
+ * conecte; mientras no haya ninguno conectado, no existen filas y el mapa
+ * de Monitoreo sigue usando la posicion calculada sobre la Ruta.
+ */
+export interface PosicionGpsUnidad {
+  /** Mismo id que la Unidad (una posicion por unidad). */
+  id: string;
+  latitud: number;
+  longitud: number;
+  velocidadKmh?: number;
+  rumboGrados?: number;
+  /** Fecha/hora que reporto el proveedor de GPS para esta lectura. */
+  fechaHoraGps: string;
+  actualizadoEn?: string;
 }
 
 export type EstatusFactura = 'Pendiente' | 'Facturado' | 'Pagado' | 'Cancelado';

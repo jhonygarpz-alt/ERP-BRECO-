@@ -119,6 +119,8 @@ import {
   viajeToRow,
   viajeUbicacionFromRow,
   viajeUbicacionToRow,
+  posicionGpsUnidadFromRow,
+  posicionGpsUnidadToRow,
 } from './mappers';
 import { seedEmpresa } from './seed';
 import type {
@@ -181,6 +183,7 @@ import type {
   ValeCombustible,
   Viaje,
   ViajeUbicacion,
+  PosicionGpsUnidad,
 } from '../types';
 
 interface DataContextValue {
@@ -202,6 +205,7 @@ interface DataContextValue {
   tiposViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TipoViaje>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
   viajeUbicaciones: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ViajeUbicacion>>;
+  posicionesGps: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, PosicionGpsUnidad>>;
   gastosViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GastoViaje>>;
   valesCombustible: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ValeCombustible>>;
   deduccionesOperador: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, DeduccionOperador>>;
@@ -329,6 +333,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'viaje_ubicacion',
     viajeUbicacionFromRow,
     viajeUbicacionToRow,
+  );
+  const posicionesGps = useSupabaseCollection<Record<string, unknown>, PosicionGpsUnidad>(
+    'unidad_posicion_gps',
+    posicionGpsUnidadFromRow,
+    posicionGpsUnidadToRow,
   );
   const gastosViaje = useSupabaseCollection<Record<string, unknown>, GastoViaje>(
     'gastos_viaje',
@@ -533,6 +542,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         tiposViaje,
         viajes,
         viajeUbicaciones,
+        posicionesGps,
         gastosViaje,
         valesCombustible,
         deduccionesOperador,

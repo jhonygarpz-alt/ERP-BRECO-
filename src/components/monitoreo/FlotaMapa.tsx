@@ -9,6 +9,8 @@ export interface MarcadorFlota {
   posicion: [number, number];
   demorado: boolean;
   trazo?: [number, number][];
+  /** true si `posicion` viene de una plataforma de GPS real conectada, no de la posicion calculada sobre la Ruta. */
+  enVivo?: boolean;
 }
 
 /**
@@ -61,8 +63,14 @@ export function FlotaMapa({
       if (mostrarTrazos && m.trazo && m.trazo.length > 1) {
         L.polyline(m.trazo, { color, weight: 2, opacity: 0.4, dashArray: '4 6' }).addTo(capa);
       }
-      L.circleMarker(m.posicion, { radius: 9, color, fillColor: color, fillOpacity: 1, weight: 2 })
-        .bindTooltip(`${m.unidad} -- ${m.folio}`)
+      L.circleMarker(m.posicion, {
+        radius: 9,
+        color: m.enVivo ? '#22c55e' : color,
+        fillColor: color,
+        fillOpacity: 1,
+        weight: m.enVivo ? 3 : 2,
+      })
+        .bindTooltip(`${m.unidad} -- ${m.folio}${m.enVivo ? ' (GPS en vivo)' : ' (posicion estimada)'}`)
         .addTo(capa);
     });
 

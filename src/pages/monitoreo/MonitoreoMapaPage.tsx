@@ -6,7 +6,7 @@ import { FlotaMapa, type MarcadorFlota } from '../../components/monitoreo/FlotaM
 import { construirFilaMonitoreo, viajeEnTransito } from '../../lib/monitoreoViajes';
 
 export function MonitoreoMapaPage() {
-  const { viajes, rutas, unidades, operadores, clientes, estatusViajes } = useData();
+  const { viajes, rutas, unidades, operadores, clientes, estatusViajes, posicionesGps } = useData();
   const [ahora, setAhora] = useState(new Date());
   const [mostrarTrazos, setMostrarTrazos] = useState(true);
 
@@ -21,7 +21,9 @@ export function MonitoreoMapaPage() {
   const marcadores: MarcadorFlota[] = useMemo(() => {
     return viajes.items
       .filter(viajeEnTransito)
-      .map((v) => construirFilaMonitoreo(v, ahora, rutas.items, unidades.items, operadores.items, clientes.items, colorEstatus))
+      .map((v) =>
+        construirFilaMonitoreo(v, ahora, rutas.items, unidades.items, operadores.items, clientes.items, colorEstatus, posicionesGps.items),
+      )
       .filter((f) => f.posicion)
       .map((f) => ({
         id: f.viaje.id,
@@ -30,9 +32,10 @@ export function MonitoreoMapaPage() {
         posicion: f.posicion as [number, number],
         demorado: f.etiqueta.texto === 'DEMORADO',
         trazo: f.trazo ?? undefined,
+        enVivo: f.posicionEnVivo,
       }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viajes.items, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items]);
+  }, [viajes.items, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items, posicionesGps.items]);
 
   const sinTrazo = viajes.items.filter(viajeEnTransito).length - marcadores.length;
 
@@ -65,6 +68,9 @@ export function MonitoreoMapaPage() {
         <span className="flex items-center gap-1.5 text-ink-500">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Demorado
         </span>
+        <span className="flex items-center gap-1.5 text-ink-500">
+          <span className="h-2.5 w-2.5 rounded-full border-2 border-emerald-500 bg-[#0071e3]" /> GPS en vivo
+        </span>
         {sinTrazo > 0 && (
           <span className="text-ink-600">
             {sinTrazo} viaje(s) en transito sin trazo de ruta guardado -- no se pueden ubicar en el mapa.
@@ -75,8 +81,10 @@ export function MonitoreoMapaPage() {
       <FlotaMapa marcadores={marcadores} mostrarTrazos={mostrarTrazos} alturaClase="h-[600px]" />
 
       <p className="mt-3 text-xs text-ink-600">
-        No hay hardware de GPS conectado al sistema. La posicion se calcula con el tiempo transcurrido desde la hora de
-        salida sobre las horas autorizadas de la Ruta, proyectado sobre las coordenadas reales de su trazo.
+        Las unidades con una plataforma de rastreo GPS conectada (ver "Identificador GPS" en el catalogo de Unidades)
+        muestran su posicion real (marcador con borde verde). El resto muestra una posicion CALCULADA con el tiempo
+        transcurrido desde la hora de salida sobre las horas autorizadas de la Ruta, proyectado sobre las coordenadas
+        reales de su trazo -- no una señal real.
       </p>
     </div>
   );
