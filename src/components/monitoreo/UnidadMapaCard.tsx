@@ -1,4 +1,4 @@
-import { Crosshair, Navigation2, X } from 'lucide-react';
+import { Camera, Crosshair, Navigation2, X } from 'lucide-react';
 import { StatusBadge, type Tone } from '../ui/Badge';
 import { GhostButton, PrimaryButton } from '../ui/form';
 
@@ -16,6 +16,23 @@ export interface UnidadMapaCardInfo {
   enVivo: boolean;
   velocidadTexto: string;
   ultimaActualizacion: string;
+  posicion: [number, number];
+  rumbo?: number | null;
+}
+
+/**
+ * Abre Google Street View (la version publica y gratuita de maps.google.com
+ * en una pestana nueva, no la API de pago) centrada en la posicion de la
+ * unidad. Como la posicion puede ser CALCULADA (sin GPS real conectado), la
+ * foto que muestre Street View es la del punto sobre el mapa, no
+ * necesariamente donde esta la unidad en este momento -- el texto del boton
+ * lo aclara cuando aplica.
+ */
+function abrirVistaCalle(posicion: [number, number], rumbo?: number | null) {
+  const [lat, lon] = posicion;
+  const heading = rumbo ?? 0;
+  const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}&heading=${heading}&pitch=0&fov=80`;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 /**
@@ -103,6 +120,15 @@ export function UnidadMapaCard({
         <GhostButton type="button" onClick={onVerRecorrido} className="flex items-center gap-1.5 text-xs">
           <Navigation2 size={13} />
           {rutaResaltada ? 'Ocultar recorrido' : 'Ver recorrido'}
+        </GhostButton>
+        <GhostButton
+          type="button"
+          onClick={() => abrirVistaCalle(info.posicion, info.rumbo)}
+          className="flex items-center gap-1.5 text-xs"
+          title="Abre Google Street View en una pestana nueva"
+        >
+          <Camera size={13} />
+          Vista de calle
         </GhostButton>
         <PrimaryButton type="button" onClick={onVerDetalle} className="text-xs">
           Ver detalle

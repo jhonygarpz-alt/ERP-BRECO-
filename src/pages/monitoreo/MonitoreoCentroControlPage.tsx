@@ -113,6 +113,8 @@ export function MonitoreoCentroControlPage() {
             filaSeleccionada.posicionEnVivo && posicionGps
               ? new Date(posicionGps.fechaHoraGps).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
               : 'N/D',
+          posicion: filaSeleccionada.posicion as [number, number],
+          rumbo: filaSeleccionada.rumbo,
         };
       })()
     : null;

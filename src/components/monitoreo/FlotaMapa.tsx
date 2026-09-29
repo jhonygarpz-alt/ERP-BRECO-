@@ -1,6 +1,24 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Layers, Satellite } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+type CapaBase = 'calles' | 'satelite';
+
+// Ambas son servicios publicos gratuitos, sin llave/API key -- igual que las
+// calles de OpenStreetMap que ya se usaban. "Satelite" es el servicio
+// publico de imagenes de Esri (no Google Satellite), asi que la resolucion y
+// fecha de la foto pueden variar por zona.
+const TILES_BASE: Record<CapaBase, { url: string; attribution: string }> = {
+  calles: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
+  },
+  satelite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri',
+  },
+};
 
 export interface MarcadorFlota {
   id: string;
@@ -72,8 +90,10 @@ export const FlotaMapa = forwardRef<
 >(function FlotaMapa({ marcadores, mostrarTrazos = true, alturaClase = 'h-96', rutaResaltadaId = null, onSeleccionar }, ref) {
   const contenedorRef = useRef<HTMLDivElement | null>(null);
   const mapaRef = useRef<L.Map | null>(null);
+  const capaBaseRef = useRef<L.TileLayer | null>(null);
   const capaTrazosRef = useRef<L.LayerGroup | null>(null);
   const marcadoresRef = useRef<Map<string, L.Marker>>(new Map());
+  const [capaBase, setCapaBase] = useState<CapaBase>('calles');
 
   useImperativeHandle(
     ref,
@@ -91,10 +111,7 @@ export const FlotaMapa = forwardRef<
   useEffect(() => {
     if (!contenedorRef.current || mapaRef.current) return;
     const mapa = L.map(contenedorRef.current).setView([23.6345, -102.5528], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(mapa);
+    capaBaseRef.current = L.tileLayer(TILES_BASE.calles.url, { attribution: TILES_BASE.calles.attribution, maxZoom: 19 }).addTo(mapa);
     mapaRef.current = mapa;
     capaTrazosRef.current = L.layerGroup().addTo(mapa);
     setTimeout(() => mapa.invalidateSize(), 150);
@@ -102,10 +119,20 @@ export const FlotaMapa = forwardRef<
     return () => {
       mapa.remove();
       mapaRef.current = null;
+      capaBaseRef.current = null;
       capaTrazosRef.current = null;
       marcadoresRef.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    const mapa = mapaRef.current;
+    if (!mapa) return;
+    if (capaBaseRef.current) mapa.removeLayer(capaBaseRef.current);
+    const { url, attribution } = TILES_BASE[capaBase];
+    capaBaseRef.current = L.tileLayer(url, { attribution, maxZoom: 19 }).addTo(mapa);
+    capaBaseRef.current.bringToBack();
+  }, [capaBase]);
 
   useEffect(() => {
     const mapa = mapaRef.current;
@@ -165,5 +192,31 @@ export const FlotaMapa = forwardRef<
     }
   }, [marcadores, mostrarTrazos, rutaResaltadaId, onSeleccionar]);
 
-  return <div ref={contenedorRef} className={`w-full ${alturaClase} rounded-xl`} />;
+  return (
+    <div className="relative">
+      <div ref={contenedorRef} className={`w-full ${alturaClase} rounded-xl`} />
+      <div className="absolute bottom-3 left-3 z-[1000] flex overflow-hidden rounded-lg border border-line-700 bg-bg-900/95 shadow-lg backdrop-blur">
+        <button
+          type="button"
+          onClick={() => setCapaBase('calles')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition ${
+            capaBase === 'calles' ? 'bg-breco-500 text-white' : 'text-ink-300 hover:bg-bg-800'
+          }`}
+        >
+          <Layers size={13} />
+          Calles
+        </button>
+        <button
+          type="button"
+          onClick={() => setCapaBase('satelite')}
+          className={`flex items-center gap-1.5 border-l border-line-700 px-3 py-1.5 text-xs font-medium transition ${
+            capaBase === 'satelite' ? 'bg-breco-500 text-white' : 'text-ink-300 hover:bg-bg-800'
+          }`}
+        >
+          <Satellite size={13} />
+          Satelite
+        </button>
+      </div>
+    </div>
+  );
 });
