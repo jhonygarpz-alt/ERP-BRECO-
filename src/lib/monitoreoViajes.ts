@@ -145,6 +145,8 @@ export interface FilaMonitoreo {
   posicion: [number, number] | null;
   /** true si `posicion` viene de una plataforma de GPS real conectada (reciente); false si es la posicion calculada sobre el trazo de la Ruta. */
   posicionEnVivo: boolean;
+  /** Rumbo en grados (0=Norte, 90=Este, 180=Sur, 270=Oeste) para orientar el icono del camion; null si no se puede determinar (ej. Ruta sin trazo). */
+  rumbo: number | null;
   trazo: [number, number][] | null;
   eta: string;
 }
@@ -169,12 +171,11 @@ export function construirFilaMonitoreo(
   const etiqueta = etiquetaTablero(v, ahora, colorEstatus(v.estatus), horasViaje);
   const fraccion = avanceTransito(v, ahora, horasViaje);
   const ruta = v.rutaCodigo ? rutas.find((r) => r.codigo === v.rutaCodigo) : undefined;
-  const posicionGps = posicionGpsVigente(
-    posicionesGps.find((p) => p.id === v.unidadId),
-    ahora,
-  );
+  const posicionGpsCruda = posicionesGps.find((p) => p.id === v.unidadId);
+  const posicionGps = posicionGpsVigente(posicionGpsCruda, ahora);
   const posicionEnVivo = posicionGps !== null;
   const posicion = posicionGps ?? posicionEnRuta(ruta, fraccion);
+  const rumbo = posicionEnVivo ? (posicionGpsCruda?.rumboGrados ?? null) : rumboEnRuta(ruta, fraccion);
   const limite = limiteTransito(v, horasViaje);
   let trazo: [number, number][] | null = null;
   if (ruta?.trazoRuta) {
@@ -193,9 +194,25 @@ export function construirFilaMonitoreo(
     fraccion,
     posicion,
     posicionEnVivo,
+    rumbo,
     trazo,
     eta: limite ? limite.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '--:--',
   };
+}
+
+function parseTrazo(ruta: Ruta | undefined): [number, number][] | null {
+  if (!ruta || !ruta.trazoRuta) return null;
+  try {
+    const puntos = JSON.parse(ruta.trazoRuta);
+    return Array.isArray(puntos) && puntos.length > 0 ? puntos : null;
+  } catch {
+    return null;
+  }
+}
+
+function indiceEnTrazo(puntos: [number, number][], fraccion: number): number {
+  const f = Math.min(Math.max(fraccion, 0), 1);
+  return Math.min(puntos.length - 1, Math.floor(f * (puntos.length - 1)));
 }
 
 /**
@@ -208,15 +225,37 @@ export function construirFilaMonitoreo(
  * marcador (nunca inventar coordenadas).
  */
 export function posicionEnRuta(ruta: Ruta | undefined, fraccion: number | null): [number, number] | null {
-  if (!ruta || !ruta.trazoRuta || fraccion === null) return null;
-  let puntos: [number, number][];
-  try {
-    puntos = JSON.parse(ruta.trazoRuta);
-  } catch {
-    return null;
-  }
-  if (!Array.isArray(puntos) || puntos.length === 0) return null;
-  const f = Math.min(Math.max(fraccion, 0), 1);
-  const idx = Math.min(puntos.length - 1, Math.floor(f * (puntos.length - 1)));
-  return puntos[idx] ?? null;
+  if (fraccion === null) return null;
+  const puntos = parseTrazo(ruta);
+  if (!puntos) return null;
+  return puntos[indiceEnTrazo(puntos, fraccion)] ?? null;
+}
+
+/** Angulo (0-360, sentido horario desde el Norte) del punto `desde` hacia el punto `hasta`, formula de rumbo inicial (great-circle bearing). */
+function rumboEntrePuntos([lat1, lon1]: [number, number], [lat2, lon2]: [number, number]): number {
+  const aRad = (g: number) => (g * Math.PI) / 180;
+  const aGrados = (r: number) => (r * 180) / Math.PI;
+  const f1 = aRad(lat1);
+  const f2 = aRad(lat2);
+  const dl = aRad(lon2 - lon1);
+  const y = Math.sin(dl) * Math.cos(f2);
+  const x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
+  return (aGrados(Math.atan2(y, x)) + 360) % 360;
+}
+
+/**
+ * Rumbo aproximado (0=Norte, 90=Este, 180=Sur, 270=Oeste) hacia donde avanza
+ * la unidad sobre el trazo de la Ruta, para orientar el icono del camion
+ * mientras la posicion es CALCULADA (sin GPS real conectado). null si no hay
+ * trazo o no hay suficientes puntos para saber la direccion.
+ */
+export function rumboEnRuta(ruta: Ruta | undefined, fraccion: number | null): number | null {
+  if (fraccion === null) return null;
+  const puntos = parseTrazo(ruta);
+  if (!puntos || puntos.length < 2) return null;
+  const idx = indiceEnTrazo(puntos, fraccion);
+  const desde = puntos[Math.max(0, idx - 1)];
+  const hasta = puntos[Math.min(puntos.length - 1, idx + 1)];
+  if (desde[0] === hasta[0] && desde[1] === hasta[1]) return null;
+  return rumboEntrePuntos(desde, hasta);
 }

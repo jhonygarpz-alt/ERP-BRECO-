@@ -33,6 +33,7 @@ export function MonitoreoMapaPage() {
         demorado: f.etiqueta.texto === 'DEMORADO',
         trazo: f.trazo ?? undefined,
         enVivo: f.posicionEnVivo,
+        rumbo: f.rumbo,
       }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viajes.items, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items, posicionesGps.items]);
@@ -63,13 +64,13 @@ export function MonitoreoMapaPage() {
           Rutas trazadas
         </label>
         <span className="flex items-center gap-1.5 text-ink-500">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#0071e3]" /> En tiempo
+          <span className="h-2.5 w-2.5 rounded-full bg-[#9ca3af]" /> Posicion estimada
+        </span>
+        <span className="flex items-center gap-1.5 text-ink-500">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e] shadow-[0_0_5px_#22c55e]" /> GPS en vivo
         </span>
         <span className="flex items-center gap-1.5 text-ink-500">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Demorado
-        </span>
-        <span className="flex items-center gap-1.5 text-ink-500">
-          <span className="h-2.5 w-2.5 rounded-full border-2 border-emerald-500 bg-[#0071e3]" /> GPS en vivo
         </span>
         {sinTrazo > 0 && (
           <span className="text-ink-600">

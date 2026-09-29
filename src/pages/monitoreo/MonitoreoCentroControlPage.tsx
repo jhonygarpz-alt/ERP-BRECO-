@@ -80,6 +80,7 @@ export function MonitoreoCentroControlPage() {
       demorado: f.etiqueta.texto === 'DEMORADO',
       trazo: f.trazo ?? undefined,
       enVivo: f.posicionEnVivo,
+      rumbo: f.rumbo,
     }));
 
   const eventos = useMemo(() => {
