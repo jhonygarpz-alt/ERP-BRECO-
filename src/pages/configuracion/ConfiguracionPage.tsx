@@ -33,9 +33,9 @@ export function ConfiguracionPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Configuracion</h1>
-        <p className="mt-1 text-sm text-ink-500">Datos de la empresa, usuarios del sistema y sus permisos.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Configuracion</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Datos de la empresa, usuarios del sistema y sus permisos.</p>
       </div>
 
       {tabsVisibles.length === 0 ? (

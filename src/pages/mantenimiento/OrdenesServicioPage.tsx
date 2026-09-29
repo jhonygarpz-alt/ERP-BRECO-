@@ -99,9 +99,9 @@ export function OrdenesServicioPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Ordenes de Servicio</h1>
-        <p className="mt-1 text-sm text-ink-500">Registra una nueva orden de servicio para el mantenimiento de la unidad.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Ordenes de Servicio</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Registra una nueva orden de servicio para el mantenimiento de la unidad.</p>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-line-800 bg-bg-900 p-2">

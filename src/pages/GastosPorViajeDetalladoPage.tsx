@@ -42,9 +42,9 @@ export function GastosPorViajeDetalladoPage() {
 
   return (
     <div>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">Detallado de Gastos por Viaje</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Detallado de Gastos por Viaje</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Por cada viaje: lo cobrado (conceptos de facturacion), los gastos capturados en Gastos de Viaje, y la utilidad que
           le queda a la empresa.
         </p>

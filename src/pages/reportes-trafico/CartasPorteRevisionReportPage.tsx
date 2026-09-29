@@ -33,9 +33,9 @@ export function CartasPorteRevisionReportPage() {
       <Link to="/trafico/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Trafico
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">13. Cartas Porte a Revision</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">13. Cartas Porte a Revision</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Viajes de tipo Carta Porte a los que todavia les falta capturar datos obligatorios del complemento CFDI.
         </p>
       </div>

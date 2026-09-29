@@ -124,9 +124,9 @@ export function ConciliacionesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Conciliacion Bancaria</h1>
-        <p className="mt-1 text-sm text-ink-500">Sube los movimientos de tu banco y emparejalos contra los Movimientos Bancarios del sistema.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Conciliacion Bancaria</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Sube los movimientos de tu banco y emparejalos contra los Movimientos Bancarios del sistema.</p>
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-4 rounded-2xl border border-line-800 bg-bg-800 p-4 sm:grid-cols-3">

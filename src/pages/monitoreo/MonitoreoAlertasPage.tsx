@@ -36,9 +36,9 @@ export function MonitoreoAlertasPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Alertas</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Alertas</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Condiciones detectadas automaticamente sobre viajes activos (retraso en ETA, sin actualizacion de ubicacion).
         </p>
       </div>

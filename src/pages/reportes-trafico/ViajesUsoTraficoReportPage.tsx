@@ -33,9 +33,9 @@ export function ViajesUsoTraficoReportPage() {
       <Link to="/trafico/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Trafico
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">18. Relacion de Viajes para Uso de Trafico</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">18. Relacion de Viajes para Uso de Trafico</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Manifiesto operativo: un renglon por cada tramo/trayecto a despachar (util cuando un viaje trae varios
           tramos u operadores en convoy).
         </p>

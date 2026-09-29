@@ -22,9 +22,9 @@ const REPORTES: ReporteInfo[] = [
 export function ReportesBancoHubPage() {
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Reportes de Bancos</h1>
-        <p className="mt-1 text-sm text-ink-500">Consulta y genera la informacion clave de tus cuentas y pagos.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Reportes de Bancos</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Consulta y genera la informacion clave de tus cuentas y pagos.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

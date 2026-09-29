@@ -44,9 +44,9 @@ export function ProgramaPage() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Programa Diario de Viajes</h1>
-          <p className="mt-1 text-sm capitalize text-ink-500">{formattedDate}</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Programa Diario de Viajes</h1>
+          <p className="mt-1 text-sm capitalize text-sb-text-muted">{formattedDate}</p>
         </div>
         <div className="flex items-center gap-2">
           <button

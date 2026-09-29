@@ -53,9 +53,9 @@ export function CobranzaEstadosCuentaPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Estados de Cuenta por Cliente</h1>
-        <p className="mt-1 text-sm text-ink-500">Movimientos de facturas, pagos y notas de credito de un cliente, con saldo corrido.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Estados de Cuenta por Cliente</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Movimientos de facturas, pagos y notas de credito de un cliente, con saldo corrido.</p>
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-6 rounded-2xl border border-line-800 bg-bg-800 p-4">

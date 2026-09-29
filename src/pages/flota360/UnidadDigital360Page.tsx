@@ -108,8 +108,8 @@ export function UnidadDigital360Page() {
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-ink-100">{unidad.economico}</h1>
+          <div className="flex items-center gap-3 rounded-2xl bg-sb-bg px-5 py-4">
+            <h1 className="text-xl font-bold text-sb-text">{unidad.economico}</h1>
             <StatusBadge status={unidad.estatus} />
           </div>
           <p className="mt-1 text-sm text-ink-500">

@@ -120,9 +120,9 @@ export function CuentasPorPagarPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Cuentas por Pagar</h1>
-          <p className="mt-1 text-sm text-ink-500">
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Cuentas por Pagar</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">
             Registra los pagos a proveedor que liquidan gastos de viaje o compras de almacen marcados "Genera pasivo".
           </p>
         </div>

@@ -489,9 +489,9 @@ export function AeropuertoPage() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Pantalla Aeropuerto</h1>
-          <p className="mt-1 text-sm text-ink-500">Tablero de exportaciones e importaciones del dia, con avance por unidad.</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Pantalla Aeropuerto</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">Tablero de exportaciones e importaciones del dia, con avance por unidad.</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">

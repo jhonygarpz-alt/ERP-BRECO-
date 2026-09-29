@@ -37,9 +37,9 @@ export function IngresosPorUnidadReportPage() {
       <Link to="/trafico/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Trafico
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">05. Ingresos Generados por Unidad</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">05. Ingresos Generados por Unidad</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Suma de los conceptos de facturacion de los viajes (no cancelados) de cada unidad en el periodo.
         </p>
       </div>

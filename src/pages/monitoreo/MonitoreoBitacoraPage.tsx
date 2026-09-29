@@ -29,9 +29,9 @@ export function MonitoreoBitacoraPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Bitacora de Seguimiento</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Bitacora de Seguimiento</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Historial de avances capturados en cada viaje (los mismos checkpoints que se agregan desde Pantalla Aeropuerto).
         </p>
       </div>

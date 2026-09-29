@@ -151,9 +151,9 @@ export function MonitoreoCentroControlPage() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Centro de Control</h1>
-          <p className="mt-1 text-sm text-ink-500">Supervisa la operacion de tus viajes y unidades.</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Centro de Control</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">Supervisa la operacion de tus viajes y unidades.</p>
         </div>
         <span className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
           <Radio size={12} className="animate-pulse" />

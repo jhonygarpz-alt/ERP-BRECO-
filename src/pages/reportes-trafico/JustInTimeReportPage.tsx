@@ -34,9 +34,9 @@ export function JustInTimeReportPage() {
       <Link to="/trafico/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Trafico
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">21. Just in Time Detallado</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">21. Just in Time Detallado</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Compara la Hora de Cita (programada) contra la Hora de Salida (real) de cada viaje, con tolerancia de 15
           minutos. El sistema solo captura este par programado/real para la salida -- no existe una cita programada
           de entrega para comparar contra la llegada real.

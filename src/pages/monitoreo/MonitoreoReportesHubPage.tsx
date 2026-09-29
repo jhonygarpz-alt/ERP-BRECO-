@@ -9,9 +9,9 @@ const REPORTES = [
 export function MonitoreoReportesHubPage() {
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Reportes de Monitoreo</h1>
-        <p className="mt-1 text-sm text-ink-500">Incidencias y alertas generadas durante la operacion, filtrables por fecha.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Reportes de Monitoreo</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Incidencias y alertas generadas durante la operacion, filtrables por fecha.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

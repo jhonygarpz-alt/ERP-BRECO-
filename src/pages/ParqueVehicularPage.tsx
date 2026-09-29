@@ -235,9 +235,9 @@ export function ParqueVehicularPage() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Parque Vehicular</h1>
-          <p className="mt-1 text-sm text-ink-500">Administra y consulta todas las unidades y remolques de la flota.</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Parque Vehicular</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">Administra y consulta todas las unidades y remolques de la flota.</p>
         </div>
       </div>
 

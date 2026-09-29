@@ -50,9 +50,9 @@ export function DetalladoViajesReportPage() {
       <Link to="/trafico/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Trafico
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">11. Detallado de Viajes</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">11. Detallado de Viajes</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Cada viaje del periodo con su cliente, operador, unidad, kilometros, ingreso facturado, gastos capturados en
           Gastos de Viaje y la utilidad resultante.
         </p>

@@ -36,9 +36,9 @@ export function SaldosPorCuentaReportPage() {
       <Link to="/banco/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Bancos
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">02. Saldos por Cuenta</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">02. Saldos por Cuenta</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Saldo actual de cada cuenta activa (suma de todos sus movimientos), mas ingresos/egresos del periodo seleccionado.
         </p>
       </div>

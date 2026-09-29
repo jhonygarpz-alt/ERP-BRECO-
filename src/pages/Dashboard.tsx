@@ -104,9 +104,9 @@ export function Dashboard() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Resumen de trafico</h1>
-          <p className="mt-1.5 text-sm text-ink-500">Consulta y seguimiento de la operacion diaria.</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Resumen de trafico</h1>
+          <p className="mt-1.5 text-sm text-sb-text-muted">Consulta y seguimiento de la operacion diaria.</p>
         </div>
       </div>
 

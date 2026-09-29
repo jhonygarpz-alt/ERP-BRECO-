@@ -138,9 +138,9 @@ export function FacturacionPage() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Facturacion Diaria</h1>
-          <p className="mt-1 text-sm text-ink-500">Facturas generadas a partir de los viajes realizados.</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Facturacion Diaria</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">Facturas generadas a partir de los viajes realizados.</p>
         </div>
         <div className="flex items-center gap-2">
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={`${inputClass} w-44`} />

@@ -31,9 +31,9 @@ export function MonitoreoReporteIncidenciasPage() {
       <Link to="/monitoreo/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Monitoreo
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">Incidencias por Periodo</h1>
-        <p className="mt-1 text-sm text-ink-500">Todas las incidencias reportadas en el rango de fechas seleccionado.</p>
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Incidencias por Periodo</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Todas las incidencias reportadas en el rango de fechas seleccionado.</p>
       </div>
 
       <ReporteFiltros filtro={filtro} onFiltroChange={setFiltro} onExportarExcel={handleExportarExcel} onImprimir={handleImprimir} />

@@ -35,9 +35,9 @@ export function AnticiposVsGastosReportPage() {
       <Link to="/trafico/reportes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-100">
         <ArrowLeft size={15} /> Reportes de Trafico
       </Link>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-ink-100">20. Anticipos vs Gastos por Viaje</h1>
-        <p className="mt-1 text-sm text-ink-500">
+      <div className="mb-4 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">20. Anticipos vs Gastos por Viaje</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">
           Por cada viaje: cuanto se dio de anticipo/viaticos contra cuanto se gasto en total (el sistema no
           identifica el gasto por trayecto, solo por viaje completo).
         </p>

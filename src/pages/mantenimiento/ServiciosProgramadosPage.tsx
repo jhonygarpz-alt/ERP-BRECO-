@@ -27,9 +27,9 @@ export function ServiciosProgramadosPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-ink-100">Servicios Programados</h1>
-          <p className="mt-1 text-sm text-ink-500">Que unidades ya vencieron o estan por vencer su proximo mantenimiento, segun sus planes de servicio.</p>
+        <div className="rounded-2xl bg-sb-bg px-5 py-4">
+          <h1 className="text-xl font-bold text-sb-text">Servicios Programados</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">Que unidades ya vencieron o estan por vencer su proximo mantenimiento, segun sus planes de servicio.</p>
         </div>
         {totalVencidos > 0 && (
           <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">

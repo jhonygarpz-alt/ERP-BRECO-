@@ -151,9 +151,9 @@ export function ComprasPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink-100">Compras</h1>
-        <p className="mt-1 text-sm text-ink-500">Registra la mercancia que entrega el proveedor; genera entrada de almacen y, si aplica, pasivo en Cuentas por Pagar.</p>
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Compras</h1>
+        <p className="mt-1 text-sm text-sb-text-muted">Registra la mercancia que entrega el proveedor; genera entrada de almacen y, si aplica, pasivo en Cuentas por Pagar.</p>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-line-800 bg-bg-900 p-2">
