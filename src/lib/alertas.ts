@@ -103,8 +103,30 @@ function alertasDocumentosOperador(operador: Operador, config: AlertasVencimient
   return alertas;
 }
 
+/** Alerta de vencimiento de la proxima inspeccion fisicomecanica de una unidad o remolque -- se avisa con el mismo plazo (dias) que el resto de documentos de Unidades, sin necesitar un toggle aparte en Configuracion. */
+function alertaInspeccionFisicomecanica(
+  entidad: { id: string; economico: string; proximaInspeccionFisicomecanica: string },
+  origen: 'unidad' | 'remolque',
+  diasNotificar: number,
+  hoy: string,
+): Alerta[] {
+  if (!entidad.proximaInspeccionFisicomecanica) return [];
+  const dias = diasHasta(entidad.proximaInspeccionFisicomecanica, hoy);
+  if (dias === null || dias > diasNotificar) return [];
+  const sustantivo = origen === 'unidad' ? 'Unidad' : 'Remolque';
+  return [
+    alertaVencimiento(
+      `${origen}-inspeccion-${entidad.id}`,
+      `Inspeccion fisicomecanica de ${sustantivo.toLowerCase()} ${entidad.economico}`,
+      `Catalogo de ${origen === 'unidad' ? 'Unidades' : 'Remolques'}`,
+      dias,
+    ),
+  ];
+}
+
 function calcularAlertas(
   unidades: ReturnType<typeof useData>['unidades']['items'],
+  cajas: ReturnType<typeof useData>['cajas']['items'],
   operadores: ReturnType<typeof useData>['operadores']['items'],
   facturas: ReturnType<typeof useData>['facturas']['items'],
   viajes: ReturnType<typeof useData>['viajes']['items'],
@@ -124,6 +146,11 @@ function calcularAlertas(
       });
     }
     alertas.push(...alertasDocumentosUnidad(u, config.unidad, hoy));
+    alertas.push(...alertaInspeccionFisicomecanica(u, 'unidad', config.unidad.diasNotificar, hoy));
+  }
+
+  for (const c of cajas) {
+    alertas.push(...alertaInspeccionFisicomecanica(c, 'remolque', config.unidad.diasNotificar, hoy));
   }
 
   for (const o of operadores) {
@@ -164,7 +191,7 @@ function calcularAlertas(
  * condicion cambie de mensaje.
  */
 export function useAlertas() {
-  const { unidades, operadores, facturas, viajes, estatusViajes, empresa } = useData();
+  const { unidades, cajas, operadores, facturas, viajes, estatusViajes, empresa } = useData();
   const hoy = hoyISO();
   const [atendidas, setAtendidas] = useState<Record<string, string>>(() => leerAtendidas());
 
@@ -176,6 +203,7 @@ export function useAlertas() {
     () =>
       calcularAlertas(
         unidades.items,
+        cajas.items,
         operadores.items,
         facturas.items,
         viajes.items,
@@ -184,7 +212,7 @@ export function useAlertas() {
         hoy,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [unidades.items, operadores.items, facturas.items, viajes.items, estatusViajes.items, empresa.value.alertasVencimientos],
+    [unidades.items, cajas.items, operadores.items, facturas.items, viajes.items, estatusViajes.items, empresa.value.alertasVencimientos],
   );
 
   const alertas = useMemo(() => todas.filter((a) => atendidas[a.id] !== a.mensaje), [todas, atendidas]);

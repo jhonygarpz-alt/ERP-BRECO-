@@ -52,6 +52,17 @@ const emptyForm: Omit<Caja, 'id'> = {
   capacidadKg: 0,
   numeroEjes: 0,
   pesoTaraTon: 0,
+  acorazado: false,
+  numeroLlantas: 0,
+  llantasRefaccion: 0,
+  marcaLlanta: '',
+  modeloLlanta: '',
+  medidaLlanta: '',
+  rodadaLlanta: '',
+  tipoLlanta: '',
+  ultimaInspeccionFisicomecanica: '',
+  proximaInspeccionFisicomecanica: '',
+  proveedorInspeccionId: undefined,
   documentosVencimiento: [],
   archivosAdicionales: [],
   aseguradora: '',
@@ -64,7 +75,7 @@ const emptyForm: Omit<Caja, 'id'> = {
 };
 
 export function RemolquesPage() {
-  const { cajas, empresa, gruposUnidad } = useData();
+  const { cajas, empresa, gruposUnidad, proveedores } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -390,6 +401,70 @@ export function RemolquesPage() {
                 <Field label="Peso Tara (Ton)" required>
                   <Input type="number" step="0.01" value={form.pesoTaraTon || ''} onChange={(e) => setForm({ ...form, pesoTaraTon: Number(e.target.value) })} />
                 </Field>
+                <Field label="Acorazado">
+                  <Select value={form.acorazado ? 'Si' : 'No'} onChange={(e) => setForm({ ...form, acorazado: e.target.value === 'Si' })}>
+                    <option value="No">No</option>
+                    <option value="Si">Sí</option>
+                  </Select>
+                </Field>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Llantas</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Field label="Número de llantas">
+                  <Input type="number" value={form.numeroLlantas || ''} onChange={(e) => setForm({ ...form, numeroLlantas: Number(e.target.value) })} />
+                </Field>
+                <Field label="Llantas de refacción">
+                  <Input type="number" value={form.llantasRefaccion || ''} onChange={(e) => setForm({ ...form, llantasRefaccion: Number(e.target.value) })} />
+                </Field>
+                <Field label="Marca de la llanta">
+                  <Input value={form.marcaLlanta} onChange={(e) => setForm({ ...form, marcaLlanta: e.target.value })} />
+                </Field>
+                <Field label="Modelo de la llanta">
+                  <Input value={form.modeloLlanta} onChange={(e) => setForm({ ...form, modeloLlanta: e.target.value })} />
+                </Field>
+                <Field label="Medida de la llanta">
+                  <Input value={form.medidaLlanta} onChange={(e) => setForm({ ...form, medidaLlanta: e.target.value })} placeholder="Ej. 295/75R22.5" />
+                </Field>
+                <Field label="Rodada de la llanta">
+                  <Input value={form.rodadaLlanta} onChange={(e) => setForm({ ...form, rodadaLlanta: e.target.value })} placeholder="Ej. 22.5" />
+                </Field>
+                <Field label="Tipo de llanta">
+                  <Input value={form.tipoLlanta} onChange={(e) => setForm({ ...form, tipoLlanta: e.target.value })} placeholder="Direccional, tracción, mixta..." />
+                </Field>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Inspección fisicomecánica</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Field label="Última fecha de inspección">
+                  <Input
+                    type="date"
+                    value={form.ultimaInspeccionFisicomecanica}
+                    onChange={(e) => setForm({ ...form, ultimaInspeccionFisicomecanica: e.target.value })}
+                  />
+                </Field>
+                <Field label="Fecha de próxima inspección">
+                  <Input
+                    type="date"
+                    value={form.proximaInspeccionFisicomecanica}
+                    onChange={(e) => setForm({ ...form, proximaInspeccionFisicomecanica: e.target.value })}
+                  />
+                </Field>
+                <Field label="Proveedor que realizó la inspección">
+                  <Select
+                    value={form.proveedorInspeccionId ?? ''}
+                    onChange={(e) => setForm({ ...form, proveedorInspeccionId: e.target.value || undefined })}
+                  >
+                    <option value="">Sin proveedor</option>
+                    {proveedores.items.map((p) => (
+                      <option key={p.id} value={p.id}>{p.numero} - {p.nombre}</option>
+                    ))}
+                  </Select>
+                </Field>
               </div>
             </section>
 
@@ -410,10 +485,11 @@ export function RemolquesPage() {
                   <div className="flex gap-2">
                     <Input
                       type="date"
+                      className="min-w-0 flex-1"
                       value={docForm.fechaVencimiento}
                       onChange={(e) => setDocForm({ ...docForm, fechaVencimiento: e.target.value })}
                     />
-                    <GhostButton type="button" onClick={agregarDocumento}>
+                    <GhostButton type="button" className="flex-shrink-0" onClick={agregarDocumento}>
                       <Plus size={14} />
                     </GhostButton>
                   </div>

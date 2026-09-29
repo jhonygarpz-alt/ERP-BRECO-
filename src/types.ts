@@ -179,6 +179,22 @@ export interface Unidad {
   pesoTaraTon: number;
   tipoTransmision: string;
   tipoMotor: string;
+  tipoCabina: string;
+  tipoSuspension: string;
+  tipoDiferencialDelantero: string;
+  tipoDiferencialTrasero: string;
+  // Llantas
+  numeroLlantas: number;
+  llantasRefaccion: number;
+  marcaLlanta: string;
+  modeloLlanta: string;
+  medidaLlanta: string;
+  rodadaLlanta: string;
+  tipoLlanta: string;
+  // Inspeccion fisicomecanica
+  ultimaInspeccionFisicomecanica: string;
+  proximaInspeccionFisicomecanica: string;
+  proveedorInspeccionId?: string;
   // Consumo de combustible
   tipoCombustible: string;
   tarjetaCombustible1: string;
@@ -264,6 +280,19 @@ export interface Caja {
   capacidadKg: number;
   numeroEjes: number;
   pesoTaraTon: number;
+  acorazado: boolean;
+  // Llantas
+  numeroLlantas: number;
+  llantasRefaccion: number;
+  marcaLlanta: string;
+  modeloLlanta: string;
+  medidaLlanta: string;
+  rodadaLlanta: string;
+  tipoLlanta: string;
+  // Inspeccion fisicomecanica
+  ultimaInspeccionFisicomecanica: string;
+  proximaInspeccionFisicomecanica: string;
+  proveedorInspeccionId?: string;
   // Documentos / Archivos adicionales
   documentosVencimiento: CajaDocumentoVencimiento[];
   archivosAdicionales: CajaArchivo[];

@@ -23,7 +23,8 @@ import { StatusBadge, type Tone } from '../../components/ui/Badge';
 
 const BUCKET = 'unidad-documentos';
 
-const TIPOS_TRANSMISION = ['Manual', 'Automatica'];
+const TIPOS_TRANSMISION = ['Manual', 'Automatica', '18 velocidades Fuller', '16 velocidades Spicer'];
+const TIPOS_SUSPENSION = ['Muelles', 'Neumatica'];
 const TIPOS_COMBUSTIBLE = ['Diesel', 'Gasolina', 'Gas Natural', 'Electrico'];
 
 const emptyDocVencimiento: UnidadDocumentoVencimiento = { numeroDocumento: '', documento: '', fechaVencimiento: '', tipo: 'Otro' };
@@ -64,6 +65,20 @@ const emptyForm: Omit<Unidad, 'id'> = {
   pesoTaraTon: 0,
   tipoTransmision: '',
   tipoMotor: '',
+  tipoCabina: '',
+  tipoSuspension: '',
+  tipoDiferencialDelantero: '',
+  tipoDiferencialTrasero: '',
+  numeroLlantas: 0,
+  llantasRefaccion: 0,
+  marcaLlanta: '',
+  modeloLlanta: '',
+  medidaLlanta: '',
+  rodadaLlanta: '',
+  tipoLlanta: '',
+  ultimaInspeccionFisicomecanica: '',
+  proximaInspeccionFisicomecanica: '',
+  proveedorInspeccionId: undefined,
   tipoCombustible: '',
   tarjetaCombustible1: '',
   tarjetaCombustible2: '',
@@ -88,7 +103,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
 };
 
 export function UnidadesPage() {
-  const { unidades, operadores, clientes, empresa, estatusUnidades, gruposUnidad } = useData();
+  const { unidades, operadores, clientes, empresa, estatusUnidades, gruposUnidad, proveedores } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -477,6 +492,81 @@ export function UnidadesPage() {
                 <Field label="Tipo motor">
                   <Input value={form.tipoMotor} onChange={(e) => setForm({ ...form, tipoMotor: e.target.value })} />
                 </Field>
+                <Field label="Tipo de cabina">
+                  <Input value={form.tipoCabina} onChange={(e) => setForm({ ...form, tipoCabina: e.target.value })} />
+                </Field>
+                <Field label="Tipo de suspensión">
+                  <Select value={form.tipoSuspension} onChange={(e) => setForm({ ...form, tipoSuspension: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {TIPOS_SUSPENSION.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Tipo de diferencial delantero">
+                  <Input value={form.tipoDiferencialDelantero} onChange={(e) => setForm({ ...form, tipoDiferencialDelantero: e.target.value })} />
+                </Field>
+                <Field label="Tipo de diferencial trasero">
+                  <Input value={form.tipoDiferencialTrasero} onChange={(e) => setForm({ ...form, tipoDiferencialTrasero: e.target.value })} />
+                </Field>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Llantas</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Field label="Número de llantas">
+                  <Input type="number" value={form.numeroLlantas || ''} onChange={(e) => setForm({ ...form, numeroLlantas: Number(e.target.value) })} />
+                </Field>
+                <Field label="Llantas de refacción">
+                  <Input type="number" value={form.llantasRefaccion || ''} onChange={(e) => setForm({ ...form, llantasRefaccion: Number(e.target.value) })} />
+                </Field>
+                <Field label="Marca de la llanta">
+                  <Input value={form.marcaLlanta} onChange={(e) => setForm({ ...form, marcaLlanta: e.target.value })} />
+                </Field>
+                <Field label="Modelo de la llanta">
+                  <Input value={form.modeloLlanta} onChange={(e) => setForm({ ...form, modeloLlanta: e.target.value })} />
+                </Field>
+                <Field label="Medida de la llanta">
+                  <Input value={form.medidaLlanta} onChange={(e) => setForm({ ...form, medidaLlanta: e.target.value })} placeholder="Ej. 295/75R22.5" />
+                </Field>
+                <Field label="Rodada de la llanta">
+                  <Input value={form.rodadaLlanta} onChange={(e) => setForm({ ...form, rodadaLlanta: e.target.value })} placeholder="Ej. 22.5" />
+                </Field>
+                <Field label="Tipo de llanta">
+                  <Input value={form.tipoLlanta} onChange={(e) => setForm({ ...form, tipoLlanta: e.target.value })} placeholder="Direccional, tracción, mixta..." />
+                </Field>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Inspección fisicomecánica</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Field label="Última fecha de inspección">
+                  <Input
+                    type="date"
+                    value={form.ultimaInspeccionFisicomecanica}
+                    onChange={(e) => setForm({ ...form, ultimaInspeccionFisicomecanica: e.target.value })}
+                  />
+                </Field>
+                <Field label="Fecha de próxima inspección">
+                  <Input
+                    type="date"
+                    value={form.proximaInspeccionFisicomecanica}
+                    onChange={(e) => setForm({ ...form, proximaInspeccionFisicomecanica: e.target.value })}
+                  />
+                </Field>
+                <Field label="Proveedor que realizó la inspección">
+                  <Select
+                    value={form.proveedorInspeccionId ?? ''}
+                    onChange={(e) => setForm({ ...form, proveedorInspeccionId: e.target.value || undefined })}
+                  >
+                    <option value="">Sin proveedor</option>
+                    {proveedores.items.map((p) => (
+                      <option key={p.id} value={p.id}>{p.numero} - {p.nombre}</option>
+                    ))}
+                  </Select>
+                </Field>
               </div>
             </section>
 
@@ -597,10 +687,11 @@ export function UnidadesPage() {
                       <div className="flex gap-2">
                         <Input
                           type="date"
+                          className="min-w-0 flex-1"
                           value={docForm.fechaVencimiento}
                           onChange={(e) => setDocForm({ ...docForm, fechaVencimiento: e.target.value })}
                         />
-                        <GhostButton type="button" onClick={agregarDocumento}>
+                        <GhostButton type="button" className="flex-shrink-0" onClick={agregarDocumento}>
                           <Plus size={14} />
                         </GhostButton>
                       </div>
