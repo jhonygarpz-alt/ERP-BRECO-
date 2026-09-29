@@ -1,14 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Radio } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import type { Tone } from '../../components/ui/Badge';
-import { FlotaMapa, type MarcadorFlota } from '../../components/monitoreo/FlotaMapa';
-import { construirFilaMonitoreo, viajeEnTransito } from '../../lib/monitoreoViajes';
+import { FlotaMapa, type FlotaMapaHandle, type MarcadorFlota } from '../../components/monitoreo/FlotaMapa';
+import { UnidadMapaCard, type UnidadMapaCardInfo } from '../../components/monitoreo/UnidadMapaCard';
+import { construirFilaMonitoreo, destinoViaje, origenViaje, viajeActivo } from '../../lib/monitoreoViajes';
 
 export function MonitoreoMapaPage() {
   const { viajes, rutas, unidades, operadores, clientes, estatusViajes, posicionesGps } = useData();
+  const navigate = useNavigate();
+  const mapaHandleRef = useRef<FlotaMapaHandle>(null);
   const [ahora, setAhora] = useState(new Date());
   const [mostrarTrazos, setMostrarTrazos] = useState(true);
+  const [seleccionId, setSeleccionId] = useState<string | null>(null);
+  const [mostrarRecorrido, setMostrarRecorrido] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setAhora(new Date()), 30000);
@@ -18,27 +24,66 @@ export function MonitoreoMapaPage() {
   const colorEstatus = (nombre: string): Tone | null =>
     (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
 
-  const marcadores: MarcadorFlota[] = useMemo(() => {
-    return viajes.items
-      .filter(viajeEnTransito)
-      .map((v) =>
-        construirFilaMonitoreo(v, ahora, rutas.items, unidades.items, operadores.items, clientes.items, colorEstatus, posicionesGps.items),
-      )
-      .filter((f) => f.posicion)
-      .map((f) => ({
-        id: f.viaje.id,
-        folio: f.viaje.folio,
-        unidad: f.unidadCodigo,
-        posicion: f.posicion as [number, number],
-        demorado: f.etiqueta.texto === 'DEMORADO',
-        trazo: f.trazo ?? undefined,
-        enVivo: f.posicionEnVivo,
-        rumbo: f.rumbo,
-      }));
+  const filasMonitoreo = useMemo(
+    () =>
+      viajes.items
+        .filter(viajeActivo)
+        .map((v) =>
+          construirFilaMonitoreo(v, ahora, rutas.items, unidades.items, operadores.items, clientes.items, colorEstatus, posicionesGps.items),
+        ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viajes.items, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items, posicionesGps.items]);
+    [viajes.items, ahora, rutas.items, unidades.items, operadores.items, clientes.items, estatusViajes.items, posicionesGps.items],
+  );
 
-  const sinTrazo = viajes.items.filter(viajeEnTransito).length - marcadores.length;
+  const marcadores: MarcadorFlota[] = filasMonitoreo
+    .filter((f) => f.posicion)
+    .map((f) => ({
+      id: f.viaje.id,
+      folio: f.viaje.folio,
+      unidad: f.unidadCodigo,
+      posicion: f.posicion as [number, number],
+      demorado: f.etiqueta.texto === 'DEMORADO',
+      trazo: f.trazo ?? undefined,
+      enVivo: f.posicionEnVivo,
+      rumbo: f.rumbo,
+    }));
+
+  // Ya salio a ruta (fraccion no nulo) pero su Ruta no tiene trazo guardado --
+  // distinto de un viaje que simplemente todavia no sale (ese no cuenta como
+  // "falta el trazo", solo no ha empezado su recorrido.
+  const sinTrazo = filasMonitoreo.filter((f) => f.fraccion !== null && !f.posicion).length;
+
+  const filaSeleccionada = seleccionId ? filasMonitoreo.find((f) => f.viaje.id === seleccionId) : undefined;
+  const infoTarjeta: UnidadMapaCardInfo | null = filaSeleccionada
+    ? (() => {
+        const unidad = unidades.items.find((u) => u.id === filaSeleccionada.viaje.unidadId);
+        const posicionGps = posicionesGps.items.find((p) => p.id === filaSeleccionada.viaje.unidadId);
+        return {
+          folio: filaSeleccionada.viaje.folio,
+          economico: filaSeleccionada.unidadCodigo,
+          placas: unidad?.placas ?? '',
+          operador: filaSeleccionada.operadorNombre,
+          cliente: filaSeleccionada.clienteNombre,
+          origen: origenViaje(filaSeleccionada.viaje, rutas.items),
+          destino: destinoViaje(filaSeleccionada.viaje, rutas.items),
+          eta: filaSeleccionada.eta,
+          estatusTexto: filaSeleccionada.etiqueta.texto,
+          estatusTono: filaSeleccionada.etiqueta.tono,
+          enVivo: filaSeleccionada.posicionEnVivo,
+          velocidadTexto:
+            filaSeleccionada.posicionEnVivo && posicionGps?.velocidadKmh != null ? `${Math.round(posicionGps.velocidadKmh)} km/h` : 'N/D',
+          ultimaActualizacion:
+            filaSeleccionada.posicionEnVivo && posicionGps
+              ? new Date(posicionGps.fechaHoraGps).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+              : 'N/D',
+        };
+      })()
+    : null;
+
+  function cerrarTarjeta() {
+    setSeleccionId(null);
+    setMostrarRecorrido(false);
+  }
 
   return (
     <div>
@@ -79,13 +124,35 @@ export function MonitoreoMapaPage() {
         )}
       </div>
 
-      <FlotaMapa marcadores={marcadores} mostrarTrazos={mostrarTrazos} alturaClase="h-[600px]" />
+      <div className="relative">
+        <FlotaMapa
+          ref={mapaHandleRef}
+          marcadores={marcadores}
+          mostrarTrazos={mostrarTrazos}
+          alturaClase="h-[600px]"
+          rutaResaltadaId={mostrarRecorrido ? seleccionId : null}
+          onSeleccionar={(id) => {
+            setSeleccionId(id);
+            setMostrarRecorrido(false);
+          }}
+        />
+        {infoTarjeta && (
+          <UnidadMapaCard
+            info={infoTarjeta}
+            rutaResaltada={mostrarRecorrido}
+            onClose={cerrarTarjeta}
+            onCentrar={() => seleccionId && mapaHandleRef.current?.centrarEn(seleccionId)}
+            onVerRecorrido={() => setMostrarRecorrido((v) => !v)}
+            onVerDetalle={() => navigate('/viajes')}
+          />
+        )}
+      </div>
 
       <p className="mt-3 text-xs text-ink-600">
         Las unidades con una plataforma de rastreo GPS conectada (ver "Identificador GPS" en el catalogo de Unidades)
         muestran su posicion real (marcador con borde verde). El resto muestra una posicion CALCULADA con el tiempo
         transcurrido desde la hora de salida sobre las horas autorizadas de la Ruta, proyectado sobre las coordenadas
-        reales de su trazo -- no una señal real.
+        reales de su trazo -- no una señal real. Haz clic sobre un camion para ver su informacion.
       </p>
     </div>
   );

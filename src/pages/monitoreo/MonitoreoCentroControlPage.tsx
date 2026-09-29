@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Radio,
   Truck,
@@ -17,9 +17,12 @@ import { useData } from '../../lib/DataContext';
 import type { Tone } from '../../components/ui/Badge';
 import { StatCard } from '../../components/ui/StatCard';
 import { StatusBadge, TONE_DOT } from '../../components/ui/Badge';
-import { FlotaMapa, type MarcadorFlota } from '../../components/monitoreo/FlotaMapa';
+import { FlotaMapa, type FlotaMapaHandle, type MarcadorFlota } from '../../components/monitoreo/FlotaMapa';
+import { UnidadMapaCard, type UnidadMapaCardInfo } from '../../components/monitoreo/UnidadMapaCard';
 import {
   construirFilaMonitoreo,
+  destinoViaje,
+  origenViaje,
   viajeActivo,
   viajeEnTransito,
   normalizarEstatus,
@@ -32,7 +35,11 @@ const ICONO_ALERTA = { retraso: Clock3, sin_actualizacion: WifiOff } as const;
 export function MonitoreoCentroControlPage() {
   const { viajes, rutas, unidades, operadores, clientes, estatusViajes, viajeUbicaciones, incidenciasViaje, mensajesViaje, posicionesGps } =
     useData();
+  const navigate = useNavigate();
+  const mapaHandleRef = useRef<FlotaMapaHandle>(null);
   const [ahora, setAhora] = useState(new Date());
+  const [seleccionId, setSeleccionId] = useState<string | null>(null);
+  const [mostrarRecorrido, setMostrarRecorrido] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setAhora(new Date()), 30000);
@@ -82,6 +89,38 @@ export function MonitoreoCentroControlPage() {
       enVivo: f.posicionEnVivo,
       rumbo: f.rumbo,
     }));
+
+  const filaSeleccionada = seleccionId ? filasMonitoreo.find((f) => f.viaje.id === seleccionId) : undefined;
+  const infoTarjeta: UnidadMapaCardInfo | null = filaSeleccionada
+    ? (() => {
+        const unidad = unidades.items.find((u) => u.id === filaSeleccionada.viaje.unidadId);
+        const posicionGps = posicionesGps.items.find((p) => p.id === filaSeleccionada.viaje.unidadId);
+        return {
+          folio: filaSeleccionada.viaje.folio,
+          economico: filaSeleccionada.unidadCodigo,
+          placas: unidad?.placas ?? '',
+          operador: filaSeleccionada.operadorNombre,
+          cliente: filaSeleccionada.clienteNombre,
+          origen: origenViaje(filaSeleccionada.viaje, rutas.items),
+          destino: destinoViaje(filaSeleccionada.viaje, rutas.items),
+          eta: filaSeleccionada.eta,
+          estatusTexto: filaSeleccionada.etiqueta.texto,
+          estatusTono: filaSeleccionada.etiqueta.tono,
+          enVivo: filaSeleccionada.posicionEnVivo,
+          velocidadTexto:
+            filaSeleccionada.posicionEnVivo && posicionGps?.velocidadKmh != null ? `${Math.round(posicionGps.velocidadKmh)} km/h` : 'N/D',
+          ultimaActualizacion:
+            filaSeleccionada.posicionEnVivo && posicionGps
+              ? new Date(posicionGps.fechaHoraGps).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+              : 'N/D',
+        };
+      })()
+    : null;
+
+  function cerrarTarjeta() {
+    setSeleccionId(null);
+    setMostrarRecorrido(false);
+  }
 
   const eventos = useMemo(() => {
     const deUbicacion = viajeUbicaciones.items.map((u) => ({
@@ -145,7 +184,28 @@ export function MonitoreoCentroControlPage() {
               Ver mapa completo
             </Link>
           </div>
-          <FlotaMapa marcadores={marcadores} alturaClase="h-80" />
+          <div className="relative">
+            <FlotaMapa
+              ref={mapaHandleRef}
+              marcadores={marcadores}
+              alturaClase="h-80"
+              rutaResaltadaId={mostrarRecorrido ? seleccionId : null}
+              onSeleccionar={(id) => {
+                setSeleccionId(id);
+                setMostrarRecorrido(false);
+              }}
+            />
+            {infoTarjeta && (
+              <UnidadMapaCard
+                info={infoTarjeta}
+                rutaResaltada={mostrarRecorrido}
+                onClose={cerrarTarjeta}
+                onCentrar={() => seleccionId && mapaHandleRef.current?.centrarEn(seleccionId)}
+                onVerRecorrido={() => setMostrarRecorrido((v) => !v)}
+                onVerDetalle={() => navigate('/viajes')}
+              />
+            )}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-line-800 bg-bg-800 p-4">

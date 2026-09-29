@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -15,6 +15,11 @@ export interface MarcadorFlota {
   rumbo?: number | null;
 }
 
+export interface FlotaMapaHandle {
+  /** Centra y acerca el mapa sobre la unidad indicada (si esta en los marcadores actuales). */
+  centrarEn: (id: string) => void;
+}
+
 const TAMANO_CAMION = 38;
 
 // El PNG viene visto desde arriba con el frente apuntando al Norte (0 grados)
@@ -26,7 +31,7 @@ function crearIconoCamion(): L.DivIcon {
   return L.divIcon({
     className: 'camion-gps-marcador',
     html: `
-      <div style="position:relative;width:${TAMANO_CAMION}px;height:${TAMANO_CAMION}px;">
+      <div style="position:relative;width:${TAMANO_CAMION}px;height:${TAMANO_CAMION}px;cursor:pointer;">
         <img src="${ICONO_CAMION_URL}" class="camion-gps-img" style="width:100%;height:100%;display:block;transition:transform 0.6s linear;transform:rotate(0deg);" />
         <span class="camion-gps-estado" style="position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:9999px;background:#9ca3af;border:2px solid white;"></span>
       </div>
@@ -34,6 +39,14 @@ function crearIconoCamion(): L.DivIcon {
     iconSize: [TAMANO_CAMION, TAMANO_CAMION],
     iconAnchor: [TAMANO_CAMION / 2, TAMANO_CAMION / 2],
   });
+}
+
+/** Dibuja una ruta "iluminada" (varias lineas apiladas, mas anchas y transparentes por debajo) en vez de la linea punteada tenue normal -- para resaltar hacia donde va una unidad especifica. */
+function dibujarRutaResaltada(capa: L.LayerGroup, trazo: [number, number][]) {
+  const color = '#22d3ee';
+  L.polyline(trazo, { color, weight: 16, opacity: 0.12 }).addTo(capa);
+  L.polyline(trazo, { color, weight: 9, opacity: 0.25 }).addTo(capa);
+  L.polyline(trazo, { color, weight: 3, opacity: 1 }).addTo(capa);
 }
 
 /**
@@ -46,19 +59,34 @@ function crearIconoCamion(): L.DivIcon {
  * marcadores se reutilizan entre actualizaciones (no se recrean) para que la
  * transicion de posicion/rotacion se vea suave en vez de saltar de golpe.
  */
-export function FlotaMapa({
-  marcadores,
-  mostrarTrazos = true,
-  alturaClase = 'h-96',
-}: {
-  marcadores: MarcadorFlota[];
-  mostrarTrazos?: boolean;
-  alturaClase?: string;
-}) {
+export const FlotaMapa = forwardRef<
+  FlotaMapaHandle,
+  {
+    marcadores: MarcadorFlota[];
+    mostrarTrazos?: boolean;
+    alturaClase?: string;
+    /** id del marcador cuya ruta se dibuja "iluminada"; oculta las demas rutas mientras este activo. */
+    rutaResaltadaId?: string | null;
+    onSeleccionar?: (id: string) => void;
+  }
+>(function FlotaMapa({ marcadores, mostrarTrazos = true, alturaClase = 'h-96', rutaResaltadaId = null, onSeleccionar }, ref) {
   const contenedorRef = useRef<HTMLDivElement | null>(null);
   const mapaRef = useRef<L.Map | null>(null);
   const capaTrazosRef = useRef<L.LayerGroup | null>(null);
   const marcadoresRef = useRef<Map<string, L.Marker>>(new Map());
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      centrarEn(id: string) {
+        const mapa = mapaRef.current;
+        const marker = marcadoresRef.current.get(id);
+        if (!mapa || !marker) return;
+        mapa.setView(marker.getLatLng(), Math.max(mapa.getZoom(), 13), { animate: true });
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     if (!contenedorRef.current || mapaRef.current) return;
@@ -85,7 +113,10 @@ export function FlotaMapa({
     if (!mapa || !capaTrazos) return;
 
     capaTrazos.clearLayers();
-    if (mostrarTrazos) {
+    const resaltado = rutaResaltadaId ? marcadores.find((m) => m.id === rutaResaltadaId) : undefined;
+    if (resaltado?.trazo && resaltado.trazo.length > 1) {
+      dibujarRutaResaltada(capaTrazos, resaltado.trazo);
+    } else if (mostrarTrazos) {
       marcadores.forEach((m) => {
         if (!m.trazo || m.trazo.length < 2) return;
         const color = m.demorado ? '#ef4444' : '#0071e3';
@@ -106,6 +137,7 @@ export function FlotaMapa({
         marker.setLatLng(m.posicion);
       }
       marker.bindTooltip(`${m.unidad} -- ${m.folio}${m.enVivo ? ' (GPS en vivo)' : ' (posicion estimada)'}`);
+      marker.off('click').on('click', () => onSeleccionar?.(m.id));
 
       const el = marker.getElement();
       const img = el?.querySelector<HTMLImageElement>('.camion-gps-img');
@@ -124,9 +156,14 @@ export function FlotaMapa({
       }
     }
 
-    const bounds = L.latLngBounds(marcadores.map((m) => m.posicion));
-    if (bounds.isValid()) mapa.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
-  }, [marcadores, mostrarTrazos]);
+    if (resaltado?.trazo && resaltado.trazo.length > 1) {
+      const bounds = L.latLngBounds(resaltado.trazo);
+      if (bounds.isValid()) mapa.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+      const bounds = L.latLngBounds(marcadores.map((m) => m.posicion));
+      if (bounds.isValid()) mapa.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+    }
+  }, [marcadores, mostrarTrazos, rutaResaltadaId, onSeleccionar]);
 
   return <div ref={contenedorRef} className={`w-full ${alturaClase} rounded-xl`} />;
-}
+});
