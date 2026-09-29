@@ -84,10 +84,10 @@ function alertasDocumentosOperador(operador: Operador, config: AlertasVencimient
     }
   }
 
-  if (config.pasaporte && operador.pasaporte && operador.vigenciaPasaporte) {
-    const dias = diasHasta(operador.vigenciaPasaporte, hoy);
+  if (config.aptoMedico && operador.aptoMedico && operador.vigenciaAptoMedico) {
+    const dias = diasHasta(operador.vigenciaAptoMedico, hoy);
     if (dias !== null && dias <= config.diasNotificar) {
-      alertas.push(alertaVencimiento(`operador-pasaporte-${operador.id}`, `Pasaporte de ${operador.nombre}`, `Vigencia: ${operador.vigenciaPasaporte}`, dias));
+      alertas.push(alertaVencimiento(`operador-apto-medico-${operador.id}`, `Apto médico de ${operador.nombre}`, `Vigencia: ${operador.vigenciaAptoMedico}`, dias));
     }
   }
 

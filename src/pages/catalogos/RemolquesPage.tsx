@@ -18,6 +18,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
 import { ImportarCatalogoModal } from '../../components/catalogos/ImportarCatalogoModal';
+import { NuevoProveedorModal } from '../../components/almacen/NuevoProveedorModal';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 
@@ -87,6 +88,7 @@ export function RemolquesPage() {
   const [draftId, setDraftId] = useState('');
   const [error, setError] = useState('');
   const [importarOpen, setImportarOpen] = useState(false);
+  const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
 
   const [docForm, setDocForm] = useState(emptyDocVencimiento);
   const [archDescripcion, setArchDescripcion] = useState('');
@@ -455,15 +457,21 @@ export function RemolquesPage() {
                   />
                 </Field>
                 <Field label="Proveedor que realizó la inspección">
-                  <Select
-                    value={form.proveedorInspeccionId ?? ''}
-                    onChange={(e) => setForm({ ...form, proveedorInspeccionId: e.target.value || undefined })}
-                  >
-                    <option value="">Sin proveedor</option>
-                    {proveedores.items.map((p) => (
-                      <option key={p.id} value={p.id}>{p.numero} - {p.nombre}</option>
-                    ))}
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select
+                      className="min-w-0 flex-1"
+                      value={form.proveedorInspeccionId ?? ''}
+                      onChange={(e) => setForm({ ...form, proveedorInspeccionId: e.target.value || undefined })}
+                    >
+                      <option value="">Sin proveedor</option>
+                      {proveedores.items.map((p) => (
+                        <option key={p.id} value={p.id}>{p.numero} - {p.nombre}</option>
+                      ))}
+                    </Select>
+                    <GhostButton type="button" className="flex-shrink-0" onClick={() => setNuevoProveedorOpen(true)} title="Agregar proveedor">
+                      <Plus size={14} />
+                    </GhostButton>
+                  </div>
                 </Field>
               </div>
             </section>
@@ -631,6 +639,16 @@ export function RemolquesPage() {
           ]}
           onClose={() => setImportarOpen(false)}
           onImportado={() => cajas.reload()}
+        />
+      )}
+
+      {nuevoProveedorOpen && (
+        <NuevoProveedorModal
+          onClose={() => setNuevoProveedorOpen(false)}
+          onCreado={(p) => {
+            setForm((f) => ({ ...f, proveedorInspeccionId: p.id }));
+            setNuevoProveedorOpen(false);
+          }}
         />
       )}
     </div>

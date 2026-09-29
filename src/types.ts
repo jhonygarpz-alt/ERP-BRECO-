@@ -361,8 +361,8 @@ export interface Operador {
   // Documentos de identidad
   licencia: string;
   vigenciaLicencia: string;
-  pasaporte: string;
-  vigenciaPasaporte: string;
+  aptoMedico: string;
+  vigenciaAptoMedico: string;
   licenciaB: boolean;
   licenciaC: boolean;
   licenciaE: boolean;
@@ -651,7 +651,7 @@ export interface AlertasVencimientosConfig {
   };
   operador: {
     licencia: boolean;
-    pasaporte: boolean;
+    aptoMedico: boolean;
     documentosAdicionales: boolean;
     diasNotificar: number;
   };

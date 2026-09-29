@@ -68,8 +68,8 @@ const emptyForm: Omit<Operador, 'id'> = {
   domicilioReferencia: '',
   licencia: '',
   vigenciaLicencia: '',
-  pasaporte: '',
-  vigenciaPasaporte: '',
+  aptoMedico: '',
+  vigenciaAptoMedico: '',
   licenciaB: false,
   licenciaC: false,
   licenciaE: false,
@@ -511,11 +511,11 @@ export function OperadoresPage() {
                       <Field label="Vencimiento">
                         <Input type="date" value={form.vigenciaLicencia} onChange={(e) => setForm({ ...form, vigenciaLicencia: e.target.value })} />
                       </Field>
-                      <Field label="Pasaporte">
-                        <Input value={form.pasaporte} onChange={(e) => setForm({ ...form, pasaporte: e.target.value })} />
+                      <Field label="Apto Médico">
+                        <Input value={form.aptoMedico} onChange={(e) => setForm({ ...form, aptoMedico: e.target.value })} />
                       </Field>
                       <Field label="Vencimiento">
-                        <Input type="date" value={form.vigenciaPasaporte} onChange={(e) => setForm({ ...form, vigenciaPasaporte: e.target.value })} />
+                        <Input type="date" value={form.vigenciaAptoMedico} onChange={(e) => setForm({ ...form, vigenciaAptoMedico: e.target.value })} />
                       </Field>
                       <div className="col-span-2 flex flex-wrap gap-4">
                         <label className="flex items-center gap-2 text-sm text-ink-300">

@@ -11,7 +11,7 @@ export const DEFAULT_ALERTAS_VENCIMIENTOS: AlertasVencimientosConfig = {
   },
   operador: {
     licencia: true,
-    pasaporte: true,
+    aptoMedico: true,
     documentosAdicionales: true,
     diasNotificar: 30,
   },

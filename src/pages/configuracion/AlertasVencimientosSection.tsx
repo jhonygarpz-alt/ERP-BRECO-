@@ -14,7 +14,7 @@ const CHECKS_UNIDAD: { key: keyof AlertasVencimientosConfig['unidad']; label: st
 
 const CHECKS_OPERADOR: { key: keyof AlertasVencimientosConfig['operador']; label: string }[] = [
   { key: 'licencia', label: 'Licencia' },
-  { key: 'pasaporte', label: 'Pasaporte' },
+  { key: 'aptoMedico', label: 'Apto Médico' },
   { key: 'documentosAdicionales', label: 'Documentos Adicionales' },
 ];
 
