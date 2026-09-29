@@ -41,7 +41,7 @@ export function CrudTable<T>({
       <div className="overflow-x-auto">
         <table className="w-full min-w-max text-left text-table">
           <thead>
-            <tr className="border-b border-line-800 bg-bg-700/50 text-xs font-medium tracking-wide text-ink-500 uppercase">
+            <tr className="border-b border-sb-border bg-sb-bg text-xs font-medium tracking-wide text-sb-text-muted uppercase">
               {columns.map((col) => (
                 <th key={col.header} className={`px-4 py-3 font-medium ${col.className ?? ''}`}>
                   {col.header}

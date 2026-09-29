@@ -105,14 +105,15 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  /* #f5f5f7 es el mismo gris "papel" que usa apple.com de fondo -- de ahi
-     el pedido de que se vea elegante como Apple/Cisco. */
-  --color-bg-950: #f5f5f7;
+  /* Gris claro visible (no blanco) de fondo, con las tarjetas en blanco
+     encima para que se note el contraste -- pedido explicito del usuario
+     de que la pantalla ya no se vea blanca. */
+  --color-bg-950: #e7e9ec;
   --color-bg-900: #ffffff;
   --color-bg-800: #ffffff;
-  --color-bg-700: #f5f5f7;
-  --color-bg-600: #e8e8ed;
-  --color-bg-500: #d2d2d7;
+  --color-bg-700: #eef0f2;
+  --color-bg-600: #e0e2e6;
+  --color-bg-500: #cbced4;
 
   --color-line-800: #e5e5ea;
   --color-line-700: #d2d2d7;
