@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Layers, Satellite } from 'lucide-react';
+import { Layers, Satellite, TrafficCone } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -19,6 +19,14 @@ const TILES_BASE: Record<CapaBase, { url: string; attribution: string }> = {
     attribution: 'Tiles &copy; Esri',
   },
 };
+
+// A diferencia de las dos anteriores, el trafico en tiempo real SI necesita
+// una llave (gratuita, sin tarjeta) de TomTom -- se configura como variable
+// de entorno de Vite (VITE_TOMTOM_API_KEY) para no quedar escrita en el
+// codigo fuente. Mientras esa variable no exista, el boton de Trafico no se
+// muestra (en vez de mostrar un boton que no puede funcionar).
+const TOMTOM_API_KEY = import.meta.env.VITE_TOMTOM_API_KEY as string | undefined;
+const TILE_TRAFICO_URL = `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=${TOMTOM_API_KEY}`;
 
 export interface MarcadorFlota {
   id: string;
@@ -92,8 +100,10 @@ export const FlotaMapa = forwardRef<
   const mapaRef = useRef<L.Map | null>(null);
   const capaBaseRef = useRef<L.TileLayer | null>(null);
   const capaTrazosRef = useRef<L.LayerGroup | null>(null);
+  const capaTraficoRef = useRef<L.TileLayer | null>(null);
   const marcadoresRef = useRef<Map<string, L.Marker>>(new Map());
   const [capaBase, setCapaBase] = useState<CapaBase>('calles');
+  const [mostrarTrafico, setMostrarTrafico] = useState(false);
 
   useImperativeHandle(
     ref,
@@ -121,9 +131,21 @@ export const FlotaMapa = forwardRef<
       mapaRef.current = null;
       capaBaseRef.current = null;
       capaTrazosRef.current = null;
+      capaTraficoRef.current = null;
       marcadoresRef.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    const mapa = mapaRef.current;
+    if (!mapa || !TOMTOM_API_KEY) return;
+    if (mostrarTrafico) {
+      capaTraficoRef.current = L.tileLayer(TILE_TRAFICO_URL, { maxZoom: 19, opacity: 0.85 }).addTo(mapa);
+    } else if (capaTraficoRef.current) {
+      mapa.removeLayer(capaTraficoRef.current);
+      capaTraficoRef.current = null;
+    }
+  }, [mostrarTrafico]);
 
   useEffect(() => {
     const mapa = mapaRef.current;
@@ -216,6 +238,18 @@ export const FlotaMapa = forwardRef<
           <Satellite size={13} />
           Satelite
         </button>
+        {TOMTOM_API_KEY && (
+          <button
+            type="button"
+            onClick={() => setMostrarTrafico((v) => !v)}
+            className={`flex items-center gap-1.5 border-l border-line-700 px-3 py-1.5 text-xs font-medium transition ${
+              mostrarTrafico ? 'bg-breco-500 text-white' : 'text-ink-300 hover:bg-bg-800'
+            }`}
+          >
+            <TrafficCone size={13} />
+            Trafico
+          </button>
+        )}
       </div>
     </div>
   );
