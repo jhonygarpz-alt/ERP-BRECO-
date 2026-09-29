@@ -17,7 +17,6 @@ import {
   Map,
   type LucideIcon,
 } from 'lucide-react';
-import { PageHeader } from '../../components/ui/PageHeader';
 
 interface CatalogoTile {
   to?: string;
@@ -82,7 +81,10 @@ function Tile({ tile }: { tile: CatalogoTile }) {
 export function CatalogosHubPage() {
   return (
     <div>
-      <PageHeader title="Catalogos" subtitle="Catalogos maestros usados en toda la operacion de trafico." />
+      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
+        <h1 className="text-xl font-bold text-sb-text">Catalogos</h1>
+        <p className="mt-1.5 text-sm text-sb-text-muted">Catalogos maestros usados en toda la operacion de trafico.</p>
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {catalogos.map((tile) => (
           <Tile key={tile.label} tile={tile} />
