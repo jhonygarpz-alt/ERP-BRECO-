@@ -78,7 +78,7 @@ function money(n: number, moneda: 'MXN' | 'USD') {
 }
 
 export function ClientesPage() {
-  const { clientes, facturas, viajes } = useData();
+  const { clientes, facturas, viajes, gruposCliente } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -287,7 +287,12 @@ export function ClientesPage() {
                   </Select>
                 </Field>
                 <Field label="Grupo">
-                  <Input value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })} />
+                  <Select value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })}>
+                    <option value="">Sin grupo</option>
+                    {gruposCliente.items.map((g) => (
+                      <option key={g.id} value={g.nombre}>{g.nombre}</option>
+                    ))}
+                  </Select>
                 </Field>
                 <Field label="Sucursal">
                   <Input required value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })} />

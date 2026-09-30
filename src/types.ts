@@ -875,6 +875,13 @@ export interface GrupoUnidad {
   color: string;
 }
 
+export interface GrupoCliente {
+  id: string;
+  codigo: string;
+  nombre: string;
+  color: string;
+}
+
 export interface TipoViaje {
   id: string;
   codigo: string;

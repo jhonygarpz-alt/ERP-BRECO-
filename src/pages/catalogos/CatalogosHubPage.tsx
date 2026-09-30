@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
   Users,
+  UsersRound,
   Truck,
   PackageSearch,
   IdCard,
@@ -28,6 +29,7 @@ interface CatalogoTile {
 
 const catalogos: CatalogoTile[] = [
   { to: '/catalogos/clientes', label: 'Clientes', icon: Users, gradient: ['#2dd4bf', '#0d9488'] },
+  { to: '/catalogos/grupos-cliente', label: 'Grupos de Clientes', icon: UsersRound, gradient: ['#5eead4', '#0f766e'] },
   { to: '/catalogos/destinatarios', label: 'Destinatarios', icon: Building2, gradient: ['#60a5fa', '#1d4ed8'] },
   { to: '/catalogos/operadores', label: 'Operadores', icon: IdCard, gradient: ['#c084fc', '#7e22ce'] },
   { to: '/catalogos/unidades', label: 'Unidades', icon: Truck, gradient: ['#fb7185', '#dc2626'] },

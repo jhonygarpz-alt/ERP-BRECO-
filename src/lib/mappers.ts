@@ -27,6 +27,7 @@ import type {
   DescuentoOperador,
   AbonoDescuentoOperador,
   GrupoUnidad,
+  GrupoCliente,
   IncidenciaViaje,
   ConciliacionBancaria,
   Mecanico,
@@ -1102,6 +1103,18 @@ export function grupoUnidadFromRow(row: Record<string, unknown>): GrupoUnidad {
   };
 }
 export function grupoUnidadToRow(g: GrupoUnidad) {
+  return { id: g.id, codigo: g.codigo || null, nombre: g.nombre, color: g.color };
+}
+
+export function grupoClienteFromRow(row: Record<string, unknown>): GrupoCliente {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    nombre: row.nombre as string,
+    color: row.color as string,
+  };
+}
+export function grupoClienteToRow(g: GrupoCliente) {
   return { id: g.id, codigo: g.codigo || null, nombre: g.nombre, color: g.color };
 }
 

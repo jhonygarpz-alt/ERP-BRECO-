@@ -22,6 +22,7 @@ export const PANTALLAS: PantallaInfo[] = [
   { id: '/catalogos/estatus-unidad', modulo: 'Catalogos', label: 'Estatus de Unidad' },
   { id: '/catalogos/clasificaciones-viaje', modulo: 'Catalogos', label: 'Clasificaciones de Viaje' },
   { id: '/catalogos/grupos-unidad', modulo: 'Catalogos', label: 'Grupos de Unidad' },
+  { id: '/catalogos/grupos-cliente', modulo: 'Catalogos', label: 'Grupos de Clientes' },
   { id: '/catalogos/tipos-viaje', modulo: 'Catalogos', label: 'Tipos de Viaje' },
   { id: '/catalogos/clasificaciones-operador', modulo: 'Catalogos', label: 'Clasificaciones de Operador' },
   { id: '/catalogos/conceptos-facturacion', modulo: 'Catalogos', label: 'Conceptos de Facturacion' },

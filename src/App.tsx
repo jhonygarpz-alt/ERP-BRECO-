@@ -21,6 +21,7 @@ import { EstatusViajePage } from './pages/catalogos/EstatusViajePage';
 import { EstatusUnidadPage } from './pages/catalogos/EstatusUnidadPage';
 import { ClasificacionesViajePage } from './pages/catalogos/ClasificacionesViajePage';
 import { GruposUnidadPage } from './pages/catalogos/GruposUnidadPage';
+import { GruposClientePage } from './pages/catalogos/GruposClientePage';
 import { TiposViajePage } from './pages/catalogos/TiposViajePage';
 import { ClasificacionesOperadorPage } from './pages/catalogos/ClasificacionesOperadorPage';
 import { ConceptosFacturacionPage } from './pages/catalogos/ConceptosFacturacionPage';
@@ -158,6 +159,7 @@ function App() {
                   <Route path="/catalogos/estatus-unidad" element={<EstatusUnidadPage />} />
                   <Route path="/catalogos/clasificaciones-viaje" element={<ClasificacionesViajePage />} />
                   <Route path="/catalogos/grupos-unidad" element={<GruposUnidadPage />} />
+                  <Route path="/catalogos/grupos-cliente" element={<GruposClientePage />} />
                   <Route path="/catalogos/tipos-viaje" element={<TiposViajePage />} />
                   <Route path="/catalogos/clasificaciones-operador" element={<ClasificacionesOperadorPage />} />
                   <Route path="/catalogos/conceptos-facturacion" element={<ConceptosFacturacionPage />} />
