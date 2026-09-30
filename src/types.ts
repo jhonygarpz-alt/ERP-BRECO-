@@ -191,6 +191,11 @@ export interface Unidad {
   tipoSuspension: string;
   tipoDiferencialDelantero: string;
   tipoDiferencialTrasero: string;
+  // Camaras y modem (feature "unidades_camaras_modem", solo algunas empresas)
+  numeroCamaras: number;
+  modemInternet: boolean;
+  companiaModem: string;
+  numeroRecargaModem: string;
   // Llantas
   numeroLlantas: number;
   /** Una de OPCIONES_LLANTA_REFACCION (src/lib/catalogosLlantas.ts). Vacio = sin capturar. */

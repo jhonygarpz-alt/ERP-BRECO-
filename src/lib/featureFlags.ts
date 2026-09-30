@@ -18,4 +18,10 @@ export interface FeatureFlagDef {
   descripcion?: string;
 }
 
-export const FEATURE_FLAGS: FeatureFlagDef[] = [];
+export const FEATURE_FLAGS: FeatureFlagDef[] = [
+  {
+    key: 'unidades_camaras_modem',
+    label: 'Camaras y modem de Unidades',
+    descripcion: 'Agrega a Unidades los campos de Numero de camaras, Modem de internet, Compania del modem y Numero para recarga del modem.',
+  },
+];

@@ -74,6 +74,10 @@ const emptyForm: Omit<Unidad, 'id'> = {
   tipoSuspension: '',
   tipoDiferencialDelantero: '',
   tipoDiferencialTrasero: '',
+  numeroCamaras: 0,
+  modemInternet: false,
+  companiaModem: '',
+  numeroRecargaModem: '',
   numeroLlantas: 0,
   llantasRefaccion: '',
   marcaLlanta: '',
@@ -113,7 +117,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
 
 export function UnidadesPage() {
   const { unidades, operadores, clientes, empresa, estatusUnidades, gruposUnidad, proveedores } = useData();
-  const { hasPermission } = useAuth();
+  const { hasPermission, tieneFeature } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
   const puedeEliminar = hasPermission('Catalogos', 'eliminar');
@@ -532,6 +536,34 @@ export function UnidadesPage() {
                 <Field label="Tipo de diferencial trasero">
                   <Input value={form.tipoDiferencialTrasero} onChange={(e) => setForm({ ...form, tipoDiferencialTrasero: e.target.value })} />
                 </Field>
+                {tieneFeature('unidades_camaras_modem') && (
+                  <>
+                    <Field label="Número de cámaras">
+                      <Select value={form.numeroCamaras || ''} onChange={(e) => setForm({ ...form, numeroCamaras: Number(e.target.value) })}>
+                        <option value="">Seleccione...</option>
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Modem de internet">
+                      <label className="flex h-[42px] items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.modemInternet}
+                          onChange={(e) => setForm({ ...form, modemInternet: e.target.checked })}
+                        />
+                        {form.modemInternet ? 'Sí' : 'No'}
+                      </label>
+                    </Field>
+                    <Field label="Compañía del módem">
+                      <Input value={form.companiaModem} onChange={(e) => setForm({ ...form, companiaModem: e.target.value })} />
+                    </Field>
+                    <Field label="Número para recarga del módem">
+                      <Input value={form.numeroRecargaModem} onChange={(e) => setForm({ ...form, numeroRecargaModem: e.target.value })} />
+                    </Field>
+                  </>
+                )}
               </div>
             </section>
 
