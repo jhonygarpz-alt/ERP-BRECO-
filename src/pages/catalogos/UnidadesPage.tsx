@@ -28,6 +28,7 @@ const BUCKET = 'unidad-documentos';
 const TIPOS_TRANSMISION = ['Manual', 'Automatica', '18 velocidades Fuller', '16 velocidades Spicer', '18 velocidades Spicer'];
 const TIPOS_SUSPENSION = ['Muelles', 'Neumatica'];
 const TIPOS_COMBUSTIBLE = ['Diesel', 'Gasolina', 'Gas Natural', 'Electrico'];
+const TIPOS_CABINA = ['Normal', 'Panoramica'];
 
 const emptyDocVencimiento: UnidadDocumentoVencimiento = { numeroDocumento: '', documento: '', fechaVencimiento: '', tipo: 'Otro' };
 const TIPOS_DOCUMENTO_UNIDAD: NonNullable<UnidadDocumentoVencimiento['tipo']>[] = [
@@ -505,7 +506,12 @@ export function UnidadesPage() {
                   <Input value={form.tipoMotor} onChange={(e) => setForm({ ...form, tipoMotor: e.target.value })} />
                 </Field>
                 <Field label="Tipo de cabina">
-                  <Input value={form.tipoCabina} onChange={(e) => setForm({ ...form, tipoCabina: e.target.value })} />
+                  <Select value={form.tipoCabina} onChange={(e) => setForm({ ...form, tipoCabina: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {TIPOS_CABINA.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </Select>
                 </Field>
                 <Field label="Tipo de suspensión">
                   <Select value={form.tipoSuspension} onChange={(e) => setForm({ ...form, tipoSuspension: e.target.value })}>
