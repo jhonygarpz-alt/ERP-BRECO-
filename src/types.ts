@@ -358,6 +358,7 @@ export interface Operador {
   rfc: string;
   curp: string;
   fechaContratacion: string;
+  edad: number;
   sucursal: string;
   telefono: string;
   celular: string;

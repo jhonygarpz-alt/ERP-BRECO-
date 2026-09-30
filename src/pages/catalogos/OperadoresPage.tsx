@@ -49,6 +49,7 @@ const emptyForm: Omit<Operador, 'id'> = {
   rfc: '',
   curp: '',
   fechaContratacion: '',
+  edad: 0,
   sucursal: 'Matriz',
   telefono: '',
   celular: '',
@@ -387,6 +388,9 @@ export function OperadoresPage() {
                         <option key={c.id} value={c.clasificacion}>{c.clasificacion}</option>
                       ))}
                     </Select>
+                  </Field>
+                  <Field label="Edad">
+                    <Input type="number" min={0} value={form.edad || ''} onChange={(e) => setForm({ ...form, edad: Number(e.target.value) })} />
                   </Field>
                 </div>
               </div>
