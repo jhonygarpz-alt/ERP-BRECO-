@@ -152,6 +152,8 @@ export interface Unidad {
   id: string;
   economico: string;
   placas: string;
+  /** Campo de texto libre aparte del Codigo interno (economico); numero economico que usa el cliente o alguna otra referencia. */
+  numeroEconomico: string;
   /** Clave del catalogo SAT c_ConfigAutotransporte (Carta Porte). */
   tipo: string;
   marca: string;
@@ -268,6 +270,8 @@ export interface Caja {
   id: string;
   economico: string;
   placas: string;
+  /** Campo de texto libre aparte del Codigo interno (economico); numero economico que usa el cliente o alguna otra referencia. */
+  numeroEconomico: string;
   /** Clave del catalogo SAT c_SubTipoRem (Carta Porte). */
   tipo: string;
   capacidad: string;

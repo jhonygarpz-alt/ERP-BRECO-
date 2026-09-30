@@ -42,6 +42,7 @@ const TIPOS_DOCUMENTO_UNIDAD: NonNullable<UnidadDocumentoVencimiento['tipo']>[] 
 const emptyForm: Omit<Unidad, 'id'> = {
   economico: '',
   placas: '',
+  numeroEconomico: '',
   tipo: '',
   marca: '',
   modelo: '',
@@ -398,6 +399,9 @@ export function UnidadesPage() {
                   </Field>
                   <Field label="Placas" required>
                     <Input value={form.placas} onChange={(e) => setForm({ ...form, placas: e.target.value })} />
+                  </Field>
+                  <Field label="Número económico">
+                    <Input value={form.numeroEconomico} onChange={(e) => setForm({ ...form, numeroEconomico: e.target.value })} />
                   </Field>
                   <Field label="Color">
                     <Input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />

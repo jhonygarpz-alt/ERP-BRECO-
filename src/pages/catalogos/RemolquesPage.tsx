@@ -33,6 +33,7 @@ const emptyDocVencimiento: CajaDocumentoVencimiento = { numeroDocumento: '', doc
 const emptyForm: Omit<Caja, 'id'> = {
   economico: '',
   placas: '',
+  numeroEconomico: '',
   tipo: '',
   capacidad: '',
   estatus: 'Disponible',
@@ -331,6 +332,9 @@ export function RemolquesPage() {
                   </Field>
                   <Field label="Placas" required>
                     <Input value={form.placas} onChange={(e) => setForm({ ...form, placas: e.target.value })} />
+                  </Field>
+                  <Field label="Número económico">
+                    <Input value={form.numeroEconomico} onChange={(e) => setForm({ ...form, numeroEconomico: e.target.value })} />
                   </Field>
                   <Field label="Color">
                     <Input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />

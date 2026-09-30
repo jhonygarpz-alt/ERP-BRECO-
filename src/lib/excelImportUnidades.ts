@@ -106,6 +106,7 @@ export async function leerUnidadesExcel(file: File): Promise<{ totalFilasHoja: n
       id: uid('uni'),
       economico,
       placas: texto(col('placas', fila)),
+      numeroEconomico: '',
       tipo: texto(col('tipo', fila)),
       marca: texto(col('marca', fila)),
       modelo: texto(col('modelo', fila)),

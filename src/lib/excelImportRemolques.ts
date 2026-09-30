@@ -104,6 +104,7 @@ export async function leerRemolquesExcel(file: File): Promise<{ totalFilasHoja: 
       id: uid('caj'),
       economico,
       placas: texto(col('placas', fila)),
+      numeroEconomico: '',
       tipo: texto(col('tipo', fila)),
       capacidad: texto(col('capacidad', fila)),
       estatus: 'Disponible',
