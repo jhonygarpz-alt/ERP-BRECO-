@@ -95,6 +95,19 @@ function nombreCompleto(f: { nombres: string; apellidoPaterno: string; apellidoM
   return [f.nombres, f.apellidoPaterno, f.apellidoMaterno].filter(Boolean).join(' ').trim();
 }
 
+function calcularEdad(fechaNacimiento: string): number {
+  if (!fechaNacimiento) return 0;
+  const nacimiento = new Date(`${fechaNacimiento}T00:00:00`);
+  if (Number.isNaN(nacimiento.getTime())) return 0;
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const aunNoCumple =
+    hoy.getMonth() < nacimiento.getMonth() ||
+    (hoy.getMonth() === nacimiento.getMonth() && hoy.getDate() < nacimiento.getDate());
+  if (aunNoCumple) edad--;
+  return Math.max(0, edad);
+}
+
 export function OperadoresPage() {
   const { operadores, empresa, clasificacionesOperador } = useData();
   const { hasPermission } = useAuth();
@@ -152,7 +165,7 @@ export function OperadoresPage() {
 
   function openEdit(o: Operador) {
     setEditing(o);
-    setForm(o);
+    setForm(o.fechaNacimiento ? { ...o, edad: calcularEdad(o.fechaNacimiento) } : o);
     setDraftId(o.id);
     setTab('general');
     setDocDescripcion('');
@@ -394,10 +407,14 @@ export function OperadoresPage() {
                     </Select>
                   </Field>
                   <Field label="Edad">
-                    <Input type="number" min={0} value={form.edad || ''} onChange={(e) => setForm({ ...form, edad: Number(e.target.value) })} />
+                    <Input type="number" min={0} value={form.edad || ''} disabled readOnly />
                   </Field>
                   <Field label="Fecha de nacimiento">
-                    <Input type="date" value={form.fechaNacimiento} onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} />
+                    <Input
+                      type="date"
+                      value={form.fechaNacimiento}
+                      onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value, edad: calcularEdad(e.target.value) })}
+                    />
                   </Field>
                   <Field label="Contacto de emergencia - Nombre">
                     <Input
