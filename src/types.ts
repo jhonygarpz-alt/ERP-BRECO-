@@ -169,7 +169,10 @@ export interface Unidad {
   /** Identificador/clave que la plataforma de rastreo GPS del cliente asigna a esta unidad (para poder cruzar las posiciones que reporte con este registro). Vacio = la unidad no esta dada de alta en ningun proveedor de GPS todavia. */
   identificadorGps: string;
   identificadorConvoy: string;
+  /** Numero de Serie NIV (chasis) de la unidad. */
   numeroSerie: string;
+  /** Numero de serie del motor de la unidad. */
+  numeroSerieMotor: string;
   color: string;
   grupoUnidades: string;
   fotoDataUrl: string;

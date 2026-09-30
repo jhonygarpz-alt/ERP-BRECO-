@@ -815,6 +815,7 @@ export function ViajesPage() {
       identificadorGps: '',
       identificadorConvoy: '',
       numeroSerie: '',
+      numeroSerieMotor: '',
       color: '',
       grupoUnidades: '',
       fotoDataUrl: '',

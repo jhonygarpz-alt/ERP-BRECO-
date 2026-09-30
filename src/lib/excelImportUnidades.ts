@@ -119,6 +119,7 @@ export async function leerUnidadesExcel(file: File): Promise<{ totalFilasHoja: n
       identificadorGps: texto(col('identificadorGps', fila)),
       identificadorConvoy: texto(col('identificadorConvoy', fila)),
       numeroSerie: texto(col('numeroSerie', fila)),
+      numeroSerieMotor: '',
       color: texto(col('color', fila)),
       grupoUnidades: texto(col('grupoUnidades', fila)),
       fotoDataUrl: '',

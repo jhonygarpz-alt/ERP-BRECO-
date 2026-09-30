@@ -56,6 +56,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
   identificadorGps: '',
   identificadorConvoy: '',
   numeroSerie: '',
+  numeroSerieMotor: '',
   color: '',
   grupoUnidades: '',
   fotoDataUrl: '',
@@ -387,8 +388,11 @@ export function UnidadesPage() {
                   <Field label="Identificador de convoy">
                     <Input value={form.identificadorConvoy} onChange={(e) => setForm({ ...form, identificadorConvoy: e.target.value })} />
                   </Field>
-                  <Field label="Número de serie">
+                  <Field label="Número de serie NIV">
                     <Input value={form.numeroSerie} onChange={(e) => setForm({ ...form, numeroSerie: e.target.value })} />
+                  </Field>
+                  <Field label="Número de serie motor">
+                    <Input value={form.numeroSerieMotor} onChange={(e) => setForm({ ...form, numeroSerieMotor: e.target.value })} />
                   </Field>
                   <Field label="Placas" required>
                     <Input value={form.placas} onChange={(e) => setForm({ ...form, placas: e.target.value })} />
