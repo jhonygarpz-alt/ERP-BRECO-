@@ -6,7 +6,22 @@ import { resetearPasswordUsuario } from '../../lib/resetearPassword';
 import { uid } from '../../lib/storage';
 import { DEFAULT_ALERTAS_VENCIMIENTOS } from '../../lib/alertasVencimientosConfig';
 import { FEATURE_FLAGS } from '../../lib/featureFlags';
-import type { Empresa, Modulo, PermisoModulo, Rol, Usuario } from '../../types';
+import type {
+  ClasificacionOperador,
+  ClasificacionViaje,
+  ConceptoFacturacion,
+  Empresa,
+  FormatoImpresion,
+  GrupoCliente,
+  GrupoUnidad,
+  EstatusUnidadCustom,
+  ImpuestoConcepto,
+  Modulo,
+  PermisoModulo,
+  Rol,
+  TipoViaje,
+  Usuario,
+} from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CrudTable, type Column } from '../../components/ui/CrudTable';
 import { Modal } from '../../components/ui/Modal';
@@ -75,6 +90,139 @@ function rolesDeFabrica(empresaId: string): Rol[] {
       empresaId,
     },
   ];
+}
+
+// Mismos catalogos por defecto que ya siembran las migraciones 025, 026,
+// 027, 028, 029, 031, 035 y 070 para empresas que existian al correrlas --
+// una empresa creada desde aqui necesita este mismo sembrado, o pantallas
+// como "Estatus operativo" en Unidades aparecen vacias.
+function estatusUnidadDeFabrica(empresaId: string): EstatusUnidadCustom[] {
+  return [
+    { id: `${empresaId}-estu-disponible`, nombre: 'Disponible', color: 'green', tipoEstatus: 'Disponible' },
+    { id: `${empresaId}-estu-ocupada`, nombre: 'Ocupada', color: 'red', tipoEstatus: 'Ocupada' },
+    { id: `${empresaId}-estu-mantenimiento`, nombre: 'En Mantenimiento', color: 'yellow', tipoEstatus: 'Ocupada' },
+    { id: `${empresaId}-estu-asignada`, nombre: 'Asignada', color: 'blue', tipoEstatus: 'Ocupada' },
+    { id: `${empresaId}-estu-servicio`, nombre: 'En Servicio', color: 'cyan', tipoEstatus: 'Ocupada' },
+  ];
+}
+
+function clasificacionesViajeDeFabrica(empresaId: string): ClasificacionViaje[] {
+  return [
+    { id: `${empresaId}-clv-1`, codigo: '1', clasificacion: 'SENCILLO', activo: true },
+    { id: `${empresaId}-clv-2`, codigo: '2', clasificacion: 'FULL', activo: true },
+  ];
+}
+
+function gruposUnidadDeFabrica(empresaId: string): GrupoUnidad[] {
+  return [
+    { id: `${empresaId}-gru-1`, codigo: '1', nombre: 'GENERAL', color: 'gray' },
+    { id: `${empresaId}-gru-2`, codigo: '2', nombre: 'TRACTOS', color: 'blue' },
+    { id: `${empresaId}-gru-3`, codigo: '3', nombre: 'REMOLQUES', color: 'amber' },
+    { id: `${empresaId}-gru-4`, codigo: '4', nombre: 'DOLLY', color: 'purple' },
+  ];
+}
+
+function gruposClienteDeFabrica(empresaId: string): GrupoCliente[] {
+  return [{ id: `${empresaId}-grc-1`, codigo: '1', nombre: 'GENERAL', color: 'gray' }];
+}
+
+function tiposViajeDeFabrica(empresaId: string): TipoViaje[] {
+  return [
+    { id: `${empresaId}-tpv-1`, codigo: '1', tipoViaje: 'LOCAL', activo: true },
+    { id: `${empresaId}-tpv-2`, codigo: '2', tipoViaje: 'NACIONAL', activo: true },
+  ];
+}
+
+function clasificacionesOperadorDeFabrica(empresaId: string): ClasificacionOperador[] {
+  return [
+    { id: `${empresaId}-clo-1`, codigo: '1', clasificacion: 'PROPIO', activo: true },
+    { id: `${empresaId}-clo-2`, codigo: '2', clasificacion: 'PERMISIONARIO', activo: true },
+    { id: `${empresaId}-clo-3`, codigo: '3', clasificacion: 'TORTON', activo: true },
+    { id: `${empresaId}-clo-4`, codigo: '4', clasificacion: 'FULL', activo: true },
+    { id: `${empresaId}-clo-5`, codigo: '5', clasificacion: 'TRACTOCAMION', activo: true },
+    { id: `${empresaId}-clo-6`, codigo: '6', clasificacion: 'CAMIONETAS', activo: true },
+  ];
+}
+
+function formatosImpresionDeFabrica(empresaId: string): FormatoImpresion[] {
+  return [
+    {
+      id: `${empresaId}-fmt-1`,
+      area: 'Viajes',
+      clave: 'real',
+      nombre: 'Con Importe Real',
+      descripcion: 'Incluye los conceptos de facturacion con sus importes reales. Para uso interno/oficina.',
+      activo: true,
+    },
+    {
+      id: `${empresaId}-fmt-2`,
+      area: 'Viajes',
+      clave: 'cero',
+      nombre: 'Con Valor $0',
+      descripcion: 'Muestra los mismos conceptos pero con importe en $0.00. Para entregar al operador.',
+      activo: true,
+    },
+  ];
+}
+
+function conceptosFacturacionDeFabrica(empresaId: string): ConceptoFacturacion[] {
+  const traslada16: ImpuestoConcepto[] = [
+    { impuesto: 'IVA 0%', aplica: false, predeterminado: false },
+    { impuesto: 'IVA 8%', aplica: false, predeterminado: false },
+    { impuesto: 'IVA 11%', aplica: false, predeterminado: false },
+    { impuesto: 'IVA 16%', aplica: true, predeterminado: true },
+  ];
+  const retiene4: ImpuestoConcepto[] = [
+    { impuesto: 'RETENCION IVA 0%', aplica: false, predeterminado: false },
+    { impuesto: 'RETENCION IVA 4%', aplica: true, predeterminado: true },
+  ];
+  const retieneNinguna: ImpuestoConcepto[] = [
+    { impuesto: 'RETENCION IVA 0%', aplica: false, predeterminado: false },
+    { impuesto: 'RETENCION IVA 4%', aplica: false, predeterminado: false },
+  ];
+  const conceptosRetiene = ['FLETE', 'REPARTOS', 'RECOLECCION', 'RENTA DE EQUIPO', 'FLETE EN FALSO', 'DIF. DE KILOMETRAJE', 'REEXPEDICION'];
+  const conceptosNoRetiene = [
+    'MANIOBRAS CARGADO',
+    'AUTOPISTAS',
+    'DEMORAS',
+    'SOBRE PESO',
+    'SEGUROS',
+    'APLICACIÓN DE ANTICIPO',
+    'ANTICIPO DEL BIEN O SERVICIO',
+    'ALMACENAJES',
+    'MANIOBRAS VACIO',
+    'PENSION',
+  ];
+  const base = (concepto: string, i: number, retenciones: ImpuestoConcepto[]): ConceptoFacturacion => ({
+    id: `${empresaId}-cf-${i}`,
+    codigo: String(i),
+    concepto,
+    activo: true,
+    traslados: traslada16,
+    retenciones,
+    incluirCalculoIngresosLiquidacion: false,
+    incluirCalculoLiquidacionPorcentajeFlete: false,
+    incluirReporteControlMovimientosInterterminal: false,
+    incluirReporteControlMovimientosTransporteGasolina: false,
+    claveProdServ: '',
+    claveProdServDescripcion: '',
+    claveUnidad: '',
+    claveUnidadNombre: '',
+    unidadMedida: '',
+    noIdentificacion: '',
+    objetoImpuesto: '',
+  });
+  let i = 0;
+  const items: ConceptoFacturacion[] = [];
+  for (const c of conceptosRetiene) {
+    i += 1;
+    items.push(base(c, i, retiene4));
+  }
+  for (const c of conceptosNoRetiene) {
+    i += 1;
+    items.push(base(c, i, retieneNinguna));
+  }
+  return items;
 }
 
 interface FormEmpresa {
@@ -156,7 +304,19 @@ function FeaturesCheckboxes({ seleccionadas, onToggle }: { seleccionadas: string
 }
 
 export function EmpresasSection() {
-  const { empresas, roles, usuarios } = useData();
+  const {
+    empresas,
+    roles,
+    usuarios,
+    estatusUnidades,
+    clasificacionesViaje,
+    gruposUnidad,
+    gruposCliente,
+    tiposViaje,
+    clasificacionesOperador,
+    formatosImpresion,
+    conceptosFacturacion,
+  } = useData();
 
   const [modalNuevaOpen, setModalNuevaOpen] = useState(false);
   const [creando, setCreando] = useState(false);
@@ -218,6 +378,15 @@ export function EmpresasSection() {
       for (const rol of rolesDeFabrica(empresaId)) {
         await roles.add(rol);
       }
+
+      for (const item of estatusUnidadDeFabrica(empresaId)) await estatusUnidades.add(item);
+      for (const item of clasificacionesViajeDeFabrica(empresaId)) await clasificacionesViaje.add(item);
+      for (const item of gruposUnidadDeFabrica(empresaId)) await gruposUnidad.add(item);
+      for (const item of gruposClienteDeFabrica(empresaId)) await gruposCliente.add(item);
+      for (const item of tiposViajeDeFabrica(empresaId)) await tiposViaje.add(item);
+      for (const item of clasificacionesOperadorDeFabrica(empresaId)) await clasificacionesOperador.add(item);
+      for (const item of formatosImpresionDeFabrica(empresaId)) await formatosImpresion.add(item);
+      for (const item of conceptosFacturacionDeFabrica(empresaId)) await conceptosFacturacion.add(item);
 
       await usuarios.add({
         id: nuevoUid,
