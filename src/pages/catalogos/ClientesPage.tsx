@@ -111,9 +111,14 @@ export function ClientesPage() {
 
   const filtered = useMemo(
     () =>
-      clientes.items.filter((c) =>
-        `${c.nombre} ${c.rfc} ${c.numeroCliente}`.toLowerCase().includes(search.toLowerCase()),
-      ),
+      clientes.items
+        .filter((c) => `${c.nombre} ${c.rfc} ${c.numeroCliente}`.toLowerCase().includes(search.toLowerCase()))
+        .sort((a, b) => {
+          const na = Number(a.numeroCliente);
+          const nb = Number(b.numeroCliente);
+          if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+          return a.numeroCliente.localeCompare(b.numeroCliente);
+        }),
     [clientes.items, search],
   );
 
