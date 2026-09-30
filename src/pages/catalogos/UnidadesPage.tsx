@@ -539,22 +539,20 @@ export function UnidadesPage() {
                 {tieneFeature('unidades_camaras_modem') && (
                   <>
                     <Field label="Número de cámaras">
-                      <Select value={form.numeroCamaras || ''} onChange={(e) => setForm({ ...form, numeroCamaras: Number(e.target.value) })}>
-                        <option value="">Seleccione...</option>
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                      <Select value={form.numeroCamaras} onChange={(e) => setForm({ ...form, numeroCamaras: Number(e.target.value) })}>
+                        {Array.from({ length: 11 }, (_, i) => i).map((n) => (
                           <option key={n} value={n}>{n}</option>
                         ))}
                       </Select>
                     </Field>
                     <Field label="Modem de internet">
-                      <label className="flex h-[42px] items-center gap-2 text-sm text-ink-300">
-                        <input
-                          type="checkbox"
-                          checked={form.modemInternet}
-                          onChange={(e) => setForm({ ...form, modemInternet: e.target.checked })}
-                        />
-                        {form.modemInternet ? 'Sí' : 'No'}
-                      </label>
+                      <Select
+                        value={form.modemInternet ? 'Si' : 'No'}
+                        onChange={(e) => setForm({ ...form, modemInternet: e.target.value === 'Si' })}
+                      >
+                        <option value="No">No</option>
+                        <option value="Si">Sí</option>
+                      </Select>
                     </Field>
                     <Field label="Compañía del módem">
                       <Input value={form.companiaModem} onChange={(e) => setForm({ ...form, companiaModem: e.target.value })} />
