@@ -6,8 +6,8 @@ import {
   CalendarClock,
   Boxes,
   ArrowRightLeft,
-  ArrowDownToLine,
-  ArrowUpFromLine,
+  MapPin,
+  Map as MapIcon,
   Ban,
   DollarSign,
   Truck,
@@ -111,8 +111,8 @@ function ReporteViajes({ viajes, clientes, unidades }: { viajes: Viaje[]; client
     .map(([clienteId, items]) => ({
       cliente: clienteNombre(clienteId),
       total: items.length,
-      imp: items.filter((v) => v.importacion).length,
-      exp: items.filter((v) => v.exportacion).length,
+      local: items.filter((v) => v.local).length,
+      nacional: items.filter((v) => v.nacional).length,
     }))
     .sort((a, b) => b.total - a.total);
 
@@ -129,23 +129,23 @@ function ReporteViajes({ viajes, clientes, unidades }: { viajes: Viaje[]; client
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Total de viajes" value={String(viajes.length)} icon={Route} accent="blue" />
         <StatCard
-          label="Importacion"
-          value={String(viajes.filter((v) => v.importacion).length)}
-          icon={ArrowDownToLine}
+          label="Local"
+          value={String(viajes.filter((v) => v.local).length)}
+          icon={MapPin}
           accent="green"
         />
         <StatCard
-          label="Exportacion"
-          value={String(viajes.filter((v) => v.exportacion).length)}
-          icon={ArrowUpFromLine}
+          label="Nacional"
+          value={String(viajes.filter((v) => v.nacional).length)}
+          icon={MapIcon}
           accent="amber"
         />
         <StatCard label="Cancelados" value={String(cancelados)} icon={Ban} accent="red" />
       </div>
       <SeccionReporte title={`Viajes por cliente (${filasCliente.length})`}>
         <ReportTable
-          headers={['Cliente', 'Total', 'Imp', 'Exp']}
-          rows={filasCliente.map((f) => [f.cliente, f.total, f.imp, f.exp])}
+          headers={['Cliente', 'Total', 'Local', 'Nacional']}
+          rows={filasCliente.map((f) => [f.cliente, f.total, f.local, f.nacional])}
         />
       </SeccionReporte>
       <SeccionReporte title={`Viajes por unidad (${filasUnidad.length})`}>
