@@ -139,6 +139,7 @@ export async function leerOperadoresExcel(file: File): Promise<{ totalFilasHoja:
       curp: texto(col('curp', fila)).toUpperCase(),
       fechaContratacion: fechaISO(col('fechaContratacion', fila)),
       edad: 0,
+      fechaNacimiento: '',
       sucursal: texto(col('sucursal', fila)) || 'Matriz',
       telefono: texto(col('telefono', fila)),
       celular: texto(col('celular', fila)),

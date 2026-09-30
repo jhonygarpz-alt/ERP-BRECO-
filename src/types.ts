@@ -365,6 +365,7 @@ export interface Operador {
   curp: string;
   fechaContratacion: string;
   edad: number;
+  fechaNacimiento: string;
   sucursal: string;
   telefono: string;
   celular: string;

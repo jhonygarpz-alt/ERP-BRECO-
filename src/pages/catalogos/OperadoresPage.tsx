@@ -50,6 +50,7 @@ const emptyForm: Omit<Operador, 'id'> = {
   curp: '',
   fechaContratacion: '',
   edad: 0,
+  fechaNacimiento: '',
   sucursal: 'Matriz',
   telefono: '',
   celular: '',
@@ -391,6 +392,9 @@ export function OperadoresPage() {
                   </Field>
                   <Field label="Edad">
                     <Input type="number" min={0} value={form.edad || ''} onChange={(e) => setForm({ ...form, edad: Number(e.target.value) })} />
+                  </Field>
+                  <Field label="Fecha de nacimiento">
+                    <Input type="date" value={form.fechaNacimiento} onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} />
                   </Field>
                 </div>
               </div>
