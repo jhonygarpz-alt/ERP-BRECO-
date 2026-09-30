@@ -7,7 +7,7 @@ import { mensajeDeError } from '../../lib/errors';
 import { cajaToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { SUBTIPO_REMOLQUE_SAT } from '../../lib/catalogosSat';
-import { OPCIONES_LLANTA_REFACCION } from '../../lib/catalogosLlantas';
+import { OPCIONES_LLANTA_REFACCION, OPCIONES_EJE_LLANTA } from '../../lib/catalogosLlantas';
 import {
   descargarPlantillaRemolques,
   guardarRemolquesImportados,
@@ -62,6 +62,7 @@ const emptyForm: Omit<Caja, 'id'> = {
   medidaLlanta: '',
   rodadaLlanta: '',
   tipoLlanta: '',
+  ejeLlanta: '',
   ultimaInspeccionFisicomecanica: '',
   proximaInspeccionFisicomecanica: '',
   proveedorInspeccionId: undefined,
@@ -443,6 +444,16 @@ export function RemolquesPage() {
                 </Field>
                 <Field label="Tipo de llanta">
                   <Input value={form.tipoLlanta} onChange={(e) => setForm({ ...form, tipoLlanta: e.target.value })} placeholder="Direccional, tracción, mixta..." />
+                </Field>
+                <Field label="Eje de la llanta">
+                  <Select value={form.ejeLlanta} onChange={(e) => setForm({ ...form, ejeLlanta: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {OPCIONES_EJE_LLANTA.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </Select>
                 </Field>
               </div>
             </section>

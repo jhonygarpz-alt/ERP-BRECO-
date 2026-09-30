@@ -7,7 +7,7 @@ import { mensajeDeError } from '../../lib/errors';
 import { unidadToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { CONFIG_AUTOTRANSPORTE_SAT, TIPO_PERMISO_SCT } from '../../lib/catalogosSat';
-import { OPCIONES_LLANTA_REFACCION } from '../../lib/catalogosLlantas';
+import { OPCIONES_LLANTA_REFACCION, OPCIONES_EJE_LLANTA } from '../../lib/catalogosLlantas';
 import {
   descargarPlantillaUnidades,
   guardarUnidadesImportadas,
@@ -25,7 +25,7 @@ import { StatusBadge, type Tone } from '../../components/ui/Badge';
 
 const BUCKET = 'unidad-documentos';
 
-const TIPOS_TRANSMISION = ['Manual', 'Automatica', '18 velocidades Fuller', '16 velocidades Spicer'];
+const TIPOS_TRANSMISION = ['Manual', 'Automatica', '18 velocidades Fuller', '16 velocidades Spicer', '18 velocidades Spicer'];
 const TIPOS_SUSPENSION = ['Muelles', 'Neumatica'];
 const TIPOS_COMBUSTIBLE = ['Diesel', 'Gasolina', 'Gas Natural', 'Electrico'];
 
@@ -78,6 +78,7 @@ const emptyForm: Omit<Unidad, 'id'> = {
   medidaLlanta: '',
   rodadaLlanta: '',
   tipoLlanta: '',
+  ejeLlanta: '',
   ultimaInspeccionFisicomecanica: '',
   proximaInspeccionFisicomecanica: '',
   proveedorInspeccionId: undefined,
@@ -549,6 +550,16 @@ export function UnidadesPage() {
                 </Field>
                 <Field label="Tipo de llanta">
                   <Input value={form.tipoLlanta} onChange={(e) => setForm({ ...form, tipoLlanta: e.target.value })} placeholder="Direccional, tracción, mixta..." />
+                </Field>
+                <Field label="Eje de la llanta">
+                  <Select value={form.ejeLlanta} onChange={(e) => setForm({ ...form, ejeLlanta: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {OPCIONES_EJE_LLANTA.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </Select>
                 </Field>
               </div>
             </section>

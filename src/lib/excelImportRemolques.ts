@@ -135,6 +135,7 @@ export async function leerRemolquesExcel(file: File): Promise<{ totalFilasHoja: 
       medidaLlanta: '',
       rodadaLlanta: '',
       tipoLlanta: '',
+      ejeLlanta: '',
       ultimaInspeccionFisicomecanica: '',
       proximaInspeccionFisicomecanica: '',
       documentosVencimiento: [],

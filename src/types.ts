@@ -195,6 +195,8 @@ export interface Unidad {
   medidaLlanta: string;
   rodadaLlanta: string;
   tipoLlanta: string;
+  /** Una de OPCIONES_EJE_LLANTA (src/lib/catalogosLlantas.ts): Direccion o Diferencial. Vacio = sin capturar. */
+  ejeLlanta: string;
   // Inspeccion fisicomecanica
   ultimaInspeccionFisicomecanica: string;
   proximaInspeccionFisicomecanica: string;
@@ -294,6 +296,8 @@ export interface Caja {
   medidaLlanta: string;
   rodadaLlanta: string;
   tipoLlanta: string;
+  /** Una de OPCIONES_EJE_LLANTA (src/lib/catalogosLlantas.ts): Direccion o Diferencial. Vacio = sin capturar. */
+  ejeLlanta: string;
   // Inspeccion fisicomecanica
   ultimaInspeccionFisicomecanica: string;
   proximaInspeccionFisicomecanica: string;
