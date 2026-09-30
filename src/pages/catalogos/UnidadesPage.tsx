@@ -121,7 +121,6 @@ export function UnidadesPage() {
   const [editing, setEditing] = useState<Unidad | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [draftId, setDraftId] = useState('');
-  const [tab, setTab] = useState<'general' | 'seguros'>('general');
   const [error, setError] = useState('');
   const [importarOpen, setImportarOpen] = useState(false);
   const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
@@ -160,7 +159,6 @@ export function UnidadesPage() {
     setEditing(null);
     setForm(emptyForm);
     setDraftId(uid('uni'));
-    setTab('general');
     setError('');
     setErrorArch('');
     setModalOpen(true);
@@ -170,7 +168,6 @@ export function UnidadesPage() {
     setEditing(u);
     setForm({ operadorAsignadoId: '', clienteAsignadoId: '', ...u });
     setDraftId(u.id);
-    setTab('general');
     setError('');
     setErrorArch('');
     setModalOpen(true);
@@ -722,27 +719,7 @@ export function UnidadesPage() {
               </div>
             </section>
 
-            <section>
-              <div className="mb-3 flex gap-1 border-b border-line-800">
-                {[
-                  { id: 'general' as const, label: 'Información General' },
-                  { id: 'seguros' as const, label: 'Seguros' },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setTab(t.id)}
-                    className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition ${
-                      tab === t.id ? 'border-breco-500 text-ink-100' : 'border-transparent text-ink-500 hover:text-ink-200'
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-
-              {tab === 'general' && (
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Documentos de la unidad</h4>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -869,25 +846,24 @@ export function UnidadesPage() {
                       </table>
                     </div>
                   </div>
-                </div>
-              )}
+            </section>
 
-              {tab === 'seguros' && (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                  <Field label="Aseguradora" required>
-                    <Input value={form.aseguradora} onChange={(e) => setForm({ ...form, aseguradora: e.target.value })} />
-                  </Field>
-                  <Field label="No. Póliza" required>
-                    <Input value={form.noPoliza} onChange={(e) => setForm({ ...form, noPoliza: e.target.value })} />
-                  </Field>
-                  <Field label="Vigencia desde">
-                    <Input type="date" value={form.vigenciaDesde} onChange={(e) => setForm({ ...form, vigenciaDesde: e.target.value })} />
-                  </Field>
-                  <Field label="Vigencia hasta">
-                    <Input type="date" value={form.vigenciaHasta} onChange={(e) => setForm({ ...form, vigenciaHasta: e.target.value })} />
-                  </Field>
-                </div>
-              )}
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">Seguros</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                <Field label="Aseguradora" required>
+                  <Input value={form.aseguradora} onChange={(e) => setForm({ ...form, aseguradora: e.target.value })} />
+                </Field>
+                <Field label="No. Póliza" required>
+                  <Input value={form.noPoliza} onChange={(e) => setForm({ ...form, noPoliza: e.target.value })} />
+                </Field>
+                <Field label="Vigencia desde">
+                  <Input type="date" value={form.vigenciaDesde} onChange={(e) => setForm({ ...form, vigenciaDesde: e.target.value })} />
+                </Field>
+                <Field label="Vigencia hasta">
+                  <Input type="date" value={form.vigenciaHasta} onChange={(e) => setForm({ ...form, vigenciaHasta: e.target.value })} />
+                </Field>
+              </div>
             </section>
 
             <div className="flex items-center justify-end gap-3 border-t border-line-800 pt-4">
