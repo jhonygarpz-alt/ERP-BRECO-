@@ -171,6 +171,8 @@ export async function leerOperadoresExcel(file: File): Promise<{ totalFilasHoja:
       alergias: '',
       diabetico: false,
       hipertenso: false,
+      usaLentes: false,
+      sobrepeso: false,
       documentos: [],
       vencimientos: [],
       banco: texto(col('banco', fila)),

@@ -82,6 +82,8 @@ const emptyForm: Omit<Operador, 'id'> = {
   alergias: '',
   diabetico: false,
   hipertenso: false,
+  usaLentes: false,
+  sobrepeso: false,
   documentos: [],
   vencimientos: [],
   banco: '',
@@ -602,6 +604,14 @@ export function OperadoresPage() {
                         <label className="flex items-center gap-2 text-sm text-ink-300">
                           <input type="checkbox" checked={form.hipertenso} onChange={(e) => setForm({ ...form, hipertenso: e.target.checked })} />
                           Hipertenso
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-ink-300">
+                          <input type="checkbox" checked={form.usaLentes} onChange={(e) => setForm({ ...form, usaLentes: e.target.checked })} />
+                          Usa lentes
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-ink-300">
+                          <input type="checkbox" checked={form.sobrepeso} onChange={(e) => setForm({ ...form, sobrepeso: e.target.checked })} />
+                          Sobrepeso
                         </label>
                       </div>
                     </div>

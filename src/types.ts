@@ -405,6 +405,8 @@ export interface Operador {
   alergias: string;
   diabetico: boolean;
   hipertenso: boolean;
+  usaLentes: boolean;
+  sobrepeso: boolean;
   // Expediente
   documentos: OperadorDocumento[];
   vencimientos: OperadorVencimiento[];
