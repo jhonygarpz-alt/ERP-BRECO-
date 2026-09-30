@@ -442,10 +442,10 @@ export function RemolquesPage() {
                 <Field label="Rodada de la llanta">
                   <Input value={form.rodadaLlanta} onChange={(e) => setForm({ ...form, rodadaLlanta: e.target.value })} placeholder="Ej. 22.5" />
                 </Field>
-                <Field label="Tipo de llanta (Direccional)">
+                <Field label="Tipo de llanta (Eje Dirección)">
                   <Input value={form.tipoLlantaDireccional} onChange={(e) => setForm({ ...form, tipoLlantaDireccional: e.target.value })} />
                 </Field>
-                <Field label="Tipo de llanta (Tracción)">
+                <Field label="Tipo de llanta (Diferenciales)">
                   <Input value={form.tipoLlantaTraccion} onChange={(e) => setForm({ ...form, tipoLlantaTraccion: e.target.value })} />
                 </Field>
               </div>

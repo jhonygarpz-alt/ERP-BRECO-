@@ -84,6 +84,9 @@ const emptyForm: Omit<Unidad, 'id'> = {
   ultimaInspeccionFisicomecanica: '',
   proximaInspeccionFisicomecanica: '',
   proveedorInspeccionId: undefined,
+  ultimaVerificacionContaminantes: '',
+  proximaVerificacionContaminantes: '',
+  proveedorVerificacionContaminantesId: undefined,
   tipoCombustible: '',
   tarjetaCombustible1: '',
   tarjetaCombustible2: '',
@@ -122,6 +125,7 @@ export function UnidadesPage() {
   const [error, setError] = useState('');
   const [importarOpen, setImportarOpen] = useState(false);
   const [nuevoProveedorOpen, setNuevoProveedorOpen] = useState(false);
+  const [nuevoProveedorVerificacionOpen, setNuevoProveedorVerificacionOpen] = useState(false);
 
   const [docForm, setDocForm] = useState(emptyDocVencimiento);
   const [archDescripcion, setArchDescripcion] = useState('');
@@ -558,10 +562,10 @@ export function UnidadesPage() {
                 <Field label="Rodada de la llanta">
                   <Input value={form.rodadaLlanta} onChange={(e) => setForm({ ...form, rodadaLlanta: e.target.value })} placeholder="Ej. 22.5" />
                 </Field>
-                <Field label="Tipo de llanta (Direccional)">
+                <Field label="Tipo de llanta (Eje Dirección)">
                   <Input value={form.tipoLlantaDireccional} onChange={(e) => setForm({ ...form, tipoLlantaDireccional: e.target.value })} />
                 </Field>
-                <Field label="Tipo de llanta (Tracción)">
+                <Field label="Tipo de llanta (Diferenciales)">
                   <Input value={form.tipoLlantaTraccion} onChange={(e) => setForm({ ...form, tipoLlantaTraccion: e.target.value })} />
                 </Field>
               </div>
@@ -597,6 +601,50 @@ export function UnidadesPage() {
                       ))}
                     </Select>
                     <GhostButton type="button" className="flex-shrink-0" onClick={() => setNuevoProveedorOpen(true)} title="Agregar proveedor">
+                      <Plus size={14} />
+                    </GhostButton>
+                  </div>
+                </Field>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-breco-500">
+                Dictamen de verificación de baja emisión de contaminantes
+              </h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Field label="Última fecha de inspección">
+                  <Input
+                    type="date"
+                    value={form.ultimaVerificacionContaminantes}
+                    onChange={(e) => setForm({ ...form, ultimaVerificacionContaminantes: e.target.value })}
+                  />
+                </Field>
+                <Field label="Fecha de próxima inspección">
+                  <Input
+                    type="date"
+                    value={form.proximaVerificacionContaminantes}
+                    onChange={(e) => setForm({ ...form, proximaVerificacionContaminantes: e.target.value })}
+                  />
+                </Field>
+                <Field label="Proveedor que realizó la inspección">
+                  <div className="flex gap-2">
+                    <Select
+                      className="min-w-0 flex-1"
+                      value={form.proveedorVerificacionContaminantesId ?? ''}
+                      onChange={(e) => setForm({ ...form, proveedorVerificacionContaminantesId: e.target.value || undefined })}
+                    >
+                      <option value="">Sin proveedor</option>
+                      {proveedores.items.map((p) => (
+                        <option key={p.id} value={p.id}>{p.numero} - {p.nombre}</option>
+                      ))}
+                    </Select>
+                    <GhostButton
+                      type="button"
+                      className="flex-shrink-0"
+                      onClick={() => setNuevoProveedorVerificacionOpen(true)}
+                      title="Agregar proveedor"
+                    >
                       <Plus size={14} />
                     </GhostButton>
                   </div>
@@ -879,6 +927,16 @@ export function UnidadesPage() {
           onCreado={(p) => {
             setForm((f) => ({ ...f, proveedorInspeccionId: p.id }));
             setNuevoProveedorOpen(false);
+          }}
+        />
+      )}
+
+      {nuevoProveedorVerificacionOpen && (
+        <NuevoProveedorModal
+          onClose={() => setNuevoProveedorVerificacionOpen(false)}
+          onCreado={(p) => {
+            setForm((f) => ({ ...f, proveedorVerificacionContaminantesId: p.id }));
+            setNuevoProveedorVerificacionOpen(false);
           }}
         />
       )}

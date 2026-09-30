@@ -145,6 +145,8 @@ export async function leerUnidadesExcel(file: File): Promise<{ totalFilasHoja: n
       tipoLlantaTraccion: '',
       ultimaInspeccionFisicomecanica: '',
       proximaInspeccionFisicomecanica: '',
+      ultimaVerificacionContaminantes: '',
+      proximaVerificacionContaminantes: '',
       tipoCombustible: '',
       tarjetaCombustible1: '',
       tarjetaCombustible2: '',

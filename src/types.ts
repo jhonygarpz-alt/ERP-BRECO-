@@ -205,6 +205,10 @@ export interface Unidad {
   ultimaInspeccionFisicomecanica: string;
   proximaInspeccionFisicomecanica: string;
   proveedorInspeccionId?: string;
+  // Dictamen de verificacion de baja emision de contaminantes
+  ultimaVerificacionContaminantes: string;
+  proximaVerificacionContaminantes: string;
+  proveedorVerificacionContaminantesId?: string;
   // Consumo de combustible
   tipoCombustible: string;
   tarjetaCombustible1: string;

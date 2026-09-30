@@ -841,6 +841,8 @@ export function ViajesPage() {
       tipoLlantaTraccion: '',
       ultimaInspeccionFisicomecanica: '',
       proximaInspeccionFisicomecanica: '',
+      ultimaVerificacionContaminantes: '',
+      proximaVerificacionContaminantes: '',
       tipoCombustible: '',
       tarjetaCombustible1: '',
       tarjetaCombustible2: '',
