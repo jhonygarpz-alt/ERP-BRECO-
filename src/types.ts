@@ -295,6 +295,8 @@ export interface Caja {
   numeroEjes: number;
   pesoTaraTon: number;
   acorazado: boolean;
+  /** "Caja Contenedor" o "Caja Seca". Vacio = sin capturar. */
+  tipoCaja: string;
   // Llantas
   numeroLlantas: number;
   /** Una de OPCIONES_LLANTA_REFACCION (src/lib/catalogosLlantas.ts). Vacio = sin capturar. */

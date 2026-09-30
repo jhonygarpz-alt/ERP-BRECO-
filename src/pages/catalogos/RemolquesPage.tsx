@@ -8,6 +8,8 @@ import { cajaToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { SUBTIPO_REMOLQUE_SAT } from '../../lib/catalogosSat';
 import { OPCIONES_LLANTA_REFACCION } from '../../lib/catalogosLlantas';
+
+const OPCIONES_TIPO_CAJA = ['Portacontenedor', 'Caja Seca', 'Caja Contenedor'];
 import {
   descargarPlantillaRemolques,
   guardarRemolquesImportados,
@@ -55,6 +57,7 @@ const emptyForm: Omit<Caja, 'id'> = {
   numeroEjes: 0,
   pesoTaraTon: 0,
   acorazado: false,
+  tipoCaja: '',
   numeroLlantas: 0,
   llantasRefaccion: '',
   marcaLlanta: '',
@@ -409,6 +412,14 @@ export function RemolquesPage() {
                   <Select value={form.acorazado ? 'Si' : 'No'} onChange={(e) => setForm({ ...form, acorazado: e.target.value === 'Si' })}>
                     <option value="No">No</option>
                     <option value="Si">Sí</option>
+                  </Select>
+                </Field>
+                <Field label="Tipo de caja">
+                  <Select value={form.tipoCaja} onChange={(e) => setForm({ ...form, tipoCaja: e.target.value })}>
+                    <option value="">Seleccione...</option>
+                    {OPCIONES_TIPO_CAJA.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
                   </Select>
                 </Field>
               </div>

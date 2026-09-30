@@ -752,6 +752,7 @@ export function ViajesPage() {
       numeroEjes: 0,
       pesoTaraTon: 0,
       acorazado: false,
+      tipoCaja: '',
       numeroLlantas: 0,
       llantasRefaccion: '',
       marcaLlanta: '',
