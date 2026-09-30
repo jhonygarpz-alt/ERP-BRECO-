@@ -11,7 +11,6 @@ import { ListaSeleccionModal } from '../components/ui/ListaSeleccionModal';
 import { ComboBoxCodigo } from '../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, ToolbarButton, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
-import { ImportarProgramaModal } from '../components/viajes/ImportarProgramaModal';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 import { VerRutaMapaModal } from '../components/viajes/VerRutaMapaModal';
 import { FacturaFormModal } from '../components/facturacion/FacturaFormModal';
@@ -107,7 +106,6 @@ export function ViajesPage() {
   const puedeEliminar = hasPermission('Viajes', 'eliminar');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [importarOpen, setImportarOpen] = useState(false);
   const [editing, setEditing] = useState<Viaje | null>(null);
   const [soloLectura, setSoloLectura] = useState(false);
   const [viajeSeleccionadoId, setViajeSeleccionadoId] = useState<string | null>(null);
@@ -1012,14 +1010,6 @@ export function ViajesPage() {
         searchPlaceholder="Buscar por folio, load number, unidad, cliente o ruta..."
         addLabel="Asignar viaje"
         onAdd={puedeCrear ? openNew : undefined}
-        extra={
-          puedeCrear && (
-            <ToolbarButton type="button" onClick={() => setImportarOpen(true)}>
-              <ScanLine size={16} />
-              Importar Excel o captura
-            </ToolbarButton>
-          )
-        }
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -2066,8 +2056,6 @@ export function ViajesPage() {
           </form>
         </Modal>
       )}
-
-      {importarOpen && <ImportarProgramaModal onClose={() => setImportarOpen(false)} />}
 
       {imprimirFormatoOpen && viajeSeleccionado && (
         <Modal title="Imprimir Viaje" subtitle="Elige el formato de impresion" onClose={() => setImprimirFormatoOpen(false)}>
