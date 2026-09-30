@@ -51,6 +51,9 @@ const emptyForm: Omit<Operador, 'id'> = {
   fechaContratacion: '',
   edad: 0,
   fechaNacimiento: '',
+  contactoEmergenciaNombre: '',
+  contactoEmergenciaParentesco: '',
+  contactoEmergenciaTelefono: '',
   sucursal: 'Matriz',
   telefono: '',
   celular: '',
@@ -395,6 +398,24 @@ export function OperadoresPage() {
                   </Field>
                   <Field label="Fecha de nacimiento">
                     <Input type="date" value={form.fechaNacimiento} onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} />
+                  </Field>
+                  <Field label="Contacto de emergencia - Nombre">
+                    <Input
+                      value={form.contactoEmergenciaNombre}
+                      onChange={(e) => setForm({ ...form, contactoEmergenciaNombre: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Contacto de emergencia - Parentesco">
+                    <Input
+                      value={form.contactoEmergenciaParentesco}
+                      onChange={(e) => setForm({ ...form, contactoEmergenciaParentesco: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Contacto de emergencia - Teléfono">
+                    <Input
+                      value={form.contactoEmergenciaTelefono}
+                      onChange={(e) => setForm({ ...form, contactoEmergenciaTelefono: e.target.value })}
+                    />
                   </Field>
                 </div>
               </div>

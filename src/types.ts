@@ -371,6 +371,9 @@ export interface Operador {
   fechaContratacion: string;
   edad: number;
   fechaNacimiento: string;
+  contactoEmergenciaNombre: string;
+  contactoEmergenciaParentesco: string;
+  contactoEmergenciaTelefono: string;
   sucursal: string;
   telefono: string;
   celular: string;
