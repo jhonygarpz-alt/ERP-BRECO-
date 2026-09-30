@@ -7,7 +7,7 @@ import { mensajeDeError } from '../../lib/errors';
 import { cajaToRow } from '../../lib/mappers';
 import { uid } from '../../lib/storage';
 import { SUBTIPO_REMOLQUE_SAT } from '../../lib/catalogosSat';
-import { OPCIONES_LLANTA_REFACCION, OPCIONES_EJE_LLANTA } from '../../lib/catalogosLlantas';
+import { OPCIONES_LLANTA_REFACCION } from '../../lib/catalogosLlantas';
 import {
   descargarPlantillaRemolques,
   guardarRemolquesImportados,
@@ -61,8 +61,8 @@ const emptyForm: Omit<Caja, 'id'> = {
   modeloLlanta: '',
   medidaLlanta: '',
   rodadaLlanta: '',
-  tipoLlanta: '',
-  ejeLlanta: '',
+  tipoLlantaDireccional: '',
+  tipoLlantaTraccion: '',
   ultimaInspeccionFisicomecanica: '',
   proximaInspeccionFisicomecanica: '',
   proveedorInspeccionId: undefined,
@@ -442,18 +442,11 @@ export function RemolquesPage() {
                 <Field label="Rodada de la llanta">
                   <Input value={form.rodadaLlanta} onChange={(e) => setForm({ ...form, rodadaLlanta: e.target.value })} placeholder="Ej. 22.5" />
                 </Field>
-                <Field label="Tipo de llanta">
-                  <Input value={form.tipoLlanta} onChange={(e) => setForm({ ...form, tipoLlanta: e.target.value })} placeholder="Direccional, tracción, mixta..." />
+                <Field label="Tipo de llanta (Direccional)">
+                  <Input value={form.tipoLlantaDireccional} onChange={(e) => setForm({ ...form, tipoLlantaDireccional: e.target.value })} />
                 </Field>
-                <Field label="Eje de la llanta">
-                  <Select value={form.ejeLlanta} onChange={(e) => setForm({ ...form, ejeLlanta: e.target.value })}>
-                    <option value="">Seleccione...</option>
-                    {OPCIONES_EJE_LLANTA.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </Select>
+                <Field label="Tipo de llanta (Tracción)">
+                  <Input value={form.tipoLlantaTraccion} onChange={(e) => setForm({ ...form, tipoLlantaTraccion: e.target.value })} />
                 </Field>
               </div>
             </section>

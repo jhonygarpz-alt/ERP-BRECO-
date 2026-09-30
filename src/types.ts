@@ -197,9 +197,10 @@ export interface Unidad {
   modeloLlanta: string;
   medidaLlanta: string;
   rodadaLlanta: string;
-  tipoLlanta: string;
-  /** Una de OPCIONES_EJE_LLANTA (src/lib/catalogosLlantas.ts): Direccion o Diferencial. Vacio = sin capturar. */
-  ejeLlanta: string;
+  /** Patron/tipo de la llanta montada en el eje de direccion (delantero). */
+  tipoLlantaDireccional: string;
+  /** Patron/tipo de la llanta montada en el eje de traccion (motriz). */
+  tipoLlantaTraccion: string;
   // Inspeccion fisicomecanica
   ultimaInspeccionFisicomecanica: string;
   proximaInspeccionFisicomecanica: string;
@@ -298,9 +299,10 @@ export interface Caja {
   modeloLlanta: string;
   medidaLlanta: string;
   rodadaLlanta: string;
-  tipoLlanta: string;
-  /** Una de OPCIONES_EJE_LLANTA (src/lib/catalogosLlantas.ts): Direccion o Diferencial. Vacio = sin capturar. */
-  ejeLlanta: string;
+  /** Patron/tipo de la llanta montada en el eje de direccion (delantero). */
+  tipoLlantaDireccional: string;
+  /** Patron/tipo de la llanta montada en el eje de traccion (motriz). */
+  tipoLlantaTraccion: string;
   // Inspeccion fisicomecanica
   ultimaInspeccionFisicomecanica: string;
   proximaInspeccionFisicomecanica: string;
