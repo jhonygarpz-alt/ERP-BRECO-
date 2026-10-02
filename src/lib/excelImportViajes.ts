@@ -315,6 +315,7 @@ export async function guardarViajesImportados(
         tipoDocumento: 'Viaje',
         nacional: false,
         local: false,
+        foraneo: false,
         timbrado: TIMBRADO_VACIO,
         horaSalida: '',
         horaLlegadaEstimada: '',

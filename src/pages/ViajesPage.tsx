@@ -143,6 +143,7 @@ export function ViajesPage() {
     exportacion: false,
     nacional: false,
     local: false,
+    foraneo: false,
     configVehicularClaveSat: '',
     estatus: 'Programado',
     observaciones: '',
@@ -1377,34 +1378,18 @@ export function ViajesPage() {
                       <label className="flex items-center gap-2 text-sm text-ink-300">
                         <input
                           type="checkbox"
-                          checked={form.importacion}
-                          onChange={(e) => setForm({ ...form, importacion: e.target.checked })}
-                        />
-                        Importacion
-                      </label>
-                      <label className="flex items-center gap-2 text-sm text-ink-300">
-                        <input
-                          type="checkbox"
-                          checked={form.exportacion}
-                          onChange={(e) => setForm({ ...form, exportacion: e.target.checked })}
-                        />
-                        Exportacion
-                      </label>
-                      <label className="flex items-center gap-2 text-sm text-ink-300">
-                        <input
-                          type="checkbox"
-                          checked={form.nacional}
-                          onChange={(e) => setForm({ ...form, nacional: e.target.checked })}
-                        />
-                        Nacional
-                      </label>
-                      <label className="flex items-center gap-2 text-sm text-ink-300">
-                        <input
-                          type="checkbox"
                           checked={form.local}
                           onChange={(e) => setForm({ ...form, local: e.target.checked })}
                         />
                         Local
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-ink-300">
+                        <input
+                          type="checkbox"
+                          checked={form.foraneo}
+                          onChange={(e) => setForm({ ...form, foraneo: e.target.checked })}
+                        />
+                        Foráneo
                       </label>
                     </div>
                   </div>

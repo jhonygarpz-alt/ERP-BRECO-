@@ -223,6 +223,7 @@ export function ImportarProgramaModal({ onClose }: { onClose: () => void }) {
           tipoDocumento: 'Viaje',
           nacional: false,
           local: false,
+          foraneo: false,
           timbrado: TIMBRADO_VACIO,
           ...payload,
           sucursal: '',

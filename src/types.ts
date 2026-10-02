@@ -536,6 +536,7 @@ export interface Viaje {
   exportacion: boolean;
   nacional: boolean;
   local: boolean;
+  foraneo: boolean;
   /**
    * Clave del catalogo SAT c_ConfigAutotransporte para el Complemento Carta
    * Porte de este viaje en particular. Por defecto se toma la de la unidad
