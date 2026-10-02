@@ -34,19 +34,36 @@ export interface SugerenciaDireccion {
 // exacta.
 const PAIS_BUSQUEDA = 'mx';
 
-async function geocodificarDireccionOSM(direccion: string): Promise<PuntoGeocodificado> {
+async function buscarEnNominatim(direccion: string): Promise<{ lat: string; lon: string; display_name: string }[]> {
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=${PAIS_BUSQUEDA}&q=${encodeURIComponent(direccion)}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error('No se pudo consultar el geocodificador.');
-  const data = (await res.json()) as { lat: string; lon: string; display_name: string }[];
-  if (data.length === 0) {
-    throw new Error(
-      `No se encontro "${direccion}" en OpenStreetMap (el buscador gratuito no reconoce nombres de empresas/marcas, ` +
-        'solo direcciones reales). Intenta con calle, colonia y ciudad (ej. "Lago Alberto, Anahuac, Ciudad de Mexico"), ' +
-        'sin el numero exterior ni el nombre del negocio, o elige una opcion de la lista de sugerencias mientras escribes.',
-    );
+  return (await res.json()) as { lat: string; lon: string; display_name: string }[];
+}
+
+// Nominatim exige una coincidencia casi literal de cada componente: nombres
+// de colonia con sufijos como "I", "II", "1a Seccion" frecuentemente no
+// coinciden tal cual aunque la direccion sea real. Si la busqueda completa
+// falla, se reintenta quitando progresivamente el componente mas propenso a
+// no coincidir (la colonia, que normalmente es el 2o elemento de la lista
+// separada por comas) y luego el C.P., antes de rendirse.
+async function geocodificarDireccionOSM(direccion: string): Promise<PuntoGeocodificado> {
+  const partes = direccion.split(',').map((p) => p.trim()).filter(Boolean);
+  const intentos = [direccion];
+  if (partes.length > 2) intentos.push([partes[0], ...partes.slice(2)].join(', '));
+  const sinCp = partes.filter((p) => !/^\d{4,5}$/.test(p));
+  if (sinCp.length !== partes.length && sinCp.length > 0) intentos.push(sinCp.join(', '));
+
+  for (const intento of intentos) {
+    const data = await buscarEnNominatim(intento);
+    if (data.length > 0) return { lat: Number(data[0].lat), lon: Number(data[0].lon), displayName: data[0].display_name };
   }
-  return { lat: Number(data[0].lat), lon: Number(data[0].lon), displayName: data[0].display_name };
+
+  throw new Error(
+    `No se encontro "${direccion}" en OpenStreetMap (el buscador gratuito no reconoce nombres de empresas/marcas, ` +
+      'solo direcciones reales). Intenta con calle, colonia y ciudad (ej. "Lago Alberto, Anahuac, Ciudad de Mexico"), ' +
+      'sin el numero exterior ni el nombre del negocio, o elige una opcion de la lista de sugerencias mientras escribes.',
+  );
 }
 
 // Sugerencias tipo "autocompletado" mientras el usuario escribe. Se invoca
