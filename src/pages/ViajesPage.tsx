@@ -1520,8 +1520,12 @@ export function ViajesPage() {
                                 <td className="px-3 py-2 text-ink-300">{op?.numero ?? ''}</td>
                                 <td className="px-3 py-2 text-ink-300">{op?.nombre ?? ''}</td>
                                 <td className="px-3 py-2 text-ink-300">{un?.economico ?? ''}</td>
-                                <td className="px-3 py-2 text-ink-300">{t.origen}</td>
-                                <td className="px-3 py-2 text-ink-300">{t.destino}</td>
+                                <td className="max-w-[220px] truncate px-3 py-2 text-ink-300" title={t.origen}>
+                                  {t.origen}
+                                </td>
+                                <td className="max-w-[220px] truncate px-3 py-2 text-ink-300" title={t.destino}>
+                                  {t.destino}
+                                </td>
                               </tr>
                             );
                           })}
@@ -2525,7 +2529,7 @@ export function ViajesPage() {
               })()}
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Origen">
+              <Field label="Origen (Lugar de inicio de tránsito al origen)">
                 <Input value={trayectoForm.origen} onChange={(e) => setTrayectoForm({ ...trayectoForm, origen: e.target.value })} />
               </Field>
               <Field label="Destino">
