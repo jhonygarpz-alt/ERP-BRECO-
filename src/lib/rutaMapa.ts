@@ -47,7 +47,7 @@ async function buscarEnNominatim(direccion: string): Promise<{ lat: string; lon:
 // falla, se reintenta quitando progresivamente el componente mas propenso a
 // no coincidir (la colonia, que normalmente es el 2o elemento de la lista
 // separada por comas) y luego el C.P., antes de rendirse.
-async function geocodificarDireccionOSM(direccion: string): Promise<PuntoGeocodificado> {
+async function geocodificarDireccionOSM(direccion: string, motivoRespaldo?: string): Promise<PuntoGeocodificado> {
   const partes = direccion.split(',').map((p) => p.trim()).filter(Boolean);
   const intentos = [direccion];
   if (partes.length > 2) intentos.push([partes[0], ...partes.slice(2)].join(', '));
@@ -62,7 +62,8 @@ async function geocodificarDireccionOSM(direccion: string): Promise<PuntoGeocodi
   throw new Error(
     `No se encontro "${direccion}" en OpenStreetMap (el buscador gratuito no reconoce nombres de empresas/marcas, ` +
       'solo direcciones reales). Intenta con calle, colonia y ciudad (ej. "Lago Alberto, Anahuac, Ciudad de Mexico"), ' +
-      'sin el numero exterior ni el nombre del negocio, o elige una opcion de la lista de sugerencias mientras escribes.',
+      'sin el numero exterior ni el nombre del negocio, o elige una opcion de la lista de sugerencias mientras escribes.' +
+      (motivoRespaldo ? ` [${motivoRespaldo}]` : ''),
   );
 }
 
@@ -81,14 +82,16 @@ async function buscarSugerenciasDireccionOSM(termino: string): Promise<Sugerenci
 }
 
 export async function geocodificarDireccion(direccion: string): Promise<PuntoGeocodificado> {
-  if (googleMapsDisponible()) {
-    try {
-      return await geocodificarTextoGoogle(direccion);
-    } catch (err) {
-      console.error('Google Places fallo, se intenta con OpenStreetMap como respaldo:', err);
-    }
+  if (!googleMapsDisponible()) {
+    return geocodificarDireccionOSM(direccion, 'Google Maps no esta configurado (falta VITE_GOOGLE_MAPS_API_KEY).');
   }
-  return geocodificarDireccionOSM(direccion);
+  try {
+    return await geocodificarTextoGoogle(direccion);
+  } catch (err) {
+    const motivo = err instanceof Error ? err.message : String(err);
+    console.error('Google Places fallo, se intenta con OpenStreetMap como respaldo:', err);
+    return geocodificarDireccionOSM(direccion, `Google Maps fallo: ${motivo}`);
+  }
 }
 
 export async function buscarSugerenciasDireccion(termino: string): Promise<SugerenciaDireccion[]> {
