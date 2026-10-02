@@ -32,7 +32,15 @@ export function EstatusViajePage() {
   const [error, setError] = useState('');
 
   const filtered = useMemo(
-    () => estatusViajes.items.filter((e) => e.nombre.toLowerCase().includes(search.toLowerCase())),
+    () =>
+      estatusViajes.items
+        .filter((e) => e.nombre.toLowerCase().includes(search.toLowerCase()))
+        .sort((a, b) => {
+          const na = Number(a.nombre.match(/^(\d+)\./)?.[1]);
+          const nb = Number(b.nombre.match(/^(\d+)\./)?.[1]);
+          if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+          return a.nombre.localeCompare(b.nombre);
+        }),
     [estatusViajes.items, search],
   );
 
