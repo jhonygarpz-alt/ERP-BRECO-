@@ -41,6 +41,56 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${campoClass(lleno)} ${props.className ?? ''}`} />;
 }
 
+const HORAS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTOS_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+/**
+ * Selector de hora en formato 24 horas, siempre -- el <input type="time">
+ * nativo muestra 12h con a.m./p.m. quien sabe por que configuracion regional
+ * del navegador/SO tenga el usuario, sin forma confiable de forzar 24h desde
+ * el HTML. Dos <select> (HH y MM) garantizan el mismo formato para todos.
+ */
+export function InputHora24({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  const [hh, mm] = value.includes(':') ? value.split(':') : ['', ''];
+  const resaltar = useCampoResaltado();
+  const lleno = resaltar && estaLleno(value);
+  const claseSelect = `${campoClass(lleno)} w-20 px-2`;
+
+  return (
+    <div className={`flex items-center gap-1 ${className ?? ''}`}>
+      <select className={claseSelect} value={hh} onChange={(e) => onChange(e.target.value ? `${e.target.value}:${mm || '00'}` : '')}>
+        <option value="">--</option>
+        {HORAS_24.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
+      <span className="text-ink-500">:</span>
+      <select
+        className={claseSelect}
+        value={mm}
+        onChange={(e) => onChange(hh ? `${hh}:${e.target.value || '00'}` : e.target.value ? `00:${e.target.value}` : '')}
+      >
+        <option value="">--</option>
+        {MINUTOS_60.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   const resaltar = useCampoResaltado();
   const lleno = resaltar && !props.disabled && estaLleno(props.value);

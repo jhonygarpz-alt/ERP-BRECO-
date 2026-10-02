@@ -9,7 +9,7 @@ import { CrudTable, type Column } from '../components/ui/CrudTable';
 import { Modal } from '../components/ui/Modal';
 import { ListaSeleccionModal } from '../components/ui/ListaSeleccionModal';
 import { ComboBoxCodigo } from '../components/ui/ComboBoxCodigo';
-import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, Textarea, ToolbarButton, inputClass } from '../components/ui/form';
+import { Field, GhostButton, IconButton, Input, InputHora24, PrimaryButton, Select, Textarea, ToolbarButton, inputClass } from '../components/ui/form';
 import { StatusBadge, TONE_DOT, TONES, type Tone } from '../components/ui/Badge';
 import { TrazarRutaModal } from '../components/viajes/TrazarRutaModal';
 import { VerRutaMapaModal } from '../components/viajes/VerRutaMapaModal';
@@ -1275,7 +1275,7 @@ export function ViajesPage() {
                           ))}
                         </Select>
                         <Input type="date" className="w-36" value={form.estatusFecha} onChange={(e) => setForm({ ...form, estatusFecha: e.target.value })} />
-                        <Input type="time" className="w-24" value={form.estatusHora} onChange={(e) => setForm({ ...form, estatusHora: e.target.value })} />
+                        <InputHora24 value={form.estatusHora} onChange={(hora) => setForm({ ...form, estatusHora: hora })} />
                         <button
                           type="button"
                           title="Cambiar color de este estatus"
@@ -1357,7 +1357,7 @@ export function ViajesPage() {
                       <Field label="Carga" required={esCartaPorte}>
                         <div className="flex gap-2">
                           <Input type="date" value={form.fechaCarga} onChange={(e) => setForm({ ...form, fechaCarga: e.target.value })} />
-                          <Input type="time" value={form.horaCarga} onChange={(e) => setForm({ ...form, horaCarga: e.target.value })} />
+                          <InputHora24 value={form.horaCarga} onChange={(hora) => setForm({ ...form, horaCarga: hora })} />
                         </div>
                       </Field>
                       <Field label="Cargar En" required={esCartaPorte}>
@@ -1366,7 +1366,7 @@ export function ViajesPage() {
                       <Field label="Entrega" required={esCartaPorte}>
                         <div className="flex gap-2">
                           <Input type="date" value={form.fechaEntrega} onChange={(e) => setForm({ ...form, fechaEntrega: e.target.value })} />
-                          <Input type="time" value={form.horaEntregaReal} onChange={(e) => setForm({ ...form, horaEntregaReal: e.target.value })} />
+                          <InputHora24 value={form.horaEntregaReal} onChange={(hora) => setForm({ ...form, horaEntregaReal: hora })} />
                         </div>
                       </Field>
                       <Field label="Descargar En" required={esCartaPorte}>
