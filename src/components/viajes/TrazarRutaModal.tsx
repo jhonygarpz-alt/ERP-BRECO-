@@ -197,6 +197,7 @@ export function TrazarRutaModal({
   const [puntosManuales, setPuntosManuales] = useState<[number, number][]>([]);
   const puntosManualesRef = useRef<[number, number][]>([]);
   const lineaManualRef = useRef<L.Polyline | null>(null);
+  const modoManualAnteriorRef = useRef(false);
 
   const origenSug = useSugerenciasDireccion(origenTexto);
   const destinoSug = useSugerenciasDireccion(destinoTexto);
@@ -259,6 +260,13 @@ export function TrazarRutaModal({
     const coordenadas = modoManual ? puntosManuales : (resultado?.coordenadas ?? []);
     puntosManualesRef.current = modoManual ? [...puntosManuales] : [];
 
+    // Al editar a mano, NO se reencuadra el mapa en cada punto que se mueve:
+    // el usuario normalmente ya hizo zoom a la zona exacta que quiere
+    // corregir, y perder ese zoom en cada ajuste entorpece el trazado. Solo
+    // se reencuadra la primera vez que se entra al modo manual (transicion
+    // false->true) o siempre que no se este editando a mano.
+    const entrandoAModoManual = modoManual && !modoManualAnteriorRef.current;
+    modoManualAnteriorRef.current = modoManual;
     if (coordenadas.length >= 2) {
       const linea = L.polyline(coordenadas, {
         color: '#3b82f6',
@@ -266,7 +274,7 @@ export function TrazarRutaModal({
         dashArray: modoManual ? '6 6' : undefined,
       }).addTo(capa);
       if (modoManual) lineaManualRef.current = linea;
-      mapa.fitBounds(linea.getBounds(), { padding: [30, 30] });
+      if (!modoManual || entrandoAModoManual) mapa.fitBounds(linea.getBounds(), { padding: [30, 30] });
     }
 
     if (modoManual && puntosManuales.length > 2) {
