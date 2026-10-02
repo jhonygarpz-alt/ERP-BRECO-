@@ -24,6 +24,7 @@ import { ComboBoxCodigo } from '../../components/ui/ComboBoxCodigo';
 import { Field, GhostButton, IconButton, Input, PrimaryButton, Select, ToolbarButton } from '../../components/ui/form';
 import { StatusBadge } from '../../components/ui/Badge';
 import { TrazarRutaModal } from '../../components/viajes/TrazarRutaModal';
+import { VerRutaMapaModal } from '../../components/viajes/VerRutaMapaModal';
 import { BuscarClaveUnidadModal, BuscarClaveProdServCPModal, BuscarClaveMaterialPeligrosoModal } from '../../components/catalogos/BuscarClaveSatModal';
 import { ClaveSatField } from '../../components/catalogos/ClaveSatField';
 import { hoyISO } from '../../lib/fechas';
@@ -133,6 +134,7 @@ export function RutasPage() {
   const [clasificacionPickerOpen, setClasificacionPickerOpen] = useState(false);
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [trazarRutaOpen, setTrazarRutaOpen] = useState(false);
+  const [verRutaMapaOpen, setVerRutaMapaOpen] = useState(false);
   const [buscarProdServCPOpen, setBuscarProdServCPOpen] = useState(false);
   const [buscarUnidadMercanciaOpen, setBuscarUnidadMercanciaOpen] = useState(false);
   const [buscarMaterialPeligrosoOpen, setBuscarMaterialPeligrosoOpen] = useState(false);
@@ -705,6 +707,14 @@ export function RutasPage() {
                     <Input value={form.destinoDireccion} onChange={(e) => setForm({ ...form, destinoDireccion: e.target.value })} />
                   </Field>
                 </div>
+                <GhostButton
+                  type="button"
+                  disabled={!form.trazoRuta}
+                  onClick={() => setVerRutaMapaOpen(true)}
+                  title={!form.trazoRuta ? 'Esta ruta no tiene un trazo guardado' : undefined}
+                >
+                  Ver Ruta en Mapa
+                </GhostButton>
                 <PrimaryButton type="button" onClick={() => setTrazarRutaOpen(true)}>
                   Trazar Ruta
                 </PrimaryButton>
@@ -1213,10 +1223,43 @@ export function RutasPage() {
           origenInicial={form.origenDireccion}
           destinoInicial={form.destinoDireccion}
           onConfirmar={(datos) => {
-            setForm((f) => ({ ...f, ...datos }));
+            setForm((f) => {
+              const actualizado = { ...f, ...datos };
+              // Si todavia no hay trayectos capturados a mano, el trazado
+              // principal (Origen/Destino de arriba) se refleja solo como el
+              // primer trayecto -- de lo contrario la tabla de Trayectos se
+              // ve vacia aunque ya se trazo la ruta.
+              if (actualizado.trayectos.length === 0) {
+                actualizado.trayectos = [
+                  {
+                    id: uid('rtt'),
+                    secuencia: 1,
+                    origen: datos.origenDireccion,
+                    destino: datos.destinoDireccion,
+                    kilometros: datos.kilometros,
+                    horas: datos.horas,
+                    eta: actualizado.eta,
+                    tipoTrayecto: actualizado.tipoTrayecto,
+                    trazoRuta: datos.trazoRuta,
+                  },
+                ];
+              }
+              return actualizado;
+            });
             setTrazarRutaOpen(false);
           }}
           onClose={() => setTrazarRutaOpen(false)}
+        />
+      )}
+
+      {verRutaMapaOpen && (
+        <VerRutaMapaModal
+          origenDireccion={form.origenDireccion}
+          destinoDireccion={form.destinoDireccion}
+          kilometros={form.kilometros}
+          horas={form.horas}
+          trazoRuta={form.trazoRuta}
+          onClose={() => setVerRutaMapaOpen(false)}
         />
       )}
 
