@@ -520,6 +520,23 @@ export function ViajesPage() {
     setTrayectoModalOpen(true);
   }
 
+  // "Asignar Operador/Camion": al elegir una Ruta ya se copia un trayecto
+  // con su Origen/Destino pero sin operador (ver seleccionarRuta). Si ese
+  // trayecto sigue ahi, se completa (se edita) en vez de crear uno nuevo --
+  // antes cada clic agregaba una fila aparte, dejando Origen/Destino y
+  // Operador/Camion en renglones distintos de la tabla.
+  function abrirAsignarOperador() {
+    const existente = form.trayectos.find((t) => !t.operadorId) ?? form.trayectos[0];
+    if (existente) {
+      setTrayectoEditandoId(existente.id);
+      setTrayectoForm(existente);
+    } else {
+      setTrayectoEditandoId(null);
+      setTrayectoForm({ ...emptyTrayecto, origen: form.origen, destino: form.destino });
+    }
+    setTrayectoModalOpen(true);
+  }
+
   function abrirConsultarTrayecto() {
     const t = form.trayectos.find((tr) => tr.id === trayectoSeleccionadoId);
     if (!t) return;
@@ -1465,7 +1482,7 @@ export function ViajesPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <PrimaryButton type="button" onClick={abrirNuevoTrayecto}>
+                      <PrimaryButton type="button" onClick={abrirAsignarOperador}>
                         Asignar Operador/Camion
                       </PrimaryButton>
                       <GhostButton type="button" onClick={abrirNuevoTrayecto}>
