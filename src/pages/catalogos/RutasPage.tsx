@@ -35,6 +35,19 @@ function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
+function direccionDestinatario(d: Destinatario): string {
+  return [
+    [d.calle, d.numeroExterior].filter(Boolean).join(' '),
+    d.colonia,
+    d.municipio,
+    d.estado,
+    d.cp,
+    d.pais,
+  ]
+    .filter(Boolean)
+    .join(', ');
+}
+
 const emptyForm: Omit<Ruta, 'id'> = {
   codigo: '',
   activo: true,
@@ -588,7 +601,7 @@ export function RutasPage() {
                       valor={origenSeleccionado?.numero ?? ''}
                       obtenerCodigo={(d) => d.numero}
                       obtenerEtiqueta={(d) => d.nombre}
-                      onSeleccionar={(d) => setForm((f) => ({ ...f, origenId: d.id }))}
+                      onSeleccionar={(d) => setForm((f) => ({ ...f, origenId: d.id, origenDireccion: direccionDestinatario(d) }))}
                       onLimpiar={() => setForm((f) => ({ ...f, origenId: undefined }))}
                       placeholder="Nro."
                     />
@@ -606,7 +619,7 @@ export function RutasPage() {
                       valor={destinoSeleccionado?.numero ?? ''}
                       obtenerCodigo={(d) => d.numero}
                       obtenerEtiqueta={(d) => d.nombre}
-                      onSeleccionar={(d) => setForm((f) => ({ ...f, destinoId: d.id }))}
+                      onSeleccionar={(d) => setForm((f) => ({ ...f, destinoId: d.id, destinoDireccion: direccionDestinatario(d) }))}
                       onLimpiar={() => setForm((f) => ({ ...f, destinoId: undefined }))}
                       placeholder="Nro."
                     />
@@ -1255,7 +1268,7 @@ export function RutasPage() {
             </>
           )}
           onSelect={(d) => {
-            setForm((f) => ({ ...f, origenId: d.id }));
+            setForm((f) => ({ ...f, origenId: d.id, origenDireccion: direccionDestinatario(d) }));
             setOrigenPickerOpen(false);
           }}
           onClose={() => setOrigenPickerOpen(false)}
@@ -1275,7 +1288,7 @@ export function RutasPage() {
             </>
           )}
           onSelect={(d) => {
-            setForm((f) => ({ ...f, destinoId: d.id }));
+            setForm((f) => ({ ...f, destinoId: d.id, destinoDireccion: direccionDestinatario(d) }));
             setDestinoPickerOpen(false);
           }}
           onClose={() => setDestinoPickerOpen(false)}
