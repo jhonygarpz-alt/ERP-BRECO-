@@ -40,7 +40,7 @@ const emptyForm: Omit<Ruta, 'id'> = {
   activo: true,
   facturable: true,
   internacional: false,
-  tipoOperacion: 'Importacion',
+  tipoOperacion: 'Local',
   clienteId: undefined,
   descripcion: '',
   origenId: undefined,
@@ -540,18 +540,18 @@ export function RutasPage() {
                   <label className="flex items-center gap-2 text-sm text-ink-300">
                     <input
                       type="radio"
-                      checked={form.tipoOperacion === 'Importacion'}
-                      onChange={() => setForm({ ...form, tipoOperacion: 'Importacion' })}
+                      checked={form.tipoOperacion === 'Local'}
+                      onChange={() => setForm({ ...form, tipoOperacion: 'Local' })}
                     />
-                    Importacion
+                    Local
                   </label>
                   <label className="flex items-center gap-2 text-sm text-ink-300">
                     <input
                       type="radio"
-                      checked={form.tipoOperacion === 'Exportacion'}
-                      onChange={() => setForm({ ...form, tipoOperacion: 'Exportacion' })}
+                      checked={form.tipoOperacion === 'Foraneo'}
+                      onChange={() => setForm({ ...form, tipoOperacion: 'Foraneo' })}
                     />
-                    Exportacion
+                    Foráneo
                   </label>
                 </div>
               </div>

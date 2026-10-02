@@ -956,7 +956,7 @@ export interface ConceptoFacturacion {
   objetoImpuesto: string;
 }
 
-export type TipoOperacionRuta = 'Importacion' | 'Exportacion';
+export type TipoOperacionRuta = 'Local' | 'Foraneo';
 export type TipoTrayectoRuta = 'Permanente' | 'Eventual';
 
 /** Un tramo dentro del catalogo de Rutas (secuencia de origen/destino con su propio trazo). */

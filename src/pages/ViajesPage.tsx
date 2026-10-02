@@ -896,7 +896,7 @@ export function ViajesPage() {
       activo: true,
       facturable: true,
       internacional: false,
-      tipoOperacion: 'Importacion',
+      tipoOperacion: 'Local',
       clienteId: nuevaRutaForm.clienteId || undefined,
       descripcion,
       origenId: undefined,
