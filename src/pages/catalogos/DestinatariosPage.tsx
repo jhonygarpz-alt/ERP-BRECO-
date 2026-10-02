@@ -29,7 +29,6 @@ const ESTADOS_MEXICO = [
 const emptyForm: Omit<Destinatario, 'id'> = {
   numero: '',
   rfc: '',
-  noEquivalencia: '',
   nombre: '',
   estatus: 'activo',
   esPatio: false,
@@ -176,18 +175,14 @@ export function DestinatariosPage() {
               <Field label="RFC">
                 <Input required value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })} />
               </Field>
-              <Field label="No. Equivalencia">
-                <Input value={form.noEquivalencia} onChange={(e) => setForm({ ...form, noEquivalencia: e.target.value })} />
-              </Field>
-              <div className="sm:col-span-2">
-                <Field label="Nombre">
-                  <Input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
-                </Field>
-              </div>
               <Field label="Cliente">
                 <Select
                   value={form.clienteId ?? ''}
-                  onChange={(e) => setForm({ ...form, clienteId: e.target.value || undefined })}
+                  onChange={(e) => {
+                    const clienteId = e.target.value || undefined;
+                    const cliente = clienteId ? clientePorId.get(clienteId) : undefined;
+                    setForm({ ...form, clienteId, rfc: cliente ? cliente.rfc : form.rfc });
+                  }}
                 >
                   <option value="">Sin cliente asignado</option>
                   {clientes.items.map((c) => (
@@ -195,6 +190,11 @@ export function DestinatariosPage() {
                   ))}
                 </Select>
               </Field>
+              <div className="sm:col-span-3">
+                <Field label="Nombre">
+                  <Input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+                </Field>
+              </div>
               <div className="flex flex-wrap items-center gap-5 sm:col-span-3">
                 <label className="flex items-center gap-2 text-sm text-ink-300">
                   <input

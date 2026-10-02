@@ -94,7 +94,6 @@ export interface Destinatario {
   id: string;
   numero: string;
   rfc: string;
-  noEquivalencia: string;
   nombre: string;
   estatus: Estatus;
   esPatio: boolean;

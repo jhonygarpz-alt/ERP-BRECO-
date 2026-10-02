@@ -7,7 +7,6 @@ const COLUMNAS: { clave: string; campo: string }[] = [
   { clave: 'numero', campo: 'numero' },
   { clave: 'nombre', campo: 'nombre' },
   { clave: 'rfc', campo: 'rfc' },
-  { clave: 'no. equivalencia', campo: 'noEquivalencia' },
   { clave: 'activo', campo: 'activo' },
   { clave: 'es patio', campo: 'esPatio' },
   { clave: 'numero cliente', campo: 'numeroCliente' },
@@ -26,7 +25,7 @@ const COLUMNAS: { clave: string; campo: string }[] = [
 ];
 
 const ENCABEZADOS = [
-  'Numero', 'Nombre', 'RFC', 'No. Equivalencia', 'Activo', 'Es Patio', 'Numero Cliente', 'Pais', 'C.P.', 'Estado',
+  'Numero', 'Nombre', 'RFC', 'Activo', 'Es Patio', 'Numero Cliente', 'Pais', 'C.P.', 'Estado',
   'Municipio', 'Colonia', 'Localidad', 'Calle', 'No. Exterior', 'No. Interior', 'Telefono', 'Contacto', 'Correo',
 ];
 
@@ -46,7 +45,6 @@ export function descargarPlantillaDestinatarios(): void {
       ['Numero', 'Opcional. Si se deja en blanco, el sistema lo asigna automaticamente al importar.'],
       ['Nombre', 'Obligatorio.'],
       ['RFC', 'Opcional. Puede repetirse entre varias ubicaciones del mismo cliente.'],
-      ['No. Equivalencia', 'Opcional.'],
       ['Activo', 'Si o No. Si se deja en blanco se considera Si (activo).'],
       ['Es Patio', 'Si o No.'],
       ['Numero Cliente', 'Opcional. El "Numero Cliente" de un cliente ya existente en el catalogo de Clientes, para vincularlo.'],
@@ -104,7 +102,6 @@ export async function leerDestinatariosExcel(
       id: uid('dest'),
       numero: texto(col('numero', fila)),
       rfc: texto(col('rfc', fila)).toUpperCase(),
-      noEquivalencia: texto(col('noEquivalencia', fila)),
       nombre,
       estatus: col('activo', fila) === null ? 'activo' : booleano(col('activo', fila)) ? 'activo' : 'inactivo',
       esPatio: booleano(col('esPatio', fila)),

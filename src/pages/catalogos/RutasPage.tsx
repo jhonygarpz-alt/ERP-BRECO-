@@ -306,7 +306,6 @@ export function RutasPage() {
       id: nuevoId,
       numero: '',
       rfc: nuevoDestinatarioForm.rfc.trim().toUpperCase(),
-      noEquivalencia: '',
       nombre,
       estatus: 'activo',
       esPatio: false,
