@@ -35,9 +35,15 @@ function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
+function esSinNumero(valor: string): boolean {
+  const normalizado = valor.trim().toUpperCase().replace(/[.\s]/g, '');
+  return normalizado === '' || normalizado === 'S/N' || normalizado === 'SN';
+}
+
 function direccionDestinatario(d: Destinatario): string {
+  const numeroExterior = esSinNumero(d.numeroExterior) ? '' : d.numeroExterior;
   return [
-    [d.calle, d.numeroExterior].filter(Boolean).join(' '),
+    [d.calle, numeroExterior].filter(Boolean).join(' '),
     d.colonia,
     d.municipio,
     d.estado,
@@ -203,7 +209,13 @@ export function RutasPage() {
 
   function openEdit(r: Ruta) {
     setEditing(r);
-    setForm(r);
+    const origen = r.origenId ? destinatarios.items.find((d) => d.id === r.origenId) : undefined;
+    const destino = r.destinoId ? destinatarios.items.find((d) => d.id === r.destinoId) : undefined;
+    setForm({
+      ...r,
+      origenDireccion: r.origenDireccion || (origen ? direccionDestinatario(origen) : ''),
+      destinoDireccion: r.destinoDireccion || (destino ? direccionDestinatario(destino) : ''),
+    });
     setError('');
     setTab('trayectos');
     setTrayectoSeleccionadoId(null);
