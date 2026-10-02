@@ -2483,6 +2483,7 @@ export function ViajesPage() {
         <TrazarRutaModal
           origenInicial={nuevaRutaForm.origenDireccion}
           destinoInicial={nuevaRutaForm.destinoDireccion}
+          trazoGuardado={nuevaRutaForm.trazoRuta}
           onConfirmar={(datos) => {
             setNuevaRutaForm({
               ...nuevaRutaForm,

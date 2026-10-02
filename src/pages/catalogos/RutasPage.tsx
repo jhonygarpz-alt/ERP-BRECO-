@@ -1222,6 +1222,7 @@ export function RutasPage() {
         <TrazarRutaModal
           origenInicial={form.origenDireccion}
           destinoInicial={form.destinoDireccion}
+          trazoGuardado={form.trazoRuta}
           onConfirmar={(datos) => {
             setForm((f) => {
               const actualizado = { ...f, ...datos };

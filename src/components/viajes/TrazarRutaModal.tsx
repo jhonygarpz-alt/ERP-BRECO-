@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Loader2, MapPin } from 'lucide-react';
@@ -149,16 +149,28 @@ function CampoDireccion({
 export function TrazarRutaModal({
   origenInicial,
   destinoInicial,
+  trazoGuardado,
   onConfirmar,
   onClose,
 }: {
   origenInicial: string;
   destinoInicial: string;
+  /** Trazo ya guardado de una ruta existente (JSON de [lat,lon][]), para poder seguir editandolo en vez de empezar de cero. */
+  trazoGuardado?: string;
   onConfirmar: (datos: { origenDireccion: string; destinoDireccion: string; kilometros: number; horas: number; trazoRuta: string }) => void;
   onClose: () => void;
 }) {
   const [origenTexto, setOrigenTexto] = useState(origenInicial);
   const [destinoTexto, setDestinoTexto] = useState(destinoInicial);
+  const puntosGuardados = useMemo(() => {
+    if (!trazoGuardado) return null;
+    try {
+      const puntos = JSON.parse(trazoGuardado) as [number, number][];
+      return Array.isArray(puntos) && puntos.length >= 2 ? puntos : null;
+    } catch {
+      return null;
+    }
+  }, [trazoGuardado]);
   const [origenPunto, setOrigenPunto] = useState<PuntoGeocodificado | null>(null);
   const [destinoPunto, setDestinoPunto] = useState<PuntoGeocodificado | null>(null);
   const [origenAbierto, setOrigenAbierto] = useState(false);
@@ -407,6 +419,22 @@ export function TrazarRutaModal({
     pedirFitBounds();
   }
 
+  // Carga el trazo que ya estaba guardado en la Ruta directamente en modo
+  // manual -- a diferencia de "Editar trazado manualmente", NO parte de un
+  // trazo recalculado con OSRM, sino exactamente de los puntos que el
+  // usuario ya habia ajustado a mano la vez anterior.
+  function editarRutaGuardada() {
+    if (!puntosGuardados) return;
+    const inicio = puntosGuardados[0];
+    const fin = puntosGuardados[puntosGuardados.length - 1];
+    setOrigenActual({ lat: inicio[0], lon: inicio[1], displayName: origenTexto });
+    setDestinoActual({ lat: fin[0], lon: fin[1], displayName: destinoTexto });
+    setRutasAlternativas([]);
+    setPuntosManuales(puntosGuardados);
+    setModoManual(true);
+    pedirFitBounds();
+  }
+
   // Se recalcula con OSRM en vez de restaurar un resultado guardado: si el
   // usuario arrastro el pin de Origen/Destino mientras editaba a mano, la
   // ruta automatica debe seguir las calles desde esa posicion nueva, no
@@ -548,6 +576,11 @@ export function TrazarRutaModal({
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {puntosGuardados && !modoManual && (
+            <GhostButton type="button" onClick={editarRutaGuardada}>
+              Editar Ruta Trazada
+            </GhostButton>
+          )}
           {origenActual && destinoActual && (
             <GhostButton type="button" onClick={modoManual ? salirModoManual : activarModoManual}>
               {modoManual ? 'Volver a ruta automatica' : 'Editar trazado manualmente'}
