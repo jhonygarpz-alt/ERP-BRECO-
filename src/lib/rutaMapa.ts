@@ -111,8 +111,18 @@ export interface RutaCalculada {
   coordenadas: [number, number][];
 }
 
-export async function calcularRuta(origen: PuntoGeocodificado, destino: PuntoGeocodificado): Promise<RutaCalculada> {
-  const url = `https://router.project-osrm.org/route/v1/driving/${origen.lon},${origen.lat};${destino.lon},${destino.lat}?overview=full&geometries=geojson`;
+// Con `alternativas: true` (igual que el "varias opciones" de Google Maps)
+// OSRM puede devolver mas de una ruta entre los mismos dos puntos -- se
+// entregan todas, ordenadas de mas rapida a mas lenta, para que el usuario
+// elija.
+export async function calcularRuta(
+  origen: PuntoGeocodificado,
+  destino: PuntoGeocodificado,
+  opciones?: { alternativas?: boolean },
+): Promise<RutaCalculada[]> {
+  const params = new URLSearchParams({ overview: 'full', geometries: 'geojson' });
+  if (opciones?.alternativas) params.set('alternatives', 'true');
+  const url = `https://router.project-osrm.org/route/v1/driving/${origen.lon},${origen.lat};${destino.lon},${destino.lat}?${params.toString()}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('No se pudo calcular la ruta.');
   const data = (await res.json()) as {
@@ -120,13 +130,14 @@ export async function calcularRuta(origen: PuntoGeocodificado, destino: PuntoGeo
     routes: { distance: number; duration: number; geometry: { coordinates: [number, number][] } }[];
   };
   if (data.code !== 'Ok' || data.routes.length === 0) throw new Error('No se encontro una ruta entre esos dos puntos.');
-  const ruta = data.routes[0];
-  return {
-    distanciaKm: Math.round((ruta.distance / 1000) * 10) / 10,
-    duracionHoras: Math.round((ruta.duration / 3600) * 100) / 100,
-    // OSRM entrega [lon, lat]; Leaflet espera [lat, lon].
-    coordenadas: ruta.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
-  };
+  return [...data.routes]
+    .sort((a, b) => a.duration - b.duration)
+    .map((ruta) => ({
+      distanciaKm: Math.round((ruta.distance / 1000) * 10) / 10,
+      duracionHoras: Math.round((ruta.duration / 3600) * 100) / 100,
+      // OSRM entrega [lon, lat]; Leaflet espera [lat, lon].
+      coordenadas: ruta.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
+    }));
 }
 
 const VELOCIDAD_PROMEDIO_MANUAL_KMH = 60;

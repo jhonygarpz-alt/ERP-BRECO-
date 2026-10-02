@@ -45,7 +45,13 @@ function puntoIconManual(): L.DivIcon {
   });
 }
 
-const MAX_PUNTOS_MANUALES = 18;
+// Tope duro de puntos en el trazado libre (para que no se vuelva lento con
+// cientos de manijas arrastrables). El trazo inicial al entrar en modo
+// manual parte de una muestra mas chica (PUNTOS_INICIALES_AUTO) para no
+// saturar el mapa de entrada; el usuario puede seguir agregando puntos con
+// clic hasta llegar al tope.
+const MAX_PUNTOS_MANUALES = 60;
+const PUNTOS_INICIALES_AUTO = 18;
 
 // Autocompletado tipo "Google Maps": mientras el usuario escribe se buscan
 // sugerencias con debounce (nunca en cada tecla) para respetar el limite de
@@ -175,6 +181,12 @@ export function TrazarRutaModal({
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [resultado, setResultado] = useState<RutaCalculada | null>(null);
+  // Opciones de ruta devueltas por OSRM (como el panel de "varias opciones"
+  // de Google Maps). `resultado` siempre es la opcion actualmente elegida
+  // (rutasAlternativas[indiceRuta]); fuera del modo auto (manual, o solo 1
+  // opcion encontrada) la lista queda vacia y no se muestra el panel.
+  const [rutasAlternativas, setRutasAlternativas] = useState<RutaCalculada[]>([]);
+  const [indiceRuta, setIndiceRuta] = useState(0);
   // Puntos realmente ubicados en el mapa (pueden moverse arrastrando el pin,
   // independiente del texto de los campos de arriba).
   const [origenActual, setOrigenActual] = useState<PuntoGeocodificado | null>(null);
@@ -314,7 +326,7 @@ export function TrazarRutaModal({
         setCargando(true);
         setError('');
         try {
-          setResultado(await calcularRuta(nuevoOrigen, destinoActual));
+          elegirRutas(await calcularRuta(nuevoOrigen, destinoActual, { alternativas: true }));
         } catch (err) {
           setError(mensajeDeError(err));
         } finally {
@@ -328,7 +340,7 @@ export function TrazarRutaModal({
         setCargando(true);
         setError('');
         try {
-          setResultado(await calcularRuta(origenActual, nuevoDestino));
+          elegirRutas(await calcularRuta(origenActual, nuevoDestino, { alternativas: true }));
         } catch (err) {
           setError(mensajeDeError(err));
         } finally {
@@ -365,11 +377,22 @@ export function TrazarRutaModal({
     setResultado(rutaDesdePuntosManuales(puntosManuales));
   }, [modoManual, puntosManuales]);
 
+  function elegirRutas(rutas: RutaCalculada[]) {
+    setRutasAlternativas(rutas);
+    setIndiceRuta(0);
+    setResultado(rutas[0]);
+  }
+
+  function elegirIndiceRuta(indice: number) {
+    setIndiceRuta(indice);
+    setResultado(rutasAlternativas[indice]);
+  }
+
   function activarModoManual() {
     if (!origenActual || !destinoActual) return;
     const base =
       resultado && resultado.coordenadas.length >= 2
-        ? muestrearPuntos(resultado.coordenadas, MAX_PUNTOS_MANUALES)
+        ? muestrearPuntos(resultado.coordenadas, PUNTOS_INICIALES_AUTO)
         : [
             [origenActual.lat, origenActual.lon] as [number, number],
             [destinoActual.lat, destinoActual.lon] as [number, number],
@@ -378,6 +401,7 @@ export function TrazarRutaModal({
     puntos[0] = [origenActual.lat, origenActual.lon];
     puntos[puntos.length - 1] = [destinoActual.lat, destinoActual.lon];
     setPuntosManuales(puntos);
+    setRutasAlternativas([]);
     setModoManual(true);
   }
 
@@ -392,7 +416,7 @@ export function TrazarRutaModal({
     setCargando(true);
     setError('');
     try {
-      setResultado(await calcularRuta(origenActual, destinoActual));
+      elegirRutas(await calcularRuta(origenActual, destinoActual, { alternativas: true }));
     } catch (err) {
       setError(mensajeDeError(err));
     } finally {
@@ -441,6 +465,7 @@ export function TrazarRutaModal({
     setCargando(true);
     setError('');
     setResultado(null);
+    setRutasAlternativas([]);
     setOrigenActual(null);
     setDestinoActual(null);
     setModoManual(false);
@@ -450,10 +475,10 @@ export function TrazarRutaModal({
         origenPunto ?? geocodificarDireccion(origenTexto),
         destinoPunto ?? geocodificarDireccion(destinoTexto),
       ]);
-      const ruta = await calcularRuta(origen, destino);
+      const rutas = await calcularRuta(origen, destino, { alternativas: true });
       setOrigenActual(origen);
       setDestinoActual(destino);
-      setResultado(ruta);
+      elegirRutas(rutas);
     } catch (err) {
       setError(mensajeDeError(err));
       setResultado(null);
@@ -536,6 +561,26 @@ export function TrazarRutaModal({
         </div>
 
         {error && <p className="text-sm text-breco-500">{error}</p>}
+
+        {!modoManual && rutasAlternativas.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {rutasAlternativas.map((r, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => elegirIndiceRuta(i)}
+                className={`rounded-lg border px-3 py-1.5 text-left text-xs transition ${
+                  i === indiceRuta
+                    ? 'border-breco-500 bg-breco-500/10 text-ink-100'
+                    : 'border-line-700 bg-bg-900 text-ink-300 hover:bg-bg-800'
+                }`}
+              >
+                <span className="block font-semibold">Opcion {i + 1}: {Math.round(r.duracionHoras * 60)} min</span>
+                <span className="block text-ink-500">{r.distanciaKm} km</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {modoManual && (
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-breco-500/30 bg-breco-500/5 px-3 py-2 text-xs text-ink-300">
