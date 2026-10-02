@@ -128,3 +128,41 @@ export async function calcularRuta(origen: PuntoGeocodificado, destino: PuntoGeo
     coordenadas: ruta.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
   };
 }
+
+const VELOCIDAD_PROMEDIO_MANUAL_KMH = 60;
+
+function distanciaHaversineKm(a: [number, number], b: [number, number]): number {
+  const R = 6371;
+  const dLat = ((b[0] - a[0]) * Math.PI) / 180;
+  const dLon = ((b[1] - a[1]) * Math.PI) / 180;
+  const lat1 = (a[0] * Math.PI) / 180;
+  const lat2 = (b[0] * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+// Para un trazado manual (lineas rectas entre los puntos que arrastra/agrega
+// el usuario) no hay forma de medir duracion real como con OSRM, asi que se
+// estima con una velocidad promedio fija -- el usuario siempre puede ajustar
+// "Horas" a mano despues en el formulario de la Ruta.
+export function rutaDesdePuntosManuales(puntos: [number, number][]): RutaCalculada {
+  let distanciaKm = 0;
+  for (let i = 1; i < puntos.length; i++) distanciaKm += distanciaHaversineKm(puntos[i - 1], puntos[i]);
+  distanciaKm = Math.round(distanciaKm * 10) / 10;
+  return {
+    distanciaKm,
+    duracionHoras: Math.round((distanciaKm / VELOCIDAD_PROMEDIO_MANUAL_KMH) * 100) / 100,
+    coordenadas: puntos,
+  };
+}
+
+// Decima un trazo de OSRM (puede traer cientos de puntos) a un numero
+// manejable de "manijas" arrastrables para editar a mano, siempre
+// conservando el primer y ultimo punto.
+export function muestrearPuntos(puntos: [number, number][], maximo: number): [number, number][] {
+  if (puntos.length <= maximo) return puntos;
+  const paso = (puntos.length - 1) / (maximo - 1);
+  const resultado: [number, number][] = [];
+  for (let i = 0; i < maximo; i++) resultado.push(puntos[Math.round(i * paso)]);
+  return resultado;
+}

@@ -6,6 +6,8 @@ import {
   buscarSugerenciasDireccion,
   calcularRuta,
   geocodificarDireccion,
+  muestrearPuntos,
+  rutaDesdePuntosManuales,
   type PuntoGeocodificado,
   type RutaCalculada,
   type SugerenciaDireccion,
@@ -14,6 +16,36 @@ import { mensajeDeError } from '../../lib/errors';
 import { googleMapsDisponible } from '../../lib/googlePlaces';
 import { Modal } from '../ui/Modal';
 import { Field, GhostButton, Input, PrimaryButton, inputClass } from '../ui/form';
+
+// Pin tipo "gota" dibujado con HTML/CSS (sin imagenes externas, para no
+// depender de los assets de icono por defecto de Leaflet, que no cargan bien
+// con Vite). Verde con "A" para Origen, rojo con "B" para Destino.
+function pinIcon(color: string, letra: string): L.DivIcon {
+  return L.divIcon({
+    className: '',
+    html:
+      `<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:${color};` +
+      'transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;' +
+      'border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.45);">' +
+      `<span style="transform:rotate(45deg);color:white;font-weight:700;font-size:12px;line-height:1;">${letra}</span>` +
+      '</div>',
+    iconSize: [26, 26],
+    iconAnchor: [13, 26],
+  });
+}
+
+function puntoIconManual(): L.DivIcon {
+  return L.divIcon({
+    className: '',
+    html:
+      '<div style="width:14px;height:14px;border-radius:50%;background:#3b82f6;' +
+      'border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,.45);cursor:grab;"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+const MAX_PUNTOS_MANUALES = 18;
 
 // Autocompletado tipo "Google Maps": mientras el usuario escribe se buscan
 // sugerencias con debounce (nunca en cada tecla) para respetar el limite de
@@ -143,6 +175,16 @@ export function TrazarRutaModal({
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [resultado, setResultado] = useState<RutaCalculada | null>(null);
+  // Puntos realmente ubicados en el mapa (pueden moverse arrastrando el pin,
+  // independiente del texto de los campos de arriba).
+  const [origenActual, setOrigenActual] = useState<PuntoGeocodificado | null>(null);
+  const [destinoActual, setDestinoActual] = useState<PuntoGeocodificado | null>(null);
+  // Modo "trazado libre": en vez de seguir las calles via OSRM, el usuario
+  // arrastra/agrega puntos y la linea se dibuja recta entre ellos.
+  const [modoManual, setModoManual] = useState(false);
+  const [puntosManuales, setPuntosManuales] = useState<[number, number][]>([]);
+  const puntosManualesRef = useRef<[number, number][]>([]);
+  const lineaManualRef = useRef<L.Polyline | null>(null);
 
   const origenSug = useSugerenciasDireccion(origenTexto);
   const destinoSug = useSugerenciasDireccion(destinoTexto);
@@ -150,14 +192,34 @@ export function TrazarRutaModal({
   const mapaRef = useRef<HTMLDivElement | null>(null);
   const mapaInstancia = useRef<L.Map | null>(null);
   const capaRuta = useRef<L.LayerGroup | null>(null);
+  const capaCalles = useRef<L.TileLayer | null>(null);
+  const capaSatelital = useRef<L.TileLayer | null>(null);
+  const [vistaSatelital, setVistaSatelital] = useState(false);
+
+  function alternarVistaSatelital() {
+    const mapa = mapaInstancia.current;
+    if (!mapa || !capaCalles.current || !capaSatelital.current) return;
+    if (vistaSatelital) {
+      mapa.removeLayer(capaSatelital.current);
+      mapa.addLayer(capaCalles.current);
+    } else {
+      mapa.removeLayer(capaCalles.current);
+      mapa.addLayer(capaSatelital.current);
+    }
+    setVistaSatelital(!vistaSatelital);
+  }
 
   useEffect(() => {
     if (!mapaRef.current || mapaInstancia.current) return;
     const mapa = L.map(mapaRef.current).setView([23.6345, -102.5528], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    capaCalles.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(mapa);
+    capaSatelital.current = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { attribution: '&copy; Esri, Maxar, Earthstar Geographics', maxZoom: 19 },
+    );
     mapaInstancia.current = mapa;
     capaRuta.current = L.layerGroup().addTo(mapa);
     setTimeout(() => mapa.invalidateSize(), 150);
@@ -167,6 +229,180 @@ export function TrazarRutaModal({
       mapaInstancia.current = null;
     };
   }, []);
+
+  // Dibuja pines + linea cada vez que cambia el origen/destino, el resultado
+  // (auto u OSRM) o la lista de puntos manuales. Los arrastres continuos
+  // (evento "drag") NO pasan por aqui -- actualizan el mapa directamente para
+  // no recrear el marcador que se esta arrastrando a medio gesto; solo al
+  // soltar ("dragend") se guarda en el estado de React, que es lo que dispara
+  // este efecto para dejar todo consistente.
+  useEffect(() => {
+    const mapa = mapaInstancia.current;
+    const capa = capaRuta.current;
+    if (!mapa || !capa) return;
+    capa.clearLayers();
+    lineaManualRef.current = null;
+    if (!origenActual || !destinoActual) return;
+
+    const coordenadas = modoManual ? puntosManuales : (resultado?.coordenadas ?? []);
+    puntosManualesRef.current = modoManual ? [...puntosManuales] : [];
+
+    if (coordenadas.length >= 2) {
+      const linea = L.polyline(coordenadas, {
+        color: '#3b82f6',
+        weight: 4,
+        dashArray: modoManual ? '6 6' : undefined,
+      }).addTo(capa);
+      if (modoManual) lineaManualRef.current = linea;
+      mapa.fitBounds(linea.getBounds(), { padding: [30, 30] });
+    }
+
+    if (modoManual && puntosManuales.length > 2) {
+      puntosManuales.slice(1, -1).forEach((punto, i) => {
+        const indice = i + 1;
+        const marcador = L.marker(punto, { icon: puntoIconManual(), draggable: true }).addTo(capa);
+        marcador.on('drag', (e) => {
+          const ll = (e.target as L.Marker).getLatLng();
+          puntosManualesRef.current[indice] = [ll.lat, ll.lng];
+          lineaManualRef.current?.setLatLngs(puntosManualesRef.current);
+        });
+        marcador.on('dragend', (e) => {
+          const ll = (e.target as L.Marker).getLatLng();
+          setPuntosManuales((prev) => {
+            const copia = [...prev];
+            copia[indice] = [ll.lat, ll.lng];
+            return copia;
+          });
+        });
+      });
+    }
+
+    const origenMarcador = L.marker([origenActual.lat, origenActual.lon], { icon: pinIcon('#22c55e', 'A'), draggable: true })
+      .bindTooltip('Origen', { permanent: true, direction: 'top', offset: [0, -24] })
+      .addTo(capa);
+    const destinoMarcador = L.marker([destinoActual.lat, destinoActual.lon], { icon: pinIcon('#ef4444', 'B'), draggable: true })
+      .bindTooltip('Destino', { permanent: true, direction: 'top', offset: [0, -24] })
+      .addTo(capa);
+
+    if (modoManual) {
+      origenMarcador.on('drag', (e) => {
+        const ll = (e.target as L.Marker).getLatLng();
+        puntosManualesRef.current[0] = [ll.lat, ll.lng];
+        lineaManualRef.current?.setLatLngs(puntosManualesRef.current);
+      });
+      origenMarcador.on('dragend', (e) => {
+        const ll = (e.target as L.Marker).getLatLng();
+        setOrigenActual((o) => (o ? { ...o, lat: ll.lat, lon: ll.lng } : o));
+        setPuntosManuales((prev) => (prev.length > 0 ? [[ll.lat, ll.lng], ...prev.slice(1)] : prev));
+      });
+      destinoMarcador.on('drag', (e) => {
+        const ll = (e.target as L.Marker).getLatLng();
+        const ultimo = puntosManualesRef.current.length - 1;
+        puntosManualesRef.current[ultimo] = [ll.lat, ll.lng];
+        lineaManualRef.current?.setLatLngs(puntosManualesRef.current);
+      });
+      destinoMarcador.on('dragend', (e) => {
+        const ll = (e.target as L.Marker).getLatLng();
+        setDestinoActual((d) => (d ? { ...d, lat: ll.lat, lon: ll.lng } : d));
+        setPuntosManuales((prev) => (prev.length > 0 ? [...prev.slice(0, -1), [ll.lat, ll.lng]] : prev));
+      });
+    } else {
+      origenMarcador.on('dragend', async (e) => {
+        const ll = (e.target as L.Marker).getLatLng();
+        const nuevoOrigen: PuntoGeocodificado = { ...origenActual, lat: ll.lat, lon: ll.lng };
+        setOrigenActual(nuevoOrigen);
+        setCargando(true);
+        setError('');
+        try {
+          setResultado(await calcularRuta(nuevoOrigen, destinoActual));
+        } catch (err) {
+          setError(mensajeDeError(err));
+        } finally {
+          setCargando(false);
+        }
+      });
+      destinoMarcador.on('dragend', async (e) => {
+        const ll = (e.target as L.Marker).getLatLng();
+        const nuevoDestino: PuntoGeocodificado = { ...destinoActual, lat: ll.lat, lon: ll.lng };
+        setDestinoActual(nuevoDestino);
+        setCargando(true);
+        setError('');
+        try {
+          setResultado(await calcularRuta(origenActual, nuevoDestino));
+        } catch (err) {
+          setError(mensajeDeError(err));
+        } finally {
+          setCargando(false);
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origenActual, destinoActual, resultado, modoManual, puntosManuales]);
+
+  // En modo manual, agregar un punto nuevo con clic en el mapa (entre el
+  // ultimo punto agregado y el Destino).
+  useEffect(() => {
+    const mapa = mapaInstancia.current;
+    if (!mapa || !modoManual) return;
+    function alHacerClic(e: L.LeafletMouseEvent) {
+      setPuntosManuales((prev) => {
+        if (prev.length < 2 || prev.length >= MAX_PUNTOS_MANUALES) return prev;
+        const nuevo = [...prev];
+        nuevo.splice(prev.length - 1, 0, [e.latlng.lat, e.latlng.lng]);
+        return nuevo;
+      });
+    }
+    mapa.on('click', alHacerClic);
+    return () => {
+      mapa.off('click', alHacerClic);
+    };
+  }, [modoManual]);
+
+  // Mientras se edita a mano, la distancia/duracion se recalculan en linea
+  // recta entre los puntos (no hay forma de medir por calles sin OSRM).
+  useEffect(() => {
+    if (!modoManual || puntosManuales.length < 2) return;
+    setResultado(rutaDesdePuntosManuales(puntosManuales));
+  }, [modoManual, puntosManuales]);
+
+  function activarModoManual() {
+    if (!origenActual || !destinoActual) return;
+    const base =
+      resultado && resultado.coordenadas.length >= 2
+        ? muestrearPuntos(resultado.coordenadas, MAX_PUNTOS_MANUALES)
+        : [
+            [origenActual.lat, origenActual.lon] as [number, number],
+            [destinoActual.lat, destinoActual.lon] as [number, number],
+          ];
+    const puntos = [...base];
+    puntos[0] = [origenActual.lat, origenActual.lon];
+    puntos[puntos.length - 1] = [destinoActual.lat, destinoActual.lon];
+    setPuntosManuales(puntos);
+    setModoManual(true);
+  }
+
+  // Se recalcula con OSRM en vez de restaurar un resultado guardado: si el
+  // usuario arrastro el pin de Origen/Destino mientras editaba a mano, la
+  // ruta automatica debe seguir las calles desde esa posicion nueva, no
+  // desde donde estaba antes de entrar al modo manual.
+  async function salirModoManual() {
+    if (!origenActual || !destinoActual) return;
+    setModoManual(false);
+    setPuntosManuales([]);
+    setCargando(true);
+    setError('');
+    try {
+      setResultado(await calcularRuta(origenActual, destinoActual));
+    } catch (err) {
+      setError(mensajeDeError(err));
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  function deshacerPuntoManual() {
+    setPuntosManuales((prev) => (prev.length > 2 ? [...prev.slice(0, -2), prev[prev.length - 1]] : prev));
+  }
 
   // Con Nominatim las coordenadas ya vienen en la sugerencia; con Google
   // Places hace falta una segunda consulta ("Place Details") para obtenerlas,
@@ -205,32 +441,19 @@ export function TrazarRutaModal({
     setCargando(true);
     setError('');
     setResultado(null);
-    // Se limpia el mapa ANTES de intentar geocodificar/trazar: si la
-    // busqueda falla, el mapa debe quedar vacio (no mostrar el trazo de un
-    // intento anterior), de lo contrario parece que el sistema encontro un
-    // destino equivocado cuando en realidad solo esta mostrando informacion
-    // vieja que nunca se borro.
-    capaRuta.current?.clearLayers();
+    setOrigenActual(null);
+    setDestinoActual(null);
+    setModoManual(false);
+    setPuntosManuales([]);
     try {
       const [origen, destino] = await Promise.all([
         origenPunto ?? geocodificarDireccion(origenTexto),
         destinoPunto ?? geocodificarDireccion(destinoTexto),
       ]);
       const ruta = await calcularRuta(origen, destino);
+      setOrigenActual(origen);
+      setDestinoActual(destino);
       setResultado(ruta);
-
-      const mapa = mapaInstancia.current;
-      const capa = capaRuta.current;
-      if (mapa && capa) {
-        L.circleMarker([origen.lat, origen.lon], { radius: 8, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 })
-          .bindTooltip('Origen')
-          .addTo(capa);
-        L.circleMarker([destino.lat, destino.lon], { radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 1 })
-          .bindTooltip('Destino')
-          .addTo(capa);
-        const linea = L.polyline(ruta.coordenadas, { color: '#3b82f6', weight: 4 }).addTo(capa);
-        mapa.fitBounds(linea.getBounds(), { padding: [30, 30] });
-      }
     } catch (err) {
       setError(mensajeDeError(err));
       setResultado(null);
@@ -295,7 +518,12 @@ export function TrazarRutaModal({
           />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {origenActual && destinoActual && (
+            <GhostButton type="button" onClick={modoManual ? salirModoManual : activarModoManual}>
+              {modoManual ? 'Volver a ruta automatica' : 'Editar trazado manualmente'}
+            </GhostButton>
+          )}
           <PrimaryButton type="button" onClick={trazar} disabled={cargando}>
             {cargando ? (
               <>
@@ -309,14 +537,45 @@ export function TrazarRutaModal({
 
         {error && <p className="text-sm text-breco-500">{error}</p>}
 
-        <div ref={mapaRef} className="h-96 w-full overflow-hidden rounded-xl border border-line-800" />
+        {modoManual && (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-breco-500/30 bg-breco-500/5 px-3 py-2 text-xs text-ink-300">
+            <span>
+              Trazado libre: arrastra los puntos azules o los pines para ajustar la ruta. Haz clic en el mapa para
+              agregar un punto nuevo.
+            </span>
+            <GhostButton type="button" onClick={deshacerPuntoManual} disabled={puntosManuales.length <= 2}>
+              Deshacer ultimo punto
+            </GhostButton>
+          </div>
+        )}
+
+        <div className="relative">
+          <div ref={mapaRef} className="h-96 w-full overflow-hidden rounded-xl border border-line-800" />
+          <button
+            type="button"
+            onClick={alternarVistaSatelital}
+            className="absolute right-2 top-2 z-[1000] rounded-lg border border-line-700 bg-bg-800/90 px-3 py-1.5 text-xs font-medium text-ink-200 shadow-lg hover:bg-bg-700"
+          >
+            {vistaSatelital ? 'Vista calles' : 'Vista satelital'}
+          </button>
+          {origenActual && destinoActual && (
+            <div className="absolute bottom-2 left-2 z-[1000] flex items-center gap-3 rounded-lg border border-line-700 bg-bg-800/90 px-3 py-1.5 text-xs text-ink-200 shadow-lg">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" /> Origen
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" /> Destino
+              </span>
+            </div>
+          )}
+        </div>
 
         {resultado && (
           <div className="grid grid-cols-2 gap-3 rounded-xl border border-line-800 bg-bg-900 p-3 sm:grid-cols-4">
             <Field label="Kilometros">
               <Input readOnly value={resultado.distanciaKm} />
             </Field>
-            <Field label="Horas (estimado)">
+            <Field label={modoManual ? 'Horas (estimado, trazado libre)' : 'Horas (estimado)'}>
               <Input readOnly value={resultado.duracionHoras} />
             </Field>
           </div>
