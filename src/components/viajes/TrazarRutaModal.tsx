@@ -198,7 +198,16 @@ export function TrazarRutaModal({
   const [puntosManuales, setPuntosManuales] = useState<[number, number][]>([]);
   const puntosManualesRef = useRef<[number, number][]>([]);
   const lineaManualRef = useRef<L.Polyline | null>(null);
-  const modoManualAnteriorRef = useRef(false);
+  // El mapa NUNCA se reencuadra solo -- ni al arrastrar un pin (Origen,
+  // Destino o un punto intermedio) ni al elegir otra opcion de ruta --
+  // porque perder el zoom a medio ajuste entorpece el trazado. Solo se pide
+  // explicitamente con pedirFitBounds() al trazar por primera vez o al
+  // entrar/salir del modo manual.
+  const fitPendienteRef = useRef(0);
+  const fitProcesadoRef = useRef(0);
+  function pedirFitBounds() {
+    fitPendienteRef.current++;
+  }
 
   const origenSug = useSugerenciasDireccion(origenTexto);
   const destinoSug = useSugerenciasDireccion(destinoTexto);
@@ -261,13 +270,6 @@ export function TrazarRutaModal({
     const coordenadas = modoManual ? puntosManuales : (resultado?.coordenadas ?? []);
     puntosManualesRef.current = modoManual ? [...puntosManuales] : [];
 
-    // Al editar a mano, NO se reencuadra el mapa en cada punto que se mueve:
-    // el usuario normalmente ya hizo zoom a la zona exacta que quiere
-    // corregir, y perder ese zoom en cada ajuste entorpece el trazado. Solo
-    // se reencuadra la primera vez que se entra al modo manual (transicion
-    // false->true) o siempre que no se este editando a mano.
-    const entrandoAModoManual = modoManual && !modoManualAnteriorRef.current;
-    modoManualAnteriorRef.current = modoManual;
     if (coordenadas.length >= 2) {
       const linea = L.polyline(coordenadas, {
         color: '#3b82f6',
@@ -275,7 +277,10 @@ export function TrazarRutaModal({
         dashArray: modoManual ? '6 6' : undefined,
       }).addTo(capa);
       if (modoManual) lineaManualRef.current = linea;
-      if (!modoManual || entrandoAModoManual) mapa.fitBounds(linea.getBounds(), { padding: [30, 30] });
+      if (fitPendienteRef.current !== fitProcesadoRef.current) {
+        mapa.fitBounds(linea.getBounds(), { padding: [30, 30] });
+        fitProcesadoRef.current = fitPendienteRef.current;
+      }
     }
 
     if (modoManual && puntosManuales.length > 2) {
@@ -415,6 +420,7 @@ export function TrazarRutaModal({
     setPuntosManuales(puntos);
     setRutasAlternativas([]);
     setModoManual(true);
+    pedirFitBounds();
   }
 
   // Se recalcula con OSRM en vez de restaurar un resultado guardado: si el
@@ -429,6 +435,7 @@ export function TrazarRutaModal({
     setError('');
     try {
       elegirRutas(await calcularRuta(origenActual, destinoActual, { alternativas: true }));
+      pedirFitBounds();
     } catch (err) {
       setError(mensajeDeError(err));
     } finally {
@@ -491,6 +498,7 @@ export function TrazarRutaModal({
       setOrigenActual(origen);
       setDestinoActual(destino);
       elegirRutas(rutas);
+      pedirFitBounds();
     } catch (err) {
       setError(mensajeDeError(err));
       setResultado(null);
