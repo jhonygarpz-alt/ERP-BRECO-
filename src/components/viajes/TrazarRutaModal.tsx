@@ -6,6 +6,7 @@ import {
   buscarSugerenciasDireccion,
   calcularRuta,
   geocodificarDireccion,
+  indiceInsercionManual,
   muestrearPuntos,
   rutaDesdePuntosManuales,
   type PuntoGeocodificado,
@@ -359,16 +360,19 @@ export function TrazarRutaModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origenActual, destinoActual, resultado, modoManual, puntosManuales]);
 
-  // En modo manual, agregar un punto nuevo con clic en el mapa (entre el
-  // ultimo punto agregado y el Destino).
+  // En modo manual, agregar un punto nuevo con clic en el mapa: se inserta
+  // en el segmento de la ruta mas cercano al clic (no siempre al final),
+  // para que aparezca donde se señalo sobre el trazo sin reordenar el resto.
   useEffect(() => {
     const mapa = mapaInstancia.current;
     if (!mapa || !modoManual) return;
     function alHacerClic(e: L.LeafletMouseEvent) {
       setPuntosManuales((prev) => {
         if (prev.length < 2 || prev.length >= MAX_PUNTOS_MANUALES) return prev;
+        const clic: [number, number] = [e.latlng.lat, e.latlng.lng];
+        const indice = indiceInsercionManual(prev, clic);
         const nuevo = [...prev];
-        nuevo.splice(prev.length - 1, 0, [e.latlng.lat, e.latlng.lng]);
+        nuevo.splice(indice, 0, clic);
         return nuevo;
       });
     }

@@ -167,6 +167,34 @@ export function rutaDesdePuntosManuales(puntos: [number, number][]): RutaCalcula
   };
 }
 
+function distanciaPuntoSegmento(p: [number, number], a: [number, number], b: [number, number]): number {
+  const [py, px] = p;
+  const [ay, ax] = a;
+  const [by, bx] = b;
+  const dx = bx - ax;
+  const dy = by - ay;
+  if (dx === 0 && dy === 0) return Math.hypot(px - ax, py - ay);
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+// Al hacer clic en el mapa para agregar un punto al trazado libre, se busca
+// a que segmento de la ruta (entre que par de puntos consecutivos) cae mas
+// cerca el clic, para insertarlo ahi -- no siempre al final, que de otro
+// modo reordena/deforma el trazo ya hecho.
+export function indiceInsercionManual(puntos: [number, number][], clic: [number, number]): number {
+  let mejorIndice = puntos.length - 1;
+  let mejorDistancia = Infinity;
+  for (let i = 0; i < puntos.length - 1; i++) {
+    const distancia = distanciaPuntoSegmento(clic, puntos[i], puntos[i + 1]);
+    if (distancia < mejorDistancia) {
+      mejorDistancia = distancia;
+      mejorIndice = i + 1;
+    }
+  }
+  return mejorIndice;
+}
+
 // Decima un trazo de OSRM (puede traer cientos de puntos) a un numero
 // manejable de "manijas" arrastrables para editar a mano, siempre
 // conservando el primer y ultimo punto.
