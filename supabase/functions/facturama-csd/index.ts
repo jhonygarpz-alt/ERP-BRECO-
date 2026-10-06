@@ -82,7 +82,7 @@ Deno.serve(async (req: Request) => {
       .select('id, rfc, facturama_ambiente')
       .single();
     if (errEmpresa || !empresa) {
-      return jsonResponse({ error: 'No se encontro la empresa del usuario.' }, 404);
+      return jsonResponse({ error: `No se encontro la empresa del usuario: ${errEmpresa?.message ?? 'sin datos'}` }, 404);
     }
     const rfc = (empresa.rfc as string | null)?.trim().toUpperCase();
     if (!rfc) {
