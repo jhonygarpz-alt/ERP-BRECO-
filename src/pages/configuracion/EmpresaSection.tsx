@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { Building2, Upload, FileCheck2, Loader2, Trash2 } from 'lucide-react';
+import { Building2, Upload, FileCheck2, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { Field, Input, PrimaryButton } from '../../components/ui/form';
@@ -14,6 +14,7 @@ export function EmpresaSection() {
   const [certificado, setCertificado] = useState<File | null>(null);
   const [llave, setLlave] = useState<File | null>(null);
   const [passwordCsd, setPasswordCsd] = useState('');
+  const [verPasswordCsd, setVerPasswordCsd] = useState(false);
   const [cargandoCsd, setCargandoCsd] = useState(false);
   const [errorCsd, setErrorCsd] = useState('');
 
@@ -174,7 +175,22 @@ export function EmpresaSection() {
             />
           </Field>
           <Field label="Contrasena de la llave">
-            <Input type="password" value={passwordCsd} onChange={(e) => setPasswordCsd(e.target.value)} />
+            <div className="relative">
+              <Input
+                type={verPasswordCsd ? 'text' : 'password'}
+                value={passwordCsd}
+                onChange={(e) => setPasswordCsd(e.target.value)}
+                className="pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setVerPasswordCsd((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center px-2.5 text-ink-600 hover:text-ink-300"
+                tabIndex={-1}
+              >
+                {verPasswordCsd ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </Field>
         </div>
 
