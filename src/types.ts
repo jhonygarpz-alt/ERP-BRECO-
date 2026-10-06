@@ -739,6 +739,12 @@ export interface Empresa {
   modulosContratados: Modulo[];
   /** Features personalizadas habilitadas SOLO para esta empresa (a diferencia de modulosContratados, que es todo-o-nada por modulo). Sirve para cambios que un cliente pidio y que no deben verse en las demas empresas. Vacio = ninguna. Ver src/lib/featureFlags.ts. */
   featuresHabilitadas: string[];
+  /** Ambiente de Facturama (PAC) usado para timbrar los CFDI de esta empresa. 'sandbox' = pruebas, no valido ante el SAT. */
+  facturamaAmbiente: 'sandbox' | 'produccion';
+  /** true si esta empresa ya tiene un CSD registrado con el PAC (API Multiemisor) bajo su propio RFC. El certificado/llave privada NUNCA se guardan en el ERP, solo este estatus. */
+  facturamaCsdRegistrado: boolean;
+  facturamaCsdVigenciaHasta?: string;
+  facturamaCsdActualizadoEn?: string;
 }
 
 export type EstatusTicketSoporte = 'Nuevo' | 'Atendido' | 'Cerrado';

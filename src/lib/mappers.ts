@@ -962,6 +962,10 @@ export function empresaFromRow(row: Record<string, unknown>): Empresa {
     costoPorLicencia: (row.costo_por_licencia as number | null) ?? 0,
     modulosContratados: (row.modulos_contratados as Empresa['modulosContratados'] | null) ?? [],
     featuresHabilitadas: (row.features_habilitadas as string[] | null) ?? [],
+    facturamaAmbiente: (row.facturama_ambiente as Empresa['facturamaAmbiente'] | null) ?? 'sandbox',
+    facturamaCsdRegistrado: (row.facturama_csd_registrado as boolean | null) ?? false,
+    facturamaCsdVigenciaHasta: (row.facturama_csd_vigencia_hasta as string | null) ?? undefined,
+    facturamaCsdActualizadoEn: (row.facturama_csd_actualizado_en as string | null) ?? undefined,
   };
 }
 export function empresaToRow(e: Empresa) {

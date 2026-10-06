@@ -372,6 +372,8 @@ export function EmpresasSection() {
         costoPorLicencia: Number(formNueva.costoPorLicencia) || 0,
         modulosContratados: formNueva.modulosContratados,
         featuresHabilitadas: formNueva.featuresHabilitadas,
+        facturamaAmbiente: 'sandbox',
+        facturamaCsdRegistrado: false,
       };
       await empresas.add(nuevaEmpresa);
 

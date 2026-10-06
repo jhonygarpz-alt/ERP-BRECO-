@@ -24,4 +24,6 @@ export const seedEmpresa: Empresa = {
   costoPorLicencia: 0,
   modulosContratados: [],
   featuresHabilitadas: [],
+  facturamaAmbiente: 'sandbox',
+  facturamaCsdRegistrado: false,
 };
