@@ -3,7 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
-import { USO_CFDI_SAT } from '../../lib/catalogosSat';
+import { FORMA_PAGO_SAT, USO_CFDI_SAT } from '../../lib/catalogosSat';
 import { TIMBRADO_VACIO, timbrarSimulado } from '../../lib/timbrado';
 import { timbrarFactura } from '../../lib/facturamaCfdi';
 import { ErrorAvatarCard, SuccessAvatarCard } from '../ui/ErrorAvatarCard';
@@ -353,7 +353,14 @@ export function FacturaFormModal({
               </Select>
             </Field>
             <Field label="Forma de Pago">
-              <Input value={form.formaPago} onChange={(e) => setForm({ ...form, formaPago: e.target.value })} placeholder="Por definir" />
+              <Select value={form.formaPago} onChange={(e) => setForm({ ...form, formaPago: e.target.value })}>
+                <option value="">Selecciona...</option>
+                {FORMA_PAGO_SAT.map((f) => (
+                  <option key={f.clave} value={f.clave}>
+                    {f.clave} - {f.descripcion}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <Field label="Metodo de Pago">
               <Select value={form.metodoPago} onChange={(e) => setForm({ ...form, metodoPago: e.target.value })}>

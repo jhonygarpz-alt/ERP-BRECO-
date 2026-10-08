@@ -39,6 +39,32 @@ export const USO_CFDI_SAT: ClaveSat[] = [
   { clave: 'CN01', descripcion: 'Nomina' },
 ];
 
+/** c_FormaPago -- como se liquido o se liquidara el comprobante (Facturacion). */
+export const FORMA_PAGO_SAT: ClaveSat[] = [
+  { clave: '01', descripcion: 'Efectivo' },
+  { clave: '02', descripcion: 'Cheque nominativo' },
+  { clave: '03', descripcion: 'Transferencia electronica de fondos' },
+  { clave: '04', descripcion: 'Tarjeta de credito' },
+  { clave: '05', descripcion: 'Monedero electronico' },
+  { clave: '06', descripcion: 'Dinero electronico' },
+  { clave: '08', descripcion: 'Vales de despensa' },
+  { clave: '12', descripcion: 'Dacion en pago' },
+  { clave: '13', descripcion: 'Pago por subrogacion' },
+  { clave: '14', descripcion: 'Pago por consignacion' },
+  { clave: '15', descripcion: 'Condonacion' },
+  { clave: '17', descripcion: 'Compensacion' },
+  { clave: '23', descripcion: 'Novacion' },
+  { clave: '24', descripcion: 'Confusion' },
+  { clave: '25', descripcion: 'Remision de deuda' },
+  { clave: '26', descripcion: 'Prescripcion o caducidad' },
+  { clave: '27', descripcion: 'A satisfaccion del acreedor' },
+  { clave: '28', descripcion: 'Tarjeta de debito' },
+  { clave: '29', descripcion: 'Tarjeta de servicios' },
+  { clave: '30', descripcion: 'Aplicacion de anticipos' },
+  { clave: '31', descripcion: 'Intermediario pagos' },
+  { clave: '99', descripcion: 'Por definir' },
+];
+
 /** c_RegimenFiscal -- regimen fiscal del cliente ante el SAT, para timbrar su CFDI correctamente. */
 export const REGIMEN_FISCAL_SAT: ClaveSat[] = [
   { clave: '601', descripcion: 'General de Ley Personas Morales' },
