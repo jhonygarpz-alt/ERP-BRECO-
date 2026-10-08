@@ -6,6 +6,7 @@ import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
 import { TIMBRADO_VACIO, timbrarSimulado } from '../../lib/timbrado';
 import { timbrarFactura } from '../../lib/facturamaCfdi';
+import { ErrorAvatarCard } from '../ui/ErrorAvatarCard';
 import type { ConceptoFacturacion, Factura, FacturaLinea, TipoFactura } from '../../types';
 import {
   calcularTotalesFactura,
@@ -592,11 +593,7 @@ export function FacturaFormModal({
                 Timbrado real: este CFDI sera valido ante el SAT.
               </div>
             )}
-            {errorTimbrado && (
-              <div className="rounded-lg border border-red-900/50 bg-red-950/30 p-3 text-sm text-red-400">
-                El PAC rechazo el timbrado: {errorTimbrado}
-              </div>
-            )}
+            {errorTimbrado && <ErrorAvatarCard titulo="El timbrado fue rechazado" motivo={errorTimbrado} />}
             <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
               <GhostButton type="button" onClick={posponerTimbrado} disabled={timbrando}>
                 No, mas tarde

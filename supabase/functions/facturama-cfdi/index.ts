@@ -46,6 +46,24 @@ function fechaHoraSat(fecha: string, hora: string): string {
   return `${f}T${h}:00`;
 }
 
+/** Convierte el JSON de error de Facturama ({Message, ModelState:{campo:[...]}}) en un texto humano, uniendo todos los detalles. */
+function mensajeErrorPac(texto: string): string {
+  try {
+    const j = JSON.parse(texto);
+    const detalles: string[] = [];
+    if (j.ModelState && typeof j.ModelState === 'object') {
+      for (const valor of Object.values(j.ModelState)) {
+        if (Array.isArray(valor)) detalles.push(...valor.map(String));
+      }
+    }
+    if (detalles.length > 0) return detalles.join(' ');
+    if (j.Message) return j.Message as string;
+  } catch {
+    // No era JSON -- se regresa el texto tal cual abajo.
+  }
+  return texto || 'Error desconocido del PAC.';
+}
+
 /** Extrae NoCertificado="..." del XML del CFDI (no viene aparte en la respuesta de Facturama V4). */
 function extraerNoCertificado(xmlBase64: string): string {
   try {
@@ -151,7 +169,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!respuesta.ok) {
         const texto = await respuesta.text();
-        return jsonResponse({ error: `El PAC no pudo cancelar el CFDI: ${texto || respuesta.statusText}` }, 400);
+        return jsonResponse({ error: mensajeErrorPac(texto) || respuesta.statusText }, 400);
       }
       return jsonResponse({ ok: true }, 200);
     }
@@ -165,7 +183,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!respuesta.ok) {
         const texto = await respuesta.text();
-        return jsonResponse({ error: `El PAC no pudo consultar el CFDI: ${texto || respuesta.statusText}` }, 400);
+        return jsonResponse({ error: mensajeErrorPac(texto) || respuesta.statusText }, 400);
       }
       const datos = await respuesta.json();
       return jsonResponse({ ok: true, datos }, 200);
@@ -184,6 +202,18 @@ Deno.serve(async (req: Request) => {
       .single();
     if (errCliente || !clienteFiscal) {
       return jsonResponse({ error: 'No se encontro el cliente a facturar.' }, 404);
+    }
+    if (!clienteFiscal.rfc) {
+      return jsonResponse({ error: 'El cliente a facturar no tiene RFC capturado.' }, 400);
+    }
+    if (!clienteFiscal.regimen_fiscal) {
+      return jsonResponse(
+        { error: `El cliente "${clienteFiscal.nombre}" no tiene Regimen Fiscal (SAT) capturado. Captura ese dato en el catalogo de Clientes antes de timbrar.` },
+        400,
+      );
+    }
+    if (!empresa.regimen_fiscal) {
+      return jsonResponse({ error: 'La empresa no tiene Regimen Fiscal (SAT) capturado. Captura ese dato en Configuracion > Empresa antes de timbrar.' }, 400);
     }
 
     // ---- Conceptos (Items) -- toma clave SAT del catalogo de Conceptos de
@@ -392,19 +422,19 @@ Deno.serve(async (req: Request) => {
       CfdiType: 'I',
       PaymentForm: f.formaPago || '01',
       PaymentMethod: f.metodoPago || 'PUE',
-      ExpeditionPlace: clienteFiscal.cp || '00000',
+      ExpeditionPlace: (empresa.direccion as string)?.match(/\b\d{5}\b/)?.[0] ?? clienteFiscal.cp ?? '00000',
       Date: new Date().toISOString().slice(0, 19),
       Exportation: '01',
       Issuer: {
         Rfc: rfcEmisor,
         Name: (empresa.razon_social as string) || (empresa.nombre as string),
-        FiscalRegime: ((empresa.regimen_fiscal as string) || '').split(' ')[0] || '601',
+        FiscalRegime: (empresa.regimen_fiscal as string).split(' ')[0],
       },
       Receiver: {
         Rfc: clienteFiscal.rfc,
         Name: clienteFiscal.nombre,
         CfdiUse: f.usoCfdi || 'G03',
-        FiscalRegime: ((clienteFiscal.regimen_fiscal as string) || '').split(' ')[0] || '601',
+        FiscalRegime: (clienteFiscal.regimen_fiscal as string).split(' ')[0],
         TaxZipCode: clienteFiscal.cp || '00000',
       },
       Items: items,
@@ -419,7 +449,7 @@ Deno.serve(async (req: Request) => {
 
     if (!respuesta.ok) {
       const texto = await respuesta.text();
-      return jsonResponse({ error: `El PAC rechazo el CFDI: ${texto || respuesta.statusText}` }, 400);
+      return jsonResponse({ error: mensajeErrorPac(texto) || respuesta.statusText }, 400);
     }
 
     const datos = await respuesta.json();

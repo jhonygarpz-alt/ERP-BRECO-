@@ -26,6 +26,24 @@ function jsonResponse(body: unknown, status: number) {
   });
 }
 
+/** Convierte el JSON de error de Facturama ({Message, ModelState:{campo:[...]}}) en un texto humano, uniendo todos los detalles. */
+function mensajeErrorPac(texto: string): string {
+  try {
+    const j = JSON.parse(texto);
+    const detalles: string[] = [];
+    if (j.ModelState && typeof j.ModelState === 'object') {
+      for (const valor of Object.values(j.ModelState)) {
+        if (Array.isArray(valor)) detalles.push(...valor.map(String));
+      }
+    }
+    if (detalles.length > 0) return detalles.join(' ');
+    if (j.Message) return j.Message as string;
+  } catch {
+    // No era JSON -- se regresa el texto tal cual abajo.
+  }
+  return texto || 'Error desconocido del PAC.';
+}
+
 function baseUrlPara(ambiente: string): string {
   return ambiente === 'produccion' ? 'https://api.facturama.mx' : 'https://apisandbox.facturama.mx';
 }
@@ -124,7 +142,7 @@ Deno.serve(async (req: Request) => {
 
       if (!respuesta.ok) {
         const texto = await respuesta.text();
-        return jsonResponse({ error: `El PAC rechazo el CSD: ${texto || respuesta.statusText}` }, 400);
+        return jsonResponse({ error: mensajeErrorPac(texto) || respuesta.statusText }, 400);
       }
 
       await admin
@@ -142,7 +160,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!respuesta.ok && respuesta.status !== 404) {
         const texto = await respuesta.text();
-        return jsonResponse({ error: `El PAC no pudo eliminar el CSD: ${texto || respuesta.statusText}` }, 400);
+        return jsonResponse({ error: mensajeErrorPac(texto) || respuesta.statusText }, 400);
       }
 
       await admin
@@ -168,7 +186,7 @@ Deno.serve(async (req: Request) => {
     }
     if (!respuesta.ok) {
       const texto = await respuesta.text();
-      return jsonResponse({ error: `El PAC no pudo consultar el CSD: ${texto || respuesta.statusText}` }, 400);
+      return jsonResponse({ error: mensajeErrorPac(texto) || respuesta.statusText }, 400);
     }
     const datos = await respuesta.json();
     const vigencia = (datos?.CsdExpirationDate as string | undefined) ?? null;

@@ -4,6 +4,7 @@ import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { Field, Input, PrimaryButton } from '../../components/ui/form';
 import { registrarCsdFacturama, eliminarCsdFacturama } from '../../lib/facturamaCsd';
+import { ErrorAvatarCard } from '../../components/ui/ErrorAvatarCard';
 
 export function EmpresaSection() {
   const { empresa } = useData();
@@ -244,7 +245,11 @@ export function EmpresaSection() {
           </Field>
         </div>
 
-        {errorCsd && <p className="mt-3 text-sm text-red-400">{errorCsd}</p>}
+        {errorCsd && (
+          <div className="mt-3">
+            <ErrorAvatarCard titulo="El PAC rechazo el CSD" motivo={errorCsd} />
+          </div>
+        )}
 
         <div className="mt-4">
           <button
