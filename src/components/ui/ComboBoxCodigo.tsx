@@ -93,7 +93,7 @@ export function ComboBoxCodigo<T>({
               key={i}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => seleccionar(item)}
-              className="cursor-pointer px-3 py-2 text-sm text-ink-200 hover:bg-bg-700"
+              className="relative cursor-pointer px-3 py-2 text-sm text-ink-200 hover:z-10 hover:bg-breco-500/15 hover:shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)]"
             >
               <span className="font-mono text-xs text-breco-400">{obtenerCodigo(item)}</span>
               <span className="ml-2 truncate text-ink-300">{obtenerEtiqueta(item)}</span>

@@ -39,7 +39,7 @@ export function BuscarClaveProdServModal({
                   <tr
                     key={r.clave}
                     onClick={() => onSelect(r.clave, r.descripcion)}
-                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
+                    className="relative cursor-pointer border-b border-line-800/70 last:border-0 hover:z-10 hover:bg-breco-500/15 hover:shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)]"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-ink-500">{r.clave}</td>
                     <td className="px-3 py-2 text-ink-200">{r.descripcion}</td>
@@ -89,7 +89,7 @@ export function BuscarClaveUnidadModal({
                   <tr
                     key={r.clave}
                     onClick={() => onSelect(r.clave, r.nombre)}
-                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
+                    className="relative cursor-pointer border-b border-line-800/70 last:border-0 hover:z-10 hover:bg-breco-500/15 hover:shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)]"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-ink-500">{r.clave}</td>
                     <td className="px-3 py-2 text-ink-200">{r.nombre}</td>
@@ -140,7 +140,7 @@ export function BuscarClaveProdServCPModal({
                   <tr
                     key={r.clave}
                     onClick={() => onSelect(r.clave, r.descripcion)}
-                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
+                    className="relative cursor-pointer border-b border-line-800/70 last:border-0 hover:z-10 hover:bg-breco-500/15 hover:shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)]"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-ink-500">{r.clave}</td>
                     <td className="px-3 py-2 text-ink-200">{r.descripcion}</td>
@@ -190,7 +190,7 @@ export function BuscarClaveMaterialPeligrosoModal({
                   <tr
                     key={`${r.clave}-${i}`}
                     onClick={() => onSelect(r.clave, r.descripcion)}
-                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
+                    className="relative cursor-pointer border-b border-line-800/70 last:border-0 hover:z-10 hover:bg-breco-500/15 hover:shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)]"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-ink-500">{r.clave}</td>
                     <td className="px-3 py-2 text-ink-200">{r.descripcion}</td>

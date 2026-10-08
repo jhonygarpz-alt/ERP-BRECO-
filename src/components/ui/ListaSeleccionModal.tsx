@@ -46,7 +46,7 @@ export function ListaSeleccionModal<T>({
                   <tr
                     key={i}
                     onClick={() => onSelect(item)}
-                    className="cursor-pointer border-b border-line-800/70 last:border-0 hover:bg-bg-800"
+                    className="relative cursor-pointer border-b border-line-800/70 last:border-0 hover:z-10 hover:bg-breco-500/15 hover:shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)] active:bg-breco-500/25"
                   >
                     {renderRow(item)}
                   </tr>
