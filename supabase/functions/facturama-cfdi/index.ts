@@ -417,27 +417,35 @@ Deno.serve(async (req: Request) => {
                       PesoEnKg: String(v.peso_carga_total || 1),
                     },
                   ],
-              Autotransporte: {
-                PermSCT: unidad.clave_tipo_permiso_sct || 'TPAF01',
-                NumPermisoSCT: unidad.numero_permiso_sct || '',
-                IdentificacionVehicular: {
-                  ConfigVehicular: unidad.tipo || v.config_vehicular_clave_sat || 'C2',
-                  PesoBrutoVehicular: String(
-                    Math.round((Number(unidad.peso_tara_ton) || 0) * 1000 + (Number(unidad.capacidad_kg) || 0)) / 1000,
-                  ),
-                  PlacaVM: unidad.placas,
-                  AnioModeloVM: unidad.anio,
-                },
-                Seguros: {
-                  AseguraRespCivil: unidad.aseguradora || '',
-                  PolizaRespCivil: unidad.no_poliza || '',
-                },
-                // Facturama rechaza el atributo si se manda vacio: solo se incluye cuando
-                // el viaje realmente lleva remolque(s) enganchados.
-                ...((remolques ?? []).length > 0
-                  ? { Remolques: (remolques ?? []).map((r) => ({ SubTipoRem: r.tipo, Placa: r.placas })) }
-                  : {}),
-              },
+              Autotransporte: (() => {
+                const configVehicular = unidad.tipo || v.config_vehicular_clave_sat || 'C2';
+                // Segun el catalogo SAT c_ConfigAutotransporte, solo las configuraciones
+                // articuladas (tractocamion "T..." o camion+remolque completo "C#R#")
+                // llevan remolques; un camion unitario (ej. "C2", "C3") nunca los lleva,
+                // aunque el viaje tenga una caja enganchada capturada en el sistema.
+                const admiteRemolques = /^T/.test(configVehicular) || /R\d/.test(configVehicular);
+                return {
+                  PermSCT: unidad.clave_tipo_permiso_sct || 'TPAF01',
+                  NumPermisoSCT: unidad.numero_permiso_sct || '',
+                  IdentificacionVehicular: {
+                    ConfigVehicular: configVehicular,
+                    PesoBrutoVehicular: String(
+                      Math.round((Number(unidad.peso_tara_ton) || 0) * 1000 + (Number(unidad.capacidad_kg) || 0)) / 1000,
+                    ),
+                    PlacaVM: unidad.placas,
+                    AnioModeloVM: unidad.anio,
+                  },
+                  Seguros: {
+                    AseguraRespCivil: unidad.aseguradora || '',
+                    PolizaRespCivil: unidad.no_poliza || '',
+                  },
+                  // Facturama rechaza el atributo si se manda vacio o si la configuracion
+                  // vehicular no admite remolques.
+                  ...(admiteRemolques && (remolques ?? []).length > 0
+                    ? { Remolques: (remolques ?? []).map((r) => ({ SubTipoRem: r.tipo, Placa: r.placas })) }
+                    : {}),
+                };
+              })(),
             },
             FiguraTransporte: [
               {
