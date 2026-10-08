@@ -56,7 +56,7 @@ function mensajeErrorPac(texto: string): string {
         if (Array.isArray(valor)) valor.forEach((v) => detalles.add(String(v)));
       }
     }
-    if (detalles.size > 0) return [...detalles].join(' ');
+    if (detalles.size > 0) return [...detalles].map((d) => `• ${d}`).join('\n');
     if (j.Message) return j.Message as string;
   } catch {
     // No era JSON -- se regresa el texto tal cual abajo.
@@ -320,19 +320,46 @@ Deno.serve(async (req: Request) => {
           );
         }
 
-        const domicilio = (d: Record<string, unknown>) => ({
-          Calle: d.calle || 'SIN CALLE',
-          NumeroExterior: d.numero_exterior || undefined,
-          NumeroInterior: d.numero_interior || undefined,
-          Colonia: d.colonia || undefined,
-          Localidad: d.localidad || undefined,
-          Referencia: undefined,
-          Municipio: d.municipio || undefined,
-          Estado: d.estado,
-          // Clave fija del catalogo SAT c_Pais (no el nombre libre del catalogo de Destinatarios).
-          Pais: 'MEX',
-          CodigoPostal: d.cp,
-        });
+        // El Carta Porte exige las claves internas del SAT (c_Estado/c_Municipio/
+        // c_Localidad), no el nombre libre capturado en Destinatarios -- se calculan
+        // a partir del C.P. usando el catalogo oficial que se cargo en
+        // sat_codigos_postales (Anexo 20 del SAT).
+        const cps = [...new Set([origenDest.cp, destinoDest.cp].filter(Boolean))] as string[];
+        const { data: cpRows } = cps.length
+          ? await cliente.from('sat_codigos_postales').select('codigo_postal, clave_estado, clave_municipio, clave_localidad').in('codigo_postal', cps)
+          : { data: [] as { codigo_postal: string; clave_estado: string; clave_municipio: string; clave_localidad: string }[] };
+        const claveSatPorCp = new Map((cpRows ?? []).map((r) => [r.codigo_postal, r]));
+
+        for (const [etiqueta, d] of [
+          ['Origen', origenDest],
+          ['Destino', destinoDest],
+        ] as const) {
+          if (!d.cp || !claveSatPorCp.has(d.cp as string)) {
+            return jsonResponse(
+              {
+                error: `El codigo postal "${d.cp || '(vacio)'}" del Destinatario de ${etiqueta} ("${d.nombre}") no se encontro en el catalogo del SAT. Revisa que el C.P. este bien capturado en el catalogo de Destinatarios.`,
+              },
+              400,
+            );
+          }
+        }
+
+        const domicilio = (d: Record<string, unknown>) => {
+          const clave = claveSatPorCp.get(d.cp as string)!;
+          return {
+            Calle: d.calle || 'SIN CALLE',
+            NumeroExterior: d.numero_exterior || undefined,
+            NumeroInterior: d.numero_interior || undefined,
+            Colonia: d.colonia || undefined,
+            Localidad: clave.clave_localidad || undefined,
+            Referencia: undefined,
+            Municipio: clave.clave_municipio || undefined,
+            Estado: clave.clave_estado,
+            // Clave fija del catalogo SAT c_Pais (no el nombre libre del catalogo de Destinatarios).
+            Pais: 'MEX',
+            CodigoPostal: clave.codigo_postal,
+          };
+        };
 
         // El sandbox de Facturama valida los RFC contra el padron real del SAT; el unico
         // que siempre pasa ahi es el RFC generico de pruebas del SAT. En produccion, si
@@ -351,7 +378,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoUbicacion: 'Origen',
                 IDUbicacion: 'OR000001',
-                RFCRemitenteDestinatario: origenDest.rfc || rfcFallback,
+                RFCRemitenteDestinatario: ((origenDest.rfc as string)?.trim() || rfcFallback),
                 NombreRemitenteDestinatario: origenDest.nombre,
                 FechaHoraSalidaLlegada: fechaHoraSat(v.fecha as string, v.hora_salida as string),
                 Domicilio: domicilio(origenDest),
@@ -359,7 +386,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoUbicacion: 'Destino',
                 IDUbicacion: 'DE000001',
-                RFCRemitenteDestinatario: destinoDest.rfc || rfcFallback,
+                RFCRemitenteDestinatario: ((destinoDest.rfc as string)?.trim() || rfcFallback),
                 NombreRemitenteDestinatario: destinoDest.nombre,
                 FechaHoraSalidaLlegada: fechaHoraSat((v.fecha_entrega as string) || (v.fecha as string), (v.hora_entrega_real as string) || (v.hora_llegada_estimada as string)),
                 DistanciaRecorrida: String(v.kilometros || 0),
@@ -416,7 +443,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoFigura: '01',
                 NombreFigura: operador.nombre,
-                RFCFigura: operador.rfc || rfcFallback,
+                RFCFigura: ((operador.rfc as string)?.trim() || rfcFallback),
                 NumLicencia: operador.licencia || undefined,
               },
             ],

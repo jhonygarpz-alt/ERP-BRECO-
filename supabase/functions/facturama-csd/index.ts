@@ -36,7 +36,7 @@ function mensajeErrorPac(texto: string): string {
         if (Array.isArray(valor)) valor.forEach((v) => detalles.add(String(v)));
       }
     }
-    if (detalles.size > 0) return [...detalles].join(' ');
+    if (detalles.size > 0) return [...detalles].map((d) => `• ${d}`).join('\n');
     if (j.Message) return j.Message as string;
   } catch {
     // No era JSON -- se regresa el texto tal cual abajo.
