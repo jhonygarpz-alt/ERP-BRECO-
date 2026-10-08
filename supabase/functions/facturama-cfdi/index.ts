@@ -326,15 +326,35 @@ Deno.serve(async (req: Request) => {
         }
 
         // El Carta Porte exige las claves internas del SAT (c_Estado/c_Municipio/
-        // c_Localidad), no el nombre libre capturado en Destinatarios -- se calculan
-        // a partir del C.P. usando el catalogo oficial que se cargo en
-        // sat_codigos_postales (Anexo 20 del SAT).
+        // c_Localidad/c_Colonia), no el nombre libre capturado en Destinatarios --
+        // se calculan a partir del C.P. usando los catalogos oficiales que se
+        // cargaron en sat_codigos_postales y sat_colonias (Anexo 20 del SAT).
         const cps = [...new Set([origenDest.cp, destinoDest.cp].filter(Boolean))] as string[];
-        const { data: cpRows } = cps.length
-          ? await cliente.from('sat_codigos_postales').select('codigo_postal, clave_estado, clave_municipio, clave_localidad').in('codigo_postal', cps)
-          : { data: [] as { codigo_postal: string; clave_estado: string; clave_municipio: string; clave_localidad: string }[] };
+        const [{ data: cpRows }, { data: colRows }] = await Promise.all([
+          cps.length
+            ? cliente.from('sat_codigos_postales').select('codigo_postal, clave_estado, clave_municipio, clave_localidad').in('codigo_postal', cps)
+            : Promise.resolve({ data: [] as { codigo_postal: string; clave_estado: string; clave_municipio: string; clave_localidad: string }[] }),
+          cps.length
+            ? cliente.from('sat_colonias').select('codigo_postal, clave_colonia, nombre').in('codigo_postal', cps)
+            : Promise.resolve({ data: [] as { codigo_postal: string; clave_colonia: string; nombre: string }[] }),
+        ]);
         const claveSatPorCp = new Map((cpRows ?? []).map((r) => [r.codigo_postal, r]));
+        const coloniasPorCp = new Map<string, { clave_colonia: string; nombre: string }[]>();
+        for (const r of colRows ?? []) {
+          const lista = coloniasPorCp.get(r.codigo_postal) ?? [];
+          lista.push(r);
+          coloniasPorCp.set(r.codigo_postal, lista);
+        }
 
+        const normalizar = (s: string) =>
+          s
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[̀-ͯ]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+
+        const claveColoniaPorDestinatario = new Map<string, string>();
         for (const [etiqueta, d] of [
           ['Origen', origenDest],
           ['Destino', destinoDest],
@@ -347,6 +367,32 @@ Deno.serve(async (req: Request) => {
               400,
             );
           }
+          const candidatas = coloniasPorCp.get(d.cp as string) ?? [];
+          if (candidatas.length === 0) {
+            return jsonResponse(
+              {
+                error: `El codigo postal "${d.cp}" del Destinatario de ${etiqueta} ("${d.nombre}") no tiene colonias registradas en el catalogo del SAT.`,
+              },
+              400,
+            );
+          }
+          let clave = '';
+          if (candidatas.length === 1) {
+            clave = candidatas[0].clave_colonia;
+          } else if (d.colonia) {
+            const buscado = normalizar(d.colonia as string);
+            clave = candidatas.find((c) => normalizar(c.nombre) === buscado)?.clave_colonia ?? '';
+          }
+          if (!clave) {
+            const opciones = candidatas.map((c) => c.nombre).slice(0, 15).join(', ');
+            return jsonResponse(
+              {
+                error: `No se pudo determinar la Colonia (catalogo del SAT) del Destinatario de ${etiqueta} ("${d.nombre}") para el C.P. "${d.cp}". Captura la Colonia exactamente como aparece en el catalogo del SAT, por ejemplo: ${opciones}.`,
+              },
+              400,
+            );
+          }
+          claveColoniaPorDestinatario.set(d.id as string, clave);
         }
 
         const domicilio = (d: Record<string, unknown>) => {
@@ -355,7 +401,7 @@ Deno.serve(async (req: Request) => {
             Calle: d.calle || 'SIN CALLE',
             NumeroExterior: d.numero_exterior || undefined,
             NumeroInterior: d.numero_interior || undefined,
-            Colonia: d.colonia || undefined,
+            Colonia: claveColoniaPorDestinatario.get(d.id as string),
             Localidad: clave.clave_localidad || undefined,
             Referencia: undefined,
             Municipio: clave.clave_municipio || undefined,
