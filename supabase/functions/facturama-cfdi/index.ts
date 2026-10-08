@@ -45,8 +45,33 @@ function generarIdCcp(): string {
   return `CCC${crypto.randomUUID().slice(3)}`;
 }
 
+/**
+ * El nodo "Fecha" del CFDI (y el de Carta Porte) no lleva zona horaria -- el
+ * SAT lo interpreta como hora local de Mexico. El servidor de la Edge
+ * Function corre en UTC, asi que hay que convertir explicitamente: usar
+ * new Date().toISOString() tal cual manda la hora ~6 horas adelantada,
+ * lo que el SAT lee como "fecha de generacion en el futuro" (periodo
+ * negativo) y rechaza el timbrado con "la fecha de generacion no puede
+ * ser mayor a 72 horas".
+ */
+function fechaHoraLocalMexico(fecha?: Date): string {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(fecha ?? new Date());
+  const obj: Record<string, string> = {};
+  for (const p of partes) obj[p.type] = p.value;
+  return `${obj.year}-${obj.month}-${obj.day}T${obj.hour}:${obj.minute}:${obj.second}`;
+}
+
 function fechaHoraSat(fecha: string, hora: string): string {
-  const f = fecha || new Date().toISOString().slice(0, 10);
+  const f = fecha || fechaHoraLocalMexico().slice(0, 10);
   const h = hora && /^\d{2}:\d{2}/.test(hora) ? hora.slice(0, 5) : '12:00';
   return `${f}T${h}:00`;
 }
@@ -540,7 +565,7 @@ Deno.serve(async (req: Request) => {
       PaymentForm: f.formaPago || '01',
       PaymentMethod: f.metodoPago || 'PUE',
       ExpeditionPlace: (empresa.direccion as string)?.match(/\b\d{5}\b/)?.[0] ?? clienteFiscal.cp ?? '00000',
-      Date: new Date().toISOString().slice(0, 19),
+      Date: fechaHoraLocalMexico(),
       Exportation: '01',
       Issuer: {
         Rfc: rfcEmisor,
@@ -570,7 +595,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const datos = await respuesta.json();
-    const ahora = new Date().toISOString().slice(0, 19);
+    const ahora = fechaHoraLocalMexico();
     const timbrado = {
       simulado: false,
       folioFiscal: datos.TaxStamp?.Uuid ?? '',
