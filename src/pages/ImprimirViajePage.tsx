@@ -48,11 +48,25 @@ export function ImprimirViajePage() {
 
   const viaje = viajes.items.find((v) => v.id === id);
 
+  // La tabla de unidades carga fotos (base64) y puede tardar mas que el resto de
+  // los catalogos -- si se imprime en cuanto llega el viaje, sin esperar a que
+  // tambien terminen de cargar unidad/operador/remolque/rutas, el PDF sale con
+  // esos campos vacios aunque el dato si exista en la base de datos.
+  const todoCargado =
+    !viajes.loading &&
+    !clientes.loading &&
+    !unidades.loading &&
+    !operadores.loading &&
+    !cajas.loading &&
+    !rutas.loading &&
+    !destinatarios.loading &&
+    !conceptosFacturacion.loading;
+
   useEffect(() => {
-    if (!viaje) return;
+    if (!viaje || !todoCargado) return;
     const t = setTimeout(() => window.print(), 300);
     return () => clearTimeout(t);
-  }, [viaje]);
+  }, [viaje, todoCargado]);
 
   if (!viaje) {
     return <div style={pagina}>No se encontro el viaje.</div>;

@@ -273,3 +273,17 @@ h1, h2, h3 {
     transform: rotate(-5deg);
   }
 }
+
+/*
+ * Tamano de pagina fijo para todos los formatos de impresion "estilo CFDI"
+ * (Factura, Nota de Credito, Pago, Viaje, Carta Porte): sin esto, cuanto
+ * contenido entra en una hoja depende de los margenes que cada navegador
+ * use por default (varian entre Chrome/Firefox/Edge e incluso segun la
+ * configuracion de impresion del usuario), asi que el salto de pagina
+ * puede caer en un lugar distinto al que se ve en pantalla. Carta (Letter)
+ * porque es el tamano que usa este PDF de referencia en Mexico.
+ */
+@page {
+  size: letter;
+  margin: 7mm;
+}

@@ -16,6 +16,8 @@ import {
   CajaTotales,
   BloqueTimbrado,
   LeyendaCfdi,
+  ACENTO,
+  ACENTO_TINTE,
 } from '../../components/print/PrintKit';
 
 function money(n: number) {
@@ -58,11 +60,26 @@ export function ImprimirFacturaPage() {
   const formaPago = FORMA_PAGO_SAT.find((f) => f.clave === factura?.formaPago);
   const usoCfdi = USO_CFDI_SAT.find((u) => u.clave === factura?.usoCfdi);
 
+  // La tabla de unidades carga fotos (base64) y puede tardar mas que el resto de
+  // los catalogos -- si se imprime en cuanto llega la factura, sin esperar a que
+  // tambien terminen de cargar unidad/operador/remolque/rutas, el PDF sale con
+  // esos campos vacios aunque el dato si exista en la base de datos.
+  const todoCargado =
+    !facturas.loading &&
+    !clientes.loading &&
+    !viajes.loading &&
+    !unidades.loading &&
+    !operadores.loading &&
+    !cajas.loading &&
+    !rutas.loading &&
+    !destinatarios.loading &&
+    !conceptosFacturacion.loading;
+
   useEffect(() => {
-    if (!factura) return;
+    if (!factura || !todoCargado) return;
     const t = setTimeout(() => window.print(), 300);
     return () => clearTimeout(t);
-  }, [factura]);
+  }, [factura, todoCargado]);
 
   if (!factura || !totales) {
     return <div style={pagina}>No se encontro la factura.</div>;
@@ -92,49 +109,52 @@ export function ImprimirFacturaPage() {
     </>
   );
 
+  const paginaCompacta = { ...pagina, padding: 16, fontSize: 9.5 };
+
   return (
-    <div style={pagina}>
+    <div style={paginaCompacta}>
       <BarraAcciones />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 16, alignItems: 'start', marginBottom: 10 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 230px', gap: 10, alignItems: 'stretch', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />}
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <h1 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{empresa.value.razonSocial || empresa.value.nombre || 'Empresa'}</h1>
-            <p style={{ margin: '4px 0 0', fontSize: 10.5 }}>RFC: {empresa.value.rfc || '—'}</p>
-            {empresa.value.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 10.5 }}>{empresa.value.regimenFiscal}</p>}
-            <p style={{ margin: '4px 0 0', fontSize: 10, color: '#444' }}>{empresa.value.direccion || ''}</p>
+            <h1 style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>{empresa.value.razonSocial || empresa.value.nombre || 'Empresa'}</h1>
+            <p style={{ margin: '2px 0 0', fontSize: 9 }}>RFC: {empresa.value.rfc || '—'}</p>
+            {empresa.value.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 9 }}>{empresa.value.regimenFiscal}</p>}
+            <p style={{ margin: '2px 0 0', fontSize: 8.5, color: '#444' }}>{empresa.value.direccion || ''}</p>
           </div>
         </div>
         <BloqueEtiquetasApiladas
+          columnas={2}
           titulo={viajeCartaPorte ? 'Factura con Complemento 3.0' : 'Factura'}
           filas={[
             { etiqueta: 'Folio', valor: `${factura.sucursal} ${factura.folio}`.trim() },
             { etiqueta: 'Folio Fiscal', valor: factura.timbrado.folioFiscal },
-            { etiqueta: 'No. Serie Certificado del Emisor', valor: factura.timbrado.noSerieCertificadoEmisor },
-            { etiqueta: 'No. Serie Certificado del SAT', valor: factura.timbrado.noSerieCertificadoSat },
-            { etiqueta: 'Fecha Hora Expedicion', valor: factura.timbrado.fechaHoraExpedicion || factura.fecha },
-            { etiqueta: 'Fecha Hora Certificacion', valor: factura.timbrado.fechaHoraCertificacion },
+            { etiqueta: 'Serie Cert. Emisor', valor: factura.timbrado.noSerieCertificadoEmisor },
+            { etiqueta: 'Serie Cert. SAT', valor: factura.timbrado.noSerieCertificadoSat },
+            { etiqueta: 'Fecha Expedicion', valor: factura.timbrado.fechaHoraExpedicion || factura.fecha },
+            { etiqueta: 'Fecha Certificacion', valor: factura.timbrado.fechaHoraCertificacion },
           ]}
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-        <Recuadro style={{ padding: '8px 12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
+        <Recuadro style={{ padding: '5px 8px' }}>
           <p style={{ margin: 0, fontWeight: 700 }}>Cliente: {cliente?.nombre ?? '—'}</p>
           <p style={{ margin: '1px 0 0' }}>RFC: {cliente?.rfc ?? '—'}</p>
           <p style={{ margin: '1px 0 0' }}>Regimen Fiscal: {cliente?.regimenFiscal ?? '—'}</p>
-          <p style={{ margin: '6px 0 0' }}>Direccion: {direccionCorta(cliente)}</p>
+          <p style={{ margin: '3px 0 0' }}>Direccion: {direccionCorta(cliente)}</p>
           <p style={{ margin: '1px 0 0' }}>Ciudad: {ciudadCorta(cliente)}</p>
         </Recuadro>
-        <Recuadro style={{ padding: '8px 12px', fontSize: 10.5 }}>
-          <p style={{ margin: '0 0 6px', textAlign: 'center', fontWeight: 700, borderBottom: '1px solid #ddd', paddingBottom: 4 }}>
+        <Recuadro style={{ padding: '5px 8px' }}>
+          <p style={{ margin: '0 0 3px', textAlign: 'center', fontWeight: 700, borderBottom: '1px solid #ddd', paddingBottom: 3 }}>
             {factura.metodoPago} - {factura.metodoPago === 'PUE' ? 'Pago en una sola exhibicion' : 'Pago en parcialidades o diferido'}
           </p>
           <p style={{ margin: 0 }}>
             <strong>Forma de Pago:</strong> {formaPago ? `${formaPago.clave} ${formaPago.descripcion}` : factura.formaPago || 'Por definir'}
           </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
             <span>
               <strong>Moneda</strong> {factura.moneda}
             </span>
@@ -142,13 +162,13 @@ export function ImprimirFacturaPage() {
               <strong>Tipo Cambio</strong> {factura.tipoCambio.toFixed(2)}
             </span>
           </div>
-          <p style={{ margin: '4px 0 0' }}>
+          <p style={{ margin: '2px 0 0' }}>
             <strong>Tipo de Comprobante:</strong> I - Ingresos
           </p>
         </Recuadro>
       </div>
 
-      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
         <table style={tablaStyle}>
           <thead>
             <tr>
@@ -182,8 +202,8 @@ export function ImprimirFacturaPage() {
 
       {viajeCartaPorte && (
         <>
-          <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
-            <div style={{ background: '#e5e5e5', textAlign: 'center', padding: '6px 8px', fontWeight: 700, fontSize: 10.5 }}>
+          <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ background: ACENTO, color: '#fff', textAlign: 'center', padding: '3px 8px', fontWeight: 700, fontSize: 9 }}>
               Detalle del complemento CARTA PORTE &nbsp;&nbsp; No.Viaje Cliente: {viajeCartaPorte.loadNumber || '—'} &nbsp;&nbsp; Viaje:{' '}
               {viajeCartaPorte.sucursal} - {viajeCartaPorte.folio}
               <br />
@@ -191,25 +211,25 @@ export function ImprimirFacturaPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
             <div style={{ borderRight: '1px solid #333' }}>
-              <div style={{ background: '#e5e5e5', textAlign: 'center', fontSize: 9.5, fontWeight: 700, padding: '4px 0', borderBottom: '1px solid #333' }}>
+              <div style={{ background: ACENTO_TINTE, textAlign: 'center', fontSize: 8.5, fontWeight: 700, padding: '2px 0', borderBottom: '1px solid #333' }}>
                 Medio de transporte
               </div>
-              <div style={{ textAlign: 'center', padding: '6px 0', fontSize: 10.5 }}>01 - Autotransporte Federal</div>
+              <div style={{ textAlign: 'center', padding: '3px 0', fontSize: 9 }}>01 - Autotransporte Federal</div>
             </div>
             <div>
-              <div style={{ background: '#e5e5e5', textAlign: 'center', fontSize: 9.5, fontWeight: 700, padding: '4px 0', borderBottom: '1px solid #333' }}>
+              <div style={{ background: ACENTO_TINTE, textAlign: 'center', fontSize: 8.5, fontWeight: 700, padding: '2px 0', borderBottom: '1px solid #333' }}>
                 Transporte Internacional
               </div>
-              <div style={{ textAlign: 'center', padding: '6px 0', fontSize: 10.5 }}>
+              <div style={{ textAlign: 'center', padding: '3px 0', fontSize: 9 }}>
                 {viajeCartaPorte.importacion || viajeCartaPorte.exportacion ? 'SI' : 'NO'}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
+            <Recuadro style={{ padding: '5px 8px', fontSize: 9 }}>
               <p style={{ margin: 0, fontWeight: 700 }}>Origen</p>
               <p style={{ margin: '2px 0 0' }}>
                 Fecha y hora de salida: {viajeCartaPorte.fechaCarga || viajeCartaPorte.fecha} {viajeCartaPorte.horaCarga}
@@ -226,7 +246,7 @@ export function ImprimirFacturaPage() {
                 <p style={{ margin: '2px 0 0' }}>{viajeCartaPorte.origen || viajeCartaPorte.cargarEn || '—'}</p>
               )}
             </Recuadro>
-            <Recuadro style={{ padding: '8px 10px', fontSize: 10.5 }}>
+            <Recuadro style={{ padding: '5px 8px', fontSize: 9 }}>
               <p style={{ margin: 0, fontWeight: 700 }}>Destino</p>
               <p style={{ margin: '2px 0 0' }}>
                 Fecha y hora de prog. llegada: {viajeCartaPorte.fechaEntrega || viajeCartaPorte.fecha} {viajeCartaPorte.horaLlegadaEstimada}
@@ -245,7 +265,7 @@ export function ImprimirFacturaPage() {
             </Recuadro>
           </div>
 
-          <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
             <TituloSeccion>Detalle de mercancias</TituloSeccion>
             <table style={tablaStyle}>
               <thead>
@@ -283,20 +303,20 @@ export function ImprimirFacturaPage() {
             </table>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
             <div style={{ borderRight: '1px solid #333' }}>
-              <div style={{ background: '#e5e5e5', textAlign: 'center', fontSize: 9.5, fontWeight: 700, padding: '4px 0', borderBottom: '1px solid #333' }}>
+              <div style={{ background: ACENTO_TINTE, textAlign: 'center', fontSize: 8.5, fontWeight: 700, padding: '2px 0', borderBottom: '1px solid #333' }}>
                 Total Distancia Recorrida
               </div>
-              <div style={{ textAlign: 'center', padding: '8px 0', fontSize: 11 }}>{viajeCartaPorte.kilometros} Km</div>
+              <div style={{ textAlign: 'center', padding: '4px 0', fontSize: 9.5 }}>{viajeCartaPorte.kilometros} Km</div>
             </div>
             <div>
-              <div style={{ background: '#e5e5e5', fontSize: 9.5, fontWeight: 700, padding: '4px 8px', borderBottom: '1px solid #333' }}>Observaciones</div>
-              <div style={{ padding: '6px 8px', fontSize: 10, whiteSpace: 'pre-line' }}>{viajeCartaPorte.observaciones || '—'}</div>
+              <div style={{ background: ACENTO_TINTE, fontSize: 8.5, fontWeight: 700, padding: '2px 8px', borderBottom: '1px solid #333' }}>Observaciones</div>
+              <div style={{ padding: '3px 8px', fontSize: 9, whiteSpace: 'pre-line' }}>{viajeCartaPorte.observaciones || '—'}</div>
             </div>
           </div>
 
-          <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
             <TituloSeccion>AutoTransporte Federal</TituloSeccion>
             <table style={tablaStyle}>
               <thead>
@@ -326,22 +346,22 @@ export function ImprimirFacturaPage() {
             </table>
             {remolque1 && (
               <div style={{ display: 'flex', borderTop: '1px solid #333' }}>
-                <div style={{ padding: '6px 8px', fontSize: 9.5, borderRight: '1px solid #333' }}>
+                <div style={{ padding: '3px 8px', fontSize: 9, borderRight: '1px solid #333' }}>
                   <strong>Remolque1ECO:</strong> {remolque1.economico}
                   <br />
                   <strong>Remolque1SAT:</strong> {remolque1.tipo}
                 </div>
-                <div style={{ padding: '6px 8px', fontSize: 9.5, borderRight: '1px solid #333', display: 'flex', alignItems: 'center' }}>
+                <div style={{ padding: '3px 8px', fontSize: 9, borderRight: '1px solid #333', display: 'flex', alignItems: 'center' }}>
                   <strong>Placa:</strong>&nbsp;{remolque1.placas}
                 </div>
-                <div style={{ padding: '6px 8px', fontSize: 9.5, display: 'flex', alignItems: 'center' }}>
+                <div style={{ padding: '3px 8px', fontSize: 9, display: 'flex', alignItems: 'center' }}>
                   <strong>Contenedor1:</strong>&nbsp;{viajeCartaPorte.loadNumber || '—'}
                 </div>
               </div>
             )}
           </div>
 
-          <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
             <TituloSeccion>Figuras de transporte</TituloSeccion>
             <table style={tablaStyle}>
               <thead>
@@ -364,17 +384,17 @@ export function ImprimirFacturaPage() {
       )}
 
       {factura.observaciones && (
-        <Recuadro style={{ padding: '6px 10px', marginBottom: 10, fontSize: 10 }}>
+        <Recuadro style={{ padding: '4px 8px', marginBottom: 6, fontSize: 9 }}>
           <strong>Observaciones:</strong> {factura.observaciones}
         </Recuadro>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <Recuadro style={{ padding: '6px 10px', fontSize: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <Recuadro style={{ padding: '4px 8px', fontSize: 9 }}>
             <strong>Importe con letra:</strong> {importeLetra}
           </Recuadro>
-          <Recuadro style={{ padding: '6px 10px', fontSize: 10 }}>
+          <Recuadro style={{ padding: '4px 8px', fontSize: 9 }}>
             <strong>Uso del CFDI:</strong> {usoCfdi ? `${usoCfdi.clave} - ${usoCfdi.descripcion}` : factura.usoCfdi}
           </Recuadro>
         </div>
@@ -394,7 +414,7 @@ export function ImprimirFacturaPage() {
 
       {viajeCartaPorte && (
         <div style={{ pageBreakBefore: 'always', paddingTop: 16 }}>
-          <div style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, background: '#e5e5e5', padding: '5px 8px', borderRadius: 6 }}>
+          <div style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#fff', background: ACENTO, padding: '5px 8px', borderRadius: 6 }}>
             CONDICIONES DEL CONTRATO DE TRANSPORTE QUE AMPARA ESTA CARTA DE PORTE
           </div>
 

@@ -18,6 +18,18 @@ export const pagina: CSSProperties = {
   fontSize: 11.5,
 };
 
+/**
+ * Acento de marca para que los formatos impresos no se vean puro blanco y
+ * negro -- mismo acento que ya elige cada empresa en Configuracion > Temas
+ * (variable --color-breco-*, con data-accent en <html>), asi que estos
+ * documentos salen con el color de marca de cada empresa automaticamente.
+ * El fallback fijo es el azul default por si la ventana de impresion
+ * llegara a pintar antes de que la app ponga data-accent.
+ */
+export const ACENTO = 'var(--color-breco-600, #0058b0)';
+export const ACENTO_BORDE = 'var(--color-breco-500, #0071e3)';
+export const ACENTO_TINTE = 'var(--color-breco-glow, rgba(0, 113, 227, 0.14))';
+
 export const barraAcciones: CSSProperties = { marginBottom: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 };
 export const botonAccion: CSSProperties = { border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', background: '#fff' };
 
@@ -44,7 +56,7 @@ export function CajaEtiqueta({ etiqueta, valor, tono = 'oscuro' }: { etiqueta: s
     <div style={{ border: '1px solid #333', borderRadius: 6, overflow: 'hidden', textAlign: 'center' }}>
       <div
         style={{
-          background: tono === 'oscuro' ? '#2b2b2b' : '#e5e5e5',
+          background: tono === 'oscuro' ? ACENTO : ACENTO_TINTE,
           color: tono === 'oscuro' ? '#fff' : '#111',
           fontSize: 9.5,
           fontWeight: 700,
@@ -70,50 +82,55 @@ export function CajaEtiqueta({ etiqueta, valor, tono = 'oscuro' }: { etiqueta: s
 export function BloqueEtiquetasApiladas({
   titulo,
   filas,
+  columnas = 1,
 }: {
   /** Barra oscura superior (ej. "FACTURA CON COMPLEMENTO 3.0"); opcional. */
   titulo?: string;
   filas: { etiqueta: string; valor: ReactNode }[];
+  /** 2 columnas acomoda el doble de renglones en la mitad de alto -- para que esta caja no quede mucho mas alta que el bloque de logo/empresa de al lado y deje un hueco en blanco debajo. */
+  columnas?: 1 | 2;
 }) {
   return (
     <div style={{ border: '1px solid #333', borderRadius: 6, overflow: 'hidden' }}>
       {titulo && (
         <div
           style={{
-            background: '#2b2b2b',
+            background: ACENTO,
             color: '#fff',
-            fontSize: 9.5,
+            fontSize: 9,
             fontWeight: 700,
             textAlign: 'center',
             textTransform: 'uppercase',
             letterSpacing: 0.3,
-            padding: '4px 8px',
+            padding: '3px 6px',
           }}
         >
           {titulo}
         </div>
       )}
-      {filas.map((f, i) => (
-        <div key={i}>
-          <div
-            style={{
-              background: '#e5e5e5',
-              fontSize: 9,
-              fontWeight: 700,
-              textAlign: 'center',
-              textTransform: 'uppercase',
-              letterSpacing: 0.2,
-              padding: '2px 8px',
-              borderTop: '1px solid #333',
-            }}
-          >
-            {f.etiqueta}
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columnas}, 1fr)` }}>
+        {filas.map((f, i) => (
+          <div key={i} style={{ borderLeft: columnas === 2 && i % 2 === 1 ? '1px solid #333' : undefined }}>
+            <div
+              style={{
+                background: ACENTO_TINTE,
+                fontSize: 8,
+                fontWeight: 700,
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                letterSpacing: 0.2,
+                padding: '1.5px 6px',
+                borderTop: '1px solid #333',
+              }}
+            >
+              {f.etiqueta}
+            </div>
+            <div style={{ padding: '2px 6px', fontSize: 9.5, fontWeight: 600, textAlign: 'center', wordBreak: 'break-word' }}>
+              {f.valor || ' '}
+            </div>
           </div>
-          <div style={{ padding: '3px 8px', fontSize: 10.5, fontWeight: 600, textAlign: 'center', wordBreak: 'break-word' }}>
-            {f.valor || ' '}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -123,13 +140,14 @@ export function TituloSeccion({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        background: '#e5e5e5',
+        background: ACENTO,
+        color: '#fff',
         textAlign: 'center',
-        fontSize: 10.5,
+        fontSize: 9.5,
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: 0.3,
-        padding: '4px 8px',
+        padding: '2.5px 8px',
         borderBottom: '1px solid #333',
       }}
     >
@@ -138,17 +156,17 @@ export function TituloSeccion({ children }: { children: ReactNode }) {
   );
 }
 
-export const tablaStyle: CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: 10.5 };
+export const tablaStyle: CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: 9.5 };
 export const thCfdi: CSSProperties = {
   textAlign: 'left',
-  padding: '4px 6px',
-  background: '#e5e5e5',
-  fontSize: 9.5,
+  padding: '2.5px 6px',
+  background: ACENTO_TINTE,
+  fontSize: 8.5,
   fontWeight: 700,
   textTransform: 'uppercase',
-  borderBottom: '1px solid #333',
+  borderBottom: `1px solid ${ACENTO_BORDE}`,
 };
-export const tdCfdi: CSSProperties = { padding: '4px 6px', borderBottom: '1px solid #ddd' };
+export const tdCfdi: CSSProperties = { padding: '2.5px 6px', borderBottom: '1px solid #ddd' };
 
 export function FilaEtiquetaValor({ etiqueta, valor }: { etiqueta: string; valor: ReactNode }) {
   return (
@@ -166,17 +184,18 @@ export function CajaTotales({
   moneda?: string;
 }) {
   return (
-    <div style={{ marginLeft: 'auto', width: 260, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ marginLeft: 'auto', width: 220, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
       {filas.map((f, i) => (
         <div
           key={i}
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            padding: '5px 10px',
-            background: f.destacado ? '#e5e5e5' : i % 2 === 0 ? '#fff' : '#f7f7f7',
+            padding: '2.5px 8px',
+            background: f.destacado ? ACENTO : i % 2 === 0 ? '#fff' : '#f7f7f7',
+            color: f.destacado ? '#fff' : '#111',
             fontWeight: f.destacado ? 700 : 400,
-            fontSize: f.destacado ? 12 : 11,
+            fontSize: f.destacado ? 10.5 : 9.5,
             borderTop: i === 0 ? undefined : '1px solid #ddd',
           }}
         >
@@ -185,7 +204,7 @@ export function CajaTotales({
         </div>
       ))}
       {moneda && (
-        <div style={{ padding: '3px 10px', fontSize: 9.5, color: '#666', textAlign: 'right' }}>Moneda: {moneda}</div>
+        <div style={{ padding: '2px 8px', fontSize: 8.5, color: '#666', textAlign: 'right' }}>Moneda: {moneda}</div>
       )}
     </div>
   );
@@ -258,21 +277,23 @@ export function BloqueTimbrado({
   }
 
   const casillaQr = (titulo: string, url: string | null, lado: 'left' | 'right') => (
-    <div style={{ width: 150, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ padding: 8 }}>
+    <div style={{ width: 110, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ padding: 5 }}>
         {url ? (
-          <img src={url} alt={titulo} style={{ width: 120, height: 120 }} />
+          <img src={url} alt={titulo} style={{ width: 90, height: 90 }} />
         ) : (
-          <div style={{ width: 120, height: 120, border: '1px dashed #999' }} />
+          <div style={{ width: 90, height: 90, border: '1px dashed #999' }} />
         )}
       </div>
       <div
         style={{
           width: '100%',
           textAlign: 'center',
-          fontSize: 9.5,
+          fontSize: 8.5,
           fontWeight: 700,
-          padding: '4px 0',
+          color: '#fff',
+          background: ACENTO,
+          padding: '2px 0',
           borderTop: '1px solid #333',
           [lado === 'left' ? 'borderRight' : 'borderLeft']: '1px solid #333',
         }}
@@ -283,20 +304,20 @@ export function BloqueTimbrado({
   );
 
   return (
-    <div style={{ border: '1px solid #333', borderRadius: 16, overflow: 'hidden', display: 'flex' }}>
+    <div style={{ border: '1px solid #333', borderRadius: 12, overflow: 'hidden', display: 'flex' }}>
       {cartaPorte && casillaQr('QR CCP', qrCcpUrl, 'left')}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: cartaPorte ? '1px solid #333' : undefined, borderRight: '1px solid #333' }}>
-        <div style={{ padding: '6px 10px', fontSize: 9.5, borderBottom: '1px solid #ddd' }}>
+        <div style={{ padding: '3px 8px', fontSize: 8, borderBottom: '1px solid #ddd' }}>
           <strong>Cadena Original del complemento de certificacion digital SAT</strong>
-          <p style={{ margin: '2px 0 0', wordBreak: 'break-all', color: '#444' }}>{cadenaOriginal || '—'}</p>
+          <p style={{ margin: '1px 0 0', wordBreak: 'break-all', color: '#444' }}>{cadenaOriginal || '—'}</p>
         </div>
-        <div style={{ padding: '6px 10px', fontSize: 9.5, borderBottom: '1px solid #ddd' }}>
+        <div style={{ padding: '3px 8px', fontSize: 8, borderBottom: '1px solid #ddd' }}>
           <strong>Sello Digital del CFDI</strong>
-          <p style={{ margin: '2px 0 0', wordBreak: 'break-all', color: '#444' }}>{selloDigitalCfdi || '—'}</p>
+          <p style={{ margin: '1px 0 0', wordBreak: 'break-all', color: '#444' }}>{selloDigitalCfdi || '—'}</p>
         </div>
-        <div style={{ padding: '6px 10px', fontSize: 9.5, flex: 1 }}>
+        <div style={{ padding: '3px 8px', fontSize: 8, flex: 1 }}>
           <strong>Sello del SAT</strong>
-          <p style={{ margin: '2px 0 0', wordBreak: 'break-all', color: '#444' }}>{selloDigitalSat || '—'}</p>
+          <p style={{ margin: '1px 0 0', wordBreak: 'break-all', color: '#444' }}>{selloDigitalSat || '—'}</p>
         </div>
       </div>
       {casillaQr('QR INGRESO', qrIngresoUrl, 'right')}
@@ -307,11 +328,18 @@ export function BloqueTimbrado({
 /** Leyenda final del documento, honesta segun el estado real del timbrado (nunca afirma un timbrado que no existe). */
 export function LeyendaCfdi({ folioFiscal, simulado, cancelado }: { folioFiscal: string; simulado: boolean; cancelado: boolean }) {
   let texto = 'Este documento aun no ha sido timbrado ante el SAT -- no es un CFDI valido.';
-  if (folioFiscal && cancelado) texto = 'Este CFDI fue cancelado ante el SAT.';
-  else if (folioFiscal && simulado) texto = 'SIMULACION interna -- no es un CFDI valido ante el SAT.';
-  else if (folioFiscal) texto = 'Este documento es una representacion impresa de un CFDI.';
+  let fondo: string = ACENTO_TINTE;
+  if (folioFiscal && cancelado) {
+    texto = 'Este CFDI fue cancelado ante el SAT.';
+    fondo = 'rgba(220, 38, 38, 0.14)';
+  } else if (folioFiscal && simulado) {
+    texto = 'SIMULACION interna -- no es un CFDI valido ante el SAT.';
+    fondo = 'rgba(180, 83, 9, 0.16)';
+  } else if (folioFiscal) {
+    texto = 'Este documento es una representacion impresa de un CFDI.';
+  }
   return (
-    <div style={{ marginTop: 10, textAlign: 'center', fontSize: 9.5, fontWeight: 700, background: '#e5e5e5', padding: '4px 8px', borderRadius: 6 }}>
+    <div style={{ marginTop: 6, textAlign: 'center', fontSize: 8.5, fontWeight: 700, background: fondo, padding: '3px 8px', borderRadius: 6 }}>
       {texto}
     </div>
   );
