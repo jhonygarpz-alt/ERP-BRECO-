@@ -412,10 +412,15 @@ Deno.serve(async (req: Request) => {
           };
         };
 
-        // El sandbox de Facturama valida los RFC contra el padron real del SAT; el unico
-        // que siempre pasa ahi es el RFC generico de pruebas del SAT. En produccion, si
-        // falta el RFC en el catalogo, se usa el RFC generico publico como ultimo recurso.
+        // El sandbox de Facturama valida los RFC contra el padron real del SAT: cualquier
+        // RFC "de prueba" capturado en el catalogo (aunque tenga formato valido) casi
+        // siempre sale rechazado por no estar realmente inscrito, asi que en sandbox
+        // SIEMPRE se manda el RFC generico de pruebas del SAT, sin importar lo capturado.
+        // En produccion si se usa el RFC real capturado, cayendo al generico publico solo
+        // si falta.
         const rfcFallback = ambiente === 'sandbox' ? 'EKU9003173C9' : 'XAXX010101000';
+        const rfcPara = (capturado: unknown) =>
+          ambiente === 'sandbox' ? rfcFallback : (capturado as string)?.trim() || rfcFallback;
 
         idCcp = generarIdCcp();
         const materiales = (v.materiales_carga as Array<Record<string, unknown>>) ?? [];
@@ -429,7 +434,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoUbicacion: 'Origen',
                 IDUbicacion: 'OR000001',
-                RFCRemitenteDestinatario: ((origenDest.rfc as string)?.trim() || rfcFallback),
+                RFCRemitenteDestinatario: rfcPara(origenDest.rfc),
                 NombreRemitenteDestinatario: origenDest.nombre,
                 FechaHoraSalidaLlegada: fechaHoraSat(v.fecha as string, v.hora_salida as string),
                 Domicilio: domicilio(origenDest),
@@ -437,7 +442,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoUbicacion: 'Destino',
                 IDUbicacion: 'DE000001',
-                RFCRemitenteDestinatario: ((destinoDest.rfc as string)?.trim() || rfcFallback),
+                RFCRemitenteDestinatario: rfcPara(destinoDest.rfc),
                 NombreRemitenteDestinatario: destinoDest.nombre,
                 FechaHoraSalidaLlegada: fechaHoraSat((v.fecha_entrega as string) || (v.fecha as string), (v.hora_entrega_real as string) || (v.hora_llegada_estimada as string)),
                 DistanciaRecorrida: String(v.kilometros || 0),
@@ -502,7 +507,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoFigura: '01',
                 NombreFigura: operador.nombre,
-                RFCFigura: ((operador.rfc as string)?.trim() || rfcFallback),
+                RFCFigura: rfcPara(operador.rfc),
                 NumLicencia: operador.licencia || undefined,
               },
             ],
