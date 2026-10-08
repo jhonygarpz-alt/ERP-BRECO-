@@ -516,6 +516,22 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // El sandbox de Facturama tambien valida que el Nombre del receptor
+    // coincida exactamente con el nombre registrado ante el SAT para ese RFC;
+    // el cliente real capturado en el catalogo casi nunca lo tiene exacto
+    // porque no es el verdadero dueno del RFC. En sandbox se manda siempre el
+    // RFC/Nombre/Regimen/C.P. del contribuyente de pruebas oficial del SAT
+    // (el mismo que ya se usa como RFC generico en Carta Porte).
+    const receptor =
+      ambiente === 'sandbox'
+        ? { rfc: 'EKU9003173C9', nombre: 'ESCUELA KEMPER URGATE', regimenFiscal: '601', cp: '42501' }
+        : {
+            rfc: clienteFiscal.rfc as string,
+            nombre: clienteFiscal.nombre as string,
+            regimenFiscal: (clienteFiscal.regimen_fiscal as string).split(' ')[0],
+            cp: (clienteFiscal.cp as string) || '00000',
+          };
+
     const payload: Record<string, unknown> = {
       NameId: complemento ? '36' : '1',
       Currency: f.moneda,
@@ -532,11 +548,11 @@ Deno.serve(async (req: Request) => {
         FiscalRegime: (empresa.regimen_fiscal as string).split(' ')[0],
       },
       Receiver: {
-        Rfc: clienteFiscal.rfc,
-        Name: clienteFiscal.nombre,
+        Rfc: receptor.rfc,
+        Name: receptor.nombre,
         CfdiUse: f.usoCfdi || 'G03',
-        FiscalRegime: (clienteFiscal.regimen_fiscal as string).split(' ')[0],
-        TaxZipCode: clienteFiscal.cp || '00000',
+        FiscalRegime: receptor.regimenFiscal,
+        TaxZipCode: receptor.cp,
       },
       Items: items,
     };
