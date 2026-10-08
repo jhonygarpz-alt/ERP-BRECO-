@@ -2,10 +2,8 @@ import { useMemo, useState } from 'react';
 import { Ban, ChevronDown, Download, Eye, FileX2, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
-import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { descargarFacturaPdf, descargarFacturasZip } from '../../lib/facturaPdf';
-import { viajesYaFacturados } from '../../lib/facturacion';
 import { cancelarFacturaPac } from '../../lib/facturamaCfdi';
 import type { Factura, TipoFactura } from '../../types';
 import { CrudTable, type Column } from '../ui/CrudTable';
@@ -97,23 +95,6 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
     }
     facturas.update(seleccionada.id, { timbrado: resultado.timbrado });
     setCancelarTimbreOpen(false);
-  }
-
-  function guardar(datos: Omit<Factura, 'id'>) {
-    const conflictos = viajesYaFacturados(datos.viajeIds, facturas.items, editing?.id);
-    if (conflictos.length > 0) {
-      const detalle = conflictos
-        .map(({ viajeId, factura }) => `${viajes.items.find((v) => v.id === viajeId)?.folio ?? viajeId} (Factura ${factura.folio})`)
-        .join(', ');
-      alert(`No se puede guardar: ya fueron facturados -> ${detalle}`);
-      return;
-    }
-    if (editing) {
-      facturas.update(editing.id, datos);
-    } else {
-      facturas.add({ id: uid('fac'), ...datos });
-    }
-    setModalOpen(false);
   }
 
   function imprimir(f: Factura) {
@@ -296,7 +277,7 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
       />
 
       {modalOpen && (
-        <FacturaFormModal tipo={tipo} editing={editing} soloLectura={soloLectura} onClose={() => setModalOpen(false)} onGuardar={guardar} />
+        <FacturaFormModal tipo={tipo} editing={editing} soloLectura={soloLectura} onClose={() => setModalOpen(false)} />
       )}
 
       {cancelarTimbreOpen && seleccionada && (

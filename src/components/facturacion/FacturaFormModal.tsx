@@ -15,6 +15,7 @@ import {
   nextFolioFactura,
   porcentajeDeTexto,
   viajesPendientesDeFacturar,
+  viajesYaFacturados,
 } from '../../lib/facturacion';
 import { siguienteFolioDocumento } from '../../lib/folios';
 import type { FolioAutorizado } from '../../types';
@@ -76,7 +77,6 @@ export function FacturaFormModal({
   soloLectura,
   viajesPreseleccionados,
   onClose,
-  onGuardar,
 }: {
   tipo: TipoFactura;
   editing: Factura | null;
@@ -84,7 +84,6 @@ export function FacturaFormModal({
   /** Al crear (no al editar), precarga estos viajes -- cliente y conceptos -- para facturar directo desde Asignacion de Viajes. */
   viajesPreseleccionados?: string[];
   onClose: () => void;
-  onGuardar: (datos: Omit<Factura, 'id'>) => void;
 }) {
   const { clientes, viajes, facturas, conceptosFacturacion, foliosAutorizados, empresa } = useData();
   const [inicial] = useState(() => {
@@ -114,6 +113,22 @@ export function FacturaFormModal({
   const [timbrando, setTimbrando] = useState(false);
   const [errorTimbrado, setErrorTimbrado] = useState('');
   const [datosTimbrados, setDatosTimbrados] = useState<Omit<Factura, 'id'> | null>(null);
+  // Id estable para esta factura durante toda la vida del modal: si ya se esta
+  // editando, es el id existente; si es nueva, se genera una sola vez aqui
+  // (no en el callback del padre) para poder guardarla de inmediato como
+  // "Pendiente" en cuanto se confirma el formulario -- sin esperar a que
+  // termine el asistente de timbrado -- y despues solo actualizarla.
+  const [facturaId] = useState(() => editing?.id ?? uid('fac'));
+  const [persistida, setPersistida] = useState(!!editing);
+
+  function guardarEnBD(datos: Omit<Factura, 'id'>) {
+    if (persistida) {
+      facturas.update(facturaId, datos);
+    } else {
+      facturas.add({ id: facturaId, ...datos });
+      setPersistida(true);
+    }
+  }
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = creditoDisponibleDeCliente(clienteSeleccionado, facturas.items.filter((f) => f.id !== editing?.id));
@@ -212,7 +227,6 @@ export function FacturaFormModal({
       setError('Agrega al menos un concepto de facturacion.');
       return;
     }
-    setError('');
     const t = calcularTotalesFactura(form.lineas);
     const datos: Omit<Factura, 'id'> = {
       ...form,
@@ -221,11 +235,25 @@ export function FacturaFormModal({
       descuentoTotal: t.descuentoTotal,
       importe: t.total,
     };
-    if (datos.timbrado.folioFiscal) {
-      // Ya esta timbrada (se esta editando); no se vuelve a preguntar.
-      onGuardar(datos);
+    const conflictos = viajesYaFacturados(datos.viajeIds, facturas.items, editing?.id);
+    if (conflictos.length > 0) {
+      const detalle = conflictos
+        .map(({ viajeId, factura }) => `${viajes.items.find((v) => v.id === viajeId)?.folio ?? viajeId} (Factura ${factura.folio})`)
+        .join(', ');
+      setError(`No se puede guardar: ya fueron facturados -> ${detalle}`);
       return;
     }
+    setError('');
+    if (datos.timbrado.folioFiscal) {
+      // Ya esta timbrada (se esta editando); no se vuelve a preguntar.
+      guardarEnBD(datos);
+      onClose();
+      return;
+    }
+    // Se guarda de inmediato como "Pendiente", aunque el usuario no termine
+    // el asistente de timbrado (se quede atorado reintentando o cierre el
+    // modal) -- asi nunca se pierde la factura ni deja de verse en la lista.
+    guardarEnBD(datos);
     setDatosPendientes(datos);
     setPaso('preguntarTimbrar');
   }
@@ -240,18 +268,20 @@ export function FacturaFormModal({
       setErrorTimbrado(resultado.error);
       return;
     }
-    setDatosTimbrados({ ...datosPendientes, timbrado: resultado.timbrado });
+    const actualizada = { ...datosPendientes, timbrado: resultado.timbrado };
+    guardarEnBD(actualizada);
+    setDatosTimbrados(actualizada);
     setPaso('exitoTimbrado');
   }
 
   function continuarDespuesDeTimbrar() {
-    if (!datosTimbrados) return;
-    onGuardar(datosTimbrados);
+    onClose();
   }
 
   function guardarComoSimulado() {
     if (!datosPendientes) return;
-    onGuardar({ ...datosPendientes, timbrado: timbrarSimulado() });
+    guardarEnBD({ ...datosPendientes, timbrado: timbrarSimulado() });
+    onClose();
   }
 
   function posponerTimbrado() {
@@ -259,8 +289,7 @@ export function FacturaFormModal({
   }
 
   function cerrarAvisoYGuardar() {
-    if (!datosPendientes) return;
-    onGuardar(datosPendientes);
+    onClose();
   }
 
   return (

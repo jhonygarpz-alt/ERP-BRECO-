@@ -19,7 +19,7 @@ import { ClaveSatField } from '../components/catalogos/ClaveSatField';
 import { useClaveProdServCPSat, useClaveUnidadSat, useClaveMaterialPeligrosoSat } from '../lib/useClaveSat';
 import { CampoResaltadoProvider } from '../lib/CampoResaltadoContext';
 import { TIMBRADO_VACIO } from '../lib/timbrado';
-import { calcularTotalesConceptosViaje, viajesYaFacturados } from '../lib/facturacion';
+import { calcularTotalesConceptosViaje } from '../lib/facturacion';
 import { validarCartaPorteCompleta, pesoBrutoVehicular } from '../lib/cartaPorte';
 import {
   TIPOS_EMBALAJE_SAT,
@@ -389,19 +389,6 @@ export function ViajesPage() {
       return;
     }
     setFacturarOpen(true);
-  }
-
-  function guardarFacturaDesdeViaje(datos: Omit<Factura, 'id'>) {
-    const conflictos = viajesYaFacturados(datos.viajeIds, facturas.items);
-    if (conflictos.length > 0) {
-      const detalle = conflictos
-        .map(({ viajeId, factura }) => `${viajes.items.find((v) => v.id === viajeId)?.folio ?? viajeId} (Factura ${factura.folio})`)
-        .join(', ');
-      alert(`No se puede facturar: ya fueron facturados -> ${detalle}`);
-      return;
-    }
-    facturas.add({ id: uid('fac'), ...datos });
-    setFacturarOpen(false);
   }
 
   const formatosViajeHabilitados = formatosImpresion.items.filter((f) => f.area === 'Viajes' && f.activo);
@@ -2583,7 +2570,6 @@ export function ViajesPage() {
           soloLectura={false}
           viajesPreseleccionados={[viajeSeleccionado.id]}
           onClose={() => setFacturarOpen(false)}
-          onGuardar={guardarFacturaDesdeViaje}
         />
       )}
     </div>
