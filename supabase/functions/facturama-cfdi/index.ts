@@ -329,9 +329,15 @@ Deno.serve(async (req: Request) => {
           Referencia: undefined,
           Municipio: d.municipio || undefined,
           Estado: d.estado,
-          Pais: d.pais || 'MEX',
+          // Clave fija del catalogo SAT c_Pais (no el nombre libre del catalogo de Destinatarios).
+          Pais: 'MEX',
           CodigoPostal: d.cp,
         });
+
+        // El sandbox de Facturama valida los RFC contra el padron real del SAT; el unico
+        // que siempre pasa ahi es el RFC generico de pruebas del SAT. En produccion, si
+        // falta el RFC en el catalogo, se usa el RFC generico publico como ultimo recurso.
+        const rfcFallback = ambiente === 'sandbox' ? 'EKU9003173C9' : 'XAXX010101000';
 
         idCcp = generarIdCcp();
         const materiales = (v.materiales_carga as Array<Record<string, unknown>>) ?? [];
@@ -345,7 +351,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoUbicacion: 'Origen',
                 IDUbicacion: 'OR000001',
-                RFCRemitenteDestinatario: origenDest.rfc || 'XAXX010101000',
+                RFCRemitenteDestinatario: origenDest.rfc || rfcFallback,
                 NombreRemitenteDestinatario: origenDest.nombre,
                 FechaHoraSalidaLlegada: fechaHoraSat(v.fecha as string, v.hora_salida as string),
                 Domicilio: domicilio(origenDest),
@@ -353,7 +359,7 @@ Deno.serve(async (req: Request) => {
               {
                 TipoUbicacion: 'Destino',
                 IDUbicacion: 'DE000001',
-                RFCRemitenteDestinatario: destinoDest.rfc || 'XAXX010101000',
+                RFCRemitenteDestinatario: destinoDest.rfc || rfcFallback,
                 NombreRemitenteDestinatario: destinoDest.nombre,
                 FechaHoraSalidaLlegada: fechaHoraSat((v.fecha_entrega as string) || (v.fecha as string), (v.hora_entrega_real as string) || (v.hora_llegada_estimada as string)),
                 DistanciaRecorrida: String(v.kilometros || 0),
@@ -399,14 +405,18 @@ Deno.serve(async (req: Request) => {
                   AseguraRespCivil: unidad.aseguradora || '',
                   PolizaRespCivil: unidad.no_poliza || '',
                 },
-                Remolques: (remolques ?? []).map((r) => ({ SubTipoRem: r.tipo, Placa: r.placas })),
+                // Facturama rechaza el atributo si se manda vacio: solo se incluye cuando
+                // el viaje realmente lleva remolque(s) enganchados.
+                ...((remolques ?? []).length > 0
+                  ? { Remolques: (remolques ?? []).map((r) => ({ SubTipoRem: r.tipo, Placa: r.placas })) }
+                  : {}),
               },
             },
             FiguraTransporte: [
               {
                 TipoFigura: '01',
                 NombreFigura: operador.nombre,
-                RFCFigura: operador.rfc || 'XAXX010101000',
+                RFCFigura: operador.rfc || rfcFallback,
                 NumLicencia: operador.licencia || undefined,
               },
             ],
