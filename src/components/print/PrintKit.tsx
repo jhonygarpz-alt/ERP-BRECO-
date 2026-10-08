@@ -30,16 +30,24 @@ export const ACENTO = 'var(--color-breco-600, #0058b0)';
 export const ACENTO_BORDE = 'var(--color-breco-500, #0071e3)';
 export const ACENTO_TINTE = 'var(--color-breco-glow, rgba(0, 113, 227, 0.14))';
 
-export const barraAcciones: CSSProperties = { marginBottom: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 };
-export const botonAccion: CSSProperties = { border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', background: '#fff' };
-
 export function BarraAcciones() {
+  // Las clases de Tailwind (en vez de un style inline) son las que permiten
+  // que "print:hidden" realmente oculte la barra al imprimir: un style
+  // inline (display:flex) siempre le gana en especificidad a cualquier
+  // regla de hoja de estilos, incluida @media print, asi que los botones
+  // se seguian viendo (y reservando el espacio) en el PDF impreso.
   return (
-    <div className="print:hidden" style={barraAcciones}>
-      <button onClick={() => window.print()} style={botonAccion}>
+    <div className="mb-3 flex justify-end gap-2 print:hidden">
+      <button
+        onClick={() => window.print()}
+        className="cursor-pointer rounded-lg border border-[#999] bg-white px-3.5 py-1.5"
+      >
         Imprimir
       </button>
-      <button onClick={() => window.close()} style={botonAccion}>
+      <button
+        onClick={() => window.close()}
+        className="cursor-pointer rounded-lg border border-[#999] bg-white px-3.5 py-1.5"
+      >
         Cerrar
       </button>
     </div>
