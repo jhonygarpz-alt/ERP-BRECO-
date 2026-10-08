@@ -6,7 +6,7 @@ import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
 import { TIMBRADO_VACIO, timbrarSimulado } from '../../lib/timbrado';
 import { timbrarFactura } from '../../lib/facturamaCfdi';
-import { ErrorAvatarCard } from '../ui/ErrorAvatarCard';
+import { ErrorAvatarCard, SuccessAvatarCard } from '../ui/ErrorAvatarCard';
 import type { ConceptoFacturacion, Factura, FacturaLinea, TipoFactura } from '../../types';
 import {
   calcularTotalesFactura,
@@ -109,10 +109,11 @@ export function FacturaFormModal({
   const [conceptoPickerOpen, setConceptoPickerOpen] = useState(false);
   const [lineaForm, setLineaForm] = useState(emptyLineaForm);
   const [error, setError] = useState(inicial.error);
-  const [paso, setPaso] = useState<'formulario' | 'preguntarTimbrar' | 'aviso72h'>('formulario');
+  const [paso, setPaso] = useState<'formulario' | 'preguntarTimbrar' | 'aviso72h' | 'exitoTimbrado'>('formulario');
   const [datosPendientes, setDatosPendientes] = useState<Omit<Factura, 'id'> | null>(null);
   const [timbrando, setTimbrando] = useState(false);
   const [errorTimbrado, setErrorTimbrado] = useState('');
+  const [datosTimbrados, setDatosTimbrados] = useState<Omit<Factura, 'id'> | null>(null);
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = creditoDisponibleDeCliente(clienteSeleccionado, facturas.items.filter((f) => f.id !== editing?.id));
@@ -239,7 +240,13 @@ export function FacturaFormModal({
       setErrorTimbrado(resultado.error);
       return;
     }
-    onGuardar({ ...datosPendientes, timbrado: resultado.timbrado });
+    setDatosTimbrados({ ...datosPendientes, timbrado: resultado.timbrado });
+    setPaso('exitoTimbrado');
+  }
+
+  function continuarDespuesDeTimbrar() {
+    if (!datosTimbrados) return;
+    onGuardar(datosTimbrados);
   }
 
   function guardarComoSimulado() {
@@ -605,6 +612,28 @@ export function FacturaFormModal({
               )}
               <PrimaryButton type="button" onClick={confirmarTimbrar} disabled={timbrando}>
                 {timbrando ? 'Timbrando...' : errorTimbrado ? 'Reintentar' : 'Si, timbrar'}
+              </PrimaryButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {paso === 'exitoTimbrado' && datosTimbrados && (
+        <Modal title="Timbrado completado" onClose={continuarDespuesDeTimbrar}>
+          <div className="space-y-4">
+            <SuccessAvatarCard
+              titulo={
+                datosTimbrados.timbrado.simulado ? 'Factura guardada (timbrado simulado)' : '¡Listo! Factura timbrada con exito'
+              }
+              detalle={
+                datosTimbrados.timbrado.simulado
+                  ? 'Este timbrado es de prueba y no es valido ante el SAT.'
+                  : `Folio fiscal (UUID): ${datosTimbrados.timbrado.folioFiscal}`
+              }
+            />
+            <div className="flex justify-end border-t border-line-800 pt-4">
+              <PrimaryButton type="button" onClick={continuarDespuesDeTimbrar}>
+                Continuar
               </PrimaryButton>
             </div>
           </div>
