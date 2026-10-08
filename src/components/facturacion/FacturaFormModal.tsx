@@ -5,6 +5,7 @@ import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
 import { TIMBRADO_VACIO, timbrarSimulado } from '../../lib/timbrado';
+import { timbrarFactura } from '../../lib/facturamaCfdi';
 import type { ConceptoFacturacion, Factura, FacturaLinea, TipoFactura } from '../../types';
 import {
   calcularTotalesFactura,
@@ -109,6 +110,8 @@ export function FacturaFormModal({
   const [error, setError] = useState(inicial.error);
   const [paso, setPaso] = useState<'formulario' | 'preguntarTimbrar' | 'aviso72h'>('formulario');
   const [datosPendientes, setDatosPendientes] = useState<Omit<Factura, 'id'> | null>(null);
+  const [timbrando, setTimbrando] = useState(false);
+  const [errorTimbrado, setErrorTimbrado] = useState('');
 
   const clienteSeleccionado = clientes.items.find((c) => c.id === form.clienteId);
   const creditoDisponible = creditoDisponibleDeCliente(clienteSeleccionado, facturas.items.filter((f) => f.id !== editing?.id));
@@ -225,7 +228,20 @@ export function FacturaFormModal({
     setPaso('preguntarTimbrar');
   }
 
-  function confirmarTimbrar() {
+  async function confirmarTimbrar() {
+    if (!datosPendientes) return;
+    setTimbrando(true);
+    setErrorTimbrado('');
+    const resultado = await timbrarFactura(datosPendientes);
+    setTimbrando(false);
+    if ('error' in resultado) {
+      setErrorTimbrado(resultado.error);
+      return;
+    }
+    onGuardar({ ...datosPendientes, timbrado: resultado.timbrado });
+  }
+
+  function guardarComoSimulado() {
     if (!datosPendientes) return;
     onGuardar({ ...datosPendientes, timbrado: timbrarSimulado() });
   }
@@ -567,16 +583,22 @@ export function FacturaFormModal({
             <p className="text-sm text-ink-300">
               La factura {form.folio} ya se guardo. ¿Deseas timbrarla ante el SAT ahora?
             </p>
-            <p className="text-xs text-ink-500">
-              Por ahora el ERP no esta conectado a un PAC, asi que este timbrado es simulado (no valido ante el SAT); en
-              cuanto se conecte uno, este mismo boton hara el timbrado real.
-            </p>
+            {errorTimbrado && (
+              <div className="rounded-lg border border-red-900/50 bg-red-950/30 p-3 text-sm text-red-400">
+                El PAC rechazo el timbrado: {errorTimbrado}
+              </div>
+            )}
             <div className="flex justify-end gap-2 border-t border-line-800 pt-4">
-              <GhostButton type="button" onClick={posponerTimbrado}>
+              <GhostButton type="button" onClick={posponerTimbrado} disabled={timbrando}>
                 No, mas tarde
               </GhostButton>
-              <PrimaryButton type="button" onClick={confirmarTimbrar}>
-                Si, timbrar
+              {errorTimbrado && (
+                <GhostButton type="button" onClick={guardarComoSimulado} disabled={timbrando}>
+                  Guardar como simulado
+                </GhostButton>
+              )}
+              <PrimaryButton type="button" onClick={confirmarTimbrar} disabled={timbrando}>
+                {timbrando ? 'Timbrando...' : errorTimbrado ? 'Reintentar' : 'Si, timbrar'}
               </PrimaryButton>
             </div>
           </div>

@@ -27,10 +27,6 @@ export function CancelarTimbreModal({
   return (
     <Modal title={`Cancelar timbre de ${folio}`} onClose={onClose}>
       <div className="space-y-4">
-        <p className="text-xs text-ink-500">
-          Por ahora el ERP no esta conectado a un PAC, asi que esta cancelacion es simulada (no se envia al SAT); en
-          cuanto se conecte uno, este mismo boton hara la cancelacion real.
-        </p>
         {error && <p className="rounded-lg bg-breco-500/10 px-3 py-2 text-sm text-breco-500">{error}</p>}
         <Field label="Motivo de cancelacion (SAT)">
           <Select value={motivo} onChange={(e) => setMotivo(e.target.value)}>

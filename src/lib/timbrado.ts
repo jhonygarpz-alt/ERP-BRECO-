@@ -11,6 +11,7 @@ export const TIMBRADO_VACIO: DatosTimbradoCfdi = {
   selloDigitalSat: '',
   cadenaOriginal: '',
   idCcp: '',
+  facturamaId: '',
   cancelado: false,
   motivoCancelacion: '',
   folioSustitutoCancelacion: '',

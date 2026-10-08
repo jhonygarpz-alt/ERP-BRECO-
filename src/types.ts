@@ -20,6 +20,8 @@ export interface DatosTimbradoCfdi {
   cadenaOriginal: string;
   /** Identificador del Complemento Carta Porte (IdCCP), solo aplica a viajes de tipo CartaPorte. */
   idCcp: string;
+  /** Id interno que asigna Facturama (PAC) al timbrar -- se necesita para poder cancelar o consultar despues (DELETE/GET /api-lite/cfdis/{Id}). No es el folio fiscal (UUID). */
+  facturamaId?: string;
   cancelado: boolean;
   /** Clave del motivo de cancelacion SAT: 01, 02, 03 o 04. */
   motivoCancelacion: string;

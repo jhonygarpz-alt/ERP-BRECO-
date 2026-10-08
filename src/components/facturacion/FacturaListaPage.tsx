@@ -6,7 +6,7 @@ import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { descargarFacturaPdf, descargarFacturasZip } from '../../lib/facturaPdf';
 import { viajesYaFacturados } from '../../lib/facturacion';
-import { cancelarTimbradoSimulado } from '../../lib/timbrado';
+import { cancelarFacturaPac } from '../../lib/facturamaCfdi';
 import type { Factura, TipoFactura } from '../../types';
 import { CrudTable, type Column } from '../ui/CrudTable';
 import { Input, ToolbarButton } from '../ui/form';
@@ -88,9 +88,14 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
     if (confirm(`Eliminar la factura "${f.folio}"?`)) facturas.remove(f.id);
   }
 
-  function cancelarTimbre(motivo: string, folioSustituto: string) {
+  async function cancelarTimbre(motivo: string, folioSustituto: string) {
     if (!seleccionada) return;
-    facturas.update(seleccionada.id, { timbrado: cancelarTimbradoSimulado(seleccionada.timbrado, motivo, folioSustituto) });
+    const resultado = await cancelarFacturaPac(seleccionada.timbrado, motivo, folioSustituto);
+    if ('error' in resultado) {
+      alert(`El PAC no pudo cancelar el CFDI: ${resultado.error}`);
+      return;
+    }
+    facturas.update(seleccionada.id, { timbrado: resultado.timbrado });
     setCancelarTimbreOpen(false);
   }
 
