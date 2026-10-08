@@ -30,13 +30,13 @@ function jsonResponse(body: unknown, status: number) {
 function mensajeErrorPac(texto: string): string {
   try {
     const j = JSON.parse(texto);
-    const detalles: string[] = [];
+    const detalles = new Set<string>();
     if (j.ModelState && typeof j.ModelState === 'object') {
       for (const valor of Object.values(j.ModelState)) {
-        if (Array.isArray(valor)) detalles.push(...valor.map(String));
+        if (Array.isArray(valor)) valor.forEach((v) => detalles.add(String(v)));
       }
     }
-    if (detalles.length > 0) return detalles.join(' ');
+    if (detalles.size > 0) return [...detalles].join(' ');
     if (j.Message) return j.Message as string;
   } catch {
     // No era JSON -- se regresa el texto tal cual abajo.
