@@ -35,9 +35,9 @@ function credencialesPara(ambiente: string): { usuario: string; contrasena: stri
 }
 
 /** "CCC" + 33 caracteres alfanumericos en mayusculas, formato que exige el SAT para el IdCCP. */
+/** "CCC" + un UUID (RFC 4122, 8-4-4-4-12 hex con guiones) -- formato que exige el SAT para el IdCCP. */
 function generarIdCcp(): string {
-  const cuerpo = Array.from({ length: 33 }, () => Math.random().toString(36).slice(2, 3)).join('').toUpperCase();
-  return `CCC${cuerpo}`;
+  return `CCC${crypto.randomUUID()}`;
 }
 
 function fechaHoraSat(fecha: string, hora: string): string {

@@ -29,10 +29,9 @@ function selloFalso(): string {
   return Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 10)).join('');
 }
 
-/** Genera un IdCCP simulado (identificador del Complemento Carta Porte): "CCC" + 33 caracteres alfanumericos. */
+/** Genera un IdCCP simulado (identificador del Complemento Carta Porte): "CCC" + un UUID (formato real que exige el SAT). */
 function idCcpFalso(): string {
-  const cuerpo = Array.from({ length: 33 }, () => Math.random().toString(36).slice(2, 3)).join('').toUpperCase();
-  return `CCC${cuerpo}`;
+  return `CCC${crypto.randomUUID()}`;
 }
 
 /**
