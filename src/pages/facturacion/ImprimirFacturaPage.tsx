@@ -390,13 +390,11 @@ export function ImprimirFacturaPage() {
         />
       </div>
 
-      {!viajeCartaPorte && bloqueTimbre}
+      {bloqueTimbre}
 
       {viajeCartaPorte && (
         <div style={{ pageBreakBefore: 'always', paddingTop: 16 }}>
-          {bloqueTimbre}
-
-          <div style={{ marginTop: 16, textAlign: 'center', fontSize: 10.5, fontWeight: 700, background: '#e5e5e5', padding: '5px 8px', borderRadius: 6 }}>
+          <div style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, background: '#e5e5e5', padding: '5px 8px', borderRadius: 6 }}>
             CONDICIONES DEL CONTRATO DE TRANSPORTE QUE AMPARA ESTA CARTA DE PORTE
           </div>
 
