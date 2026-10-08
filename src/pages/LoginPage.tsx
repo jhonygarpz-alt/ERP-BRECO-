@@ -102,40 +102,53 @@ export function LoginPage() {
     navigate('/');
   }
 
+  const logoChico = empresaLogin?.logoDataUrl ? (
+    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-bg-900">
+      <img src={empresaLogin.logoDataUrl} alt={empresaLogin.nombre} className="h-full w-full object-contain" />
+    </div>
+  ) : (
+    <img src="/login/securefleet-logo.png" alt="SecureFleet" className="h-11 w-auto" />
+  );
+
   return (
     <div className="min-h-screen bg-bg-950 lg:flex">
-      {/* Panel izquierdo: vitrina de marca -- se oculta en pantallas chicas, el login nunca depende de el. */}
-      <div className="relative hidden overflow-hidden lg:flex lg:w-[55%]">
+      {/* Panel izquierdo (60%): vitrina de marca -- se oculta en pantallas chicas, el login nunca depende de el. */}
+      <div className="relative hidden overflow-hidden lg:flex lg:w-[60%]">
         <img src="/login/truck-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
-        {/* Overlay mas ligero que antes -- deja apreciar el trailer de fondo en vez de ahogarlo en negro. */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070f]/82 via-[#0a1530]/68 to-[#0a1530]/45" />
-        {/* Vineta inferior aparte, solo para que las tarjetas flotantes y el avatar tengan suficiente contraste sin oscurecer el resto de la foto. */}
-        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#03050c]/85 to-transparent" />
+        {/* Overlay claro: se ve mucho mas el trailer que antes, solo un tinte azul marino. */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#05070f]/62 via-[#0a1530]/45 to-[#0a1530]/25" />
+        {/* Vineta inferior aparte, solo para que las tarjetas y el avatar tengan contraste sin oscurecer el resto de la foto. */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#03050c]/80 to-transparent" />
         <div
-          className="absolute inset-0 opacity-50"
-          style={{ background: 'radial-gradient(55% 45% at 12% 8%, rgba(56,189,248,0.25), transparent 70%)' }}
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(60% 50% at 10% 5%, rgba(56,189,248,0.3), transparent 70%)' }}
         />
 
         <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <img src="/login/securefleet-logo.png" alt="SecureFleet" className="h-16 w-auto self-start drop-shadow-lg xl:h-[4.5rem]" />
 
           <div className="max-w-xl">
-            <h1 className="text-4xl leading-[1.1] font-bold text-white xl:text-5xl">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
+              <span className="text-xs font-semibold tracking-[0.2em] text-cyan-300 uppercase">Plataforma de gestion de flotas</span>
+            </div>
+            <h1 className="text-5xl leading-[1.05] font-extrabold tracking-tight text-white xl:text-6xl">
               Control total
               <br />
-              para tu empresa de
+              para tu empresa
               <br />
+              de{' '}
               <span className="bg-gradient-to-r from-sky-300 to-cyan-300 bg-clip-text text-transparent">transporte</span>
             </h1>
-            <p className="mt-5 max-w-md text-sm text-white/70 xl:text-base">
+            <p className="mt-6 max-w-md text-base text-white/75">
               Administra, monitorea y optimiza todos tus procesos operativos y administrativos en un solo sistema.
             </p>
 
-            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
               {CARACTERISTICAS.map((c) => (
-                <div key={c.titulo} className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-300/20 bg-sky-400/10 text-sky-300">
-                    <c.icono size={18} />
+                <div key={c.titulo} className="flex items-center gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-cyan-300 backdrop-blur-sm">
+                    <c.icono size={19} />
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold text-white">{c.titulo}</div>
@@ -146,40 +159,74 @@ export function LoginPage() {
             </div>
           </div>
 
-          <div className="relative flex items-end justify-between gap-4">
+          {/* Mascota + telemetria: una sola composicion tipo "presentando el dashboard", no elementos sueltos. */}
+          <div className="relative flex items-end gap-5">
             <div className="relative shrink-0">
-              <div className="absolute -bottom-2 left-1/2 h-6 w-36 -translate-x-1/2 rounded-full bg-black/50 blur-xl" />
-              <img src="/login/mascot.png" alt="" className="relative h-52 w-auto object-contain object-bottom xl:h-60" />
+              <div className="absolute -bottom-1 left-1/2 h-5 w-32 -translate-x-1/2 rounded-full bg-black/50 blur-lg" />
+              <img src="/login/mascot.png" alt="" className="relative h-44 w-auto object-contain object-bottom xl:h-52" />
             </div>
 
-            <div className="mb-2 flex flex-col gap-2.5">
-              <div className="w-44 rounded-lg border border-white/10 bg-white/[0.06] p-2.5 shadow-lg backdrop-blur-md">
+            <div className="flex flex-1 flex-col gap-3 pb-2 sm:flex-row">
+              <div className="flex-1 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold text-white">
-                    <Truck size={12} className="text-sky-300" /> Unidad 01
+                  <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-400/20 text-cyan-300">
+                      <Truck size={14} />
+                    </span>
+                    Unidad 01
                   </span>
-                  <span className="flex items-center gap-1 text-[9px] font-medium text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> En ruta
+                  <span className="flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> EN RUTA
                   </span>
                 </div>
-                <p className="mt-1 text-[10px] text-white/55">GDL &rarr; MTY</p>
+                <p className="mt-2.5 text-xs text-white/60">Guadalajara &rarr; Monterrey</p>
+                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300" />
+                </div>
               </div>
-              <div className="w-44 rounded-lg border border-white/10 bg-white/[0.06] p-2.5 shadow-lg backdrop-blur-md">
+              <div className="flex-1 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold text-white">
-                    <MapPin size={12} className="text-sky-300" /> Rastreo satelital
+                  <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-400/20 text-cyan-300">
+                      <MapPin size={14} />
+                    </span>
+                    Rastreo satelital
                   </span>
-                  <span className="rounded-full bg-emerald-400/15 px-1.5 py-0.5 text-[8px] font-bold text-emerald-300">ACTIVO</span>
+                  <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">GPS ACTIVO</span>
                 </div>
-                <p className="mt-1 text-[10px] text-white/55">85 km/h &middot; ETA 2h 45m</p>
+                <p className="mt-2.5 text-xs text-white/60">85 km/h &middot; ETA 2h 45m</p>
+                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full w-5/6 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300" />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Panel derecho: formulario de acceso -- mas grande, mas centrado y con mas aire. */}
-      <div className="flex flex-1 flex-col bg-bg-950 lg:items-center lg:justify-center">
+      {/* Panel derecho (40%): fondo con textura propia -- degradados suaves + puntos, nunca gris vacio.
+          overflow-y-auto (no overflow-hidden) para que en pantallas bajas la tarjeta nunca quede cortada;
+          los adornos de fondo van en su propio wrapper con overflow-hidden aparte. */}
+      <div className="relative flex flex-1 flex-col overflow-y-auto bg-bg-950">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-70"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 1px 1px, var(--color-breco-glow) 1px, transparent 0)',
+              backgroundSize: '28px 28px',
+            }}
+          />
+          <div
+            className="absolute -top-24 -right-24 h-96 w-96 rounded-full opacity-40 blur-3xl"
+            style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.35), transparent 70%)' }}
+          />
+          <div
+            className="absolute -bottom-32 -left-16 h-96 w-96 rounded-full opacity-30 blur-3xl"
+            style={{ background: 'radial-gradient(circle, var(--color-breco-glow), transparent 70%)' }}
+          />
+        </div>
+
         {/* Resumen visual compacto, solo en movil/tablet (abajo de lg): logo + lema sobre la foto del trailer, antes del formulario. */}
         <div className="relative h-44 w-full shrink-0 overflow-hidden lg:hidden">
           <img src="/login/truck-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -190,105 +237,101 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="flex w-full flex-1 flex-col items-center justify-center px-6 py-8 lg:flex-none lg:px-10 lg:py-12">
-        <div className="w-full max-w-md">
-          <div className="mb-6 flex-col items-center gap-3 lg:flex">
-            {empresaLogin?.logoDataUrl ? (
-              <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-bg-800">
-                <img src={empresaLogin.logoDataUrl} alt={empresaLogin.nombre} className="h-full w-full object-contain" />
+        <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center px-6 py-8 lg:px-12 lg:py-10 xl:px-16">
+          <div className="flex w-full max-w-xl flex-1 flex-col justify-center lg:min-h-[min(64vh,42rem)]">
+            <form
+              onSubmit={handleSubmit}
+              className="flex w-full flex-1 flex-col justify-center space-y-7 rounded-[2rem] border border-line-800 bg-bg-800 p-10 shadow-2xl shadow-black/40 sm:p-12"
+            >
+              <div className="flex flex-col items-center gap-3 text-center">
+                {logoChico}
+                {empresaLogin && (
+                  <div>
+                    <div className="text-lg tracking-wide text-ink-100">
+                      <BrandName nombre={empresaLogin.nombre} />
+                    </div>
+                    <div className="text-xs font-medium tracking-widest text-breco-500 uppercase">Trafico ERP</div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <img src="/login/securefleet-logo.png" alt="SecureFleet" className="mx-auto hidden h-12 w-auto lg:block" />
-            )}
-            {empresaLogin && (
+
               <div className="text-center">
-                <div className="text-lg tracking-wide text-ink-100">
-                  <BrandName nombre={empresaLogin.nombre} />
-                </div>
-                <div className="text-xs font-medium tracking-widest text-breco-500 uppercase">Trafico ERP</div>
+                <h1 className="text-3xl font-bold text-ink-100">Bienvenido</h1>
+                <p className="mt-2 text-sm text-ink-500">
+                  Ingresa tus credenciales para acceder a tu cuenta{empresaLogin ? '' : ' de SecureFleet'}.
+                </p>
               </div>
-            )}
-          </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6 rounded-3xl border border-line-800 bg-bg-800 p-8 shadow-2xl shadow-black/40 sm:p-10"
-          >
-            <div>
-              <h1 className="text-2xl font-bold text-ink-100">Bienvenido</h1>
-              <p className="mt-1.5 text-sm text-ink-500">
-                Ingresa tus credenciales para acceder a tu cuenta{empresaLogin ? '' : ' de SecureFleet'}.
-              </p>
-            </div>
+              <div className="space-y-5">
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-medium tracking-wide text-ink-500 uppercase">Usuario o correo electronico</span>
+                  <div className="relative">
+                    <Mail size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-ink-600" />
+                    <input
+                      type="email"
+                      required
+                      autoFocus
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="usuario@empresa.com"
+                      className="w-full rounded-xl border border-line-700 bg-bg-900 py-3.5 pr-4 pl-11 text-base text-ink-100 outline-none placeholder:text-ink-600 focus:border-breco-500 focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_22px_4px_color-mix(in_srgb,var(--color-breco-500)_55%,transparent),0_0_40px_10px_color-mix(in_srgb,var(--color-breco-500)_25%,transparent)] focus:outline-none transition-shadow"
+                    />
+                  </div>
+                </label>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium tracking-wide text-ink-500 uppercase">Usuario o correo electronico</span>
-              <div className="relative">
-                <Mail size={17} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-600" />
-                <input
-                  type="email"
-                  required
-                  autoFocus
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="usuario@empresa.com"
-                  className="w-full rounded-xl border border-line-700 bg-bg-900 py-3 pr-3 pl-10 text-sm text-ink-100 outline-none placeholder:text-ink-600 focus:border-breco-500 focus:ring-2 focus:ring-breco-500/20"
-                />
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-medium tracking-wide text-ink-500 uppercase">Contrasena</span>
+                  <div className="relative">
+                    <Lock size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-ink-600" />
+                    <input
+                      type={verPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Tu contrasena"
+                      className="w-full rounded-xl border border-line-700 bg-bg-900 py-3.5 pr-11 pl-11 text-base text-ink-100 outline-none placeholder:text-ink-600 focus:border-breco-500 focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_22px_4px_color-mix(in_srgb,var(--color-breco-500)_55%,transparent),0_0_40px_10px_color-mix(in_srgb,var(--color-breco-500)_25%,transparent)] focus:outline-none transition-shadow"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setVerPassword((v) => !v)}
+                      className="absolute top-1/2 right-4 -translate-y-1/2 text-ink-600 hover:text-ink-300"
+                      aria-label={verPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                    >
+                      {verPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </label>
               </div>
-            </label>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium tracking-wide text-ink-500 uppercase">Contrasena</span>
-              <div className="relative">
-                <Lock size={17} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-600" />
-                <input
-                  type={verPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Tu contrasena"
-                  className="w-full rounded-xl border border-line-700 bg-bg-900 py-3 pr-10 pl-10 text-sm text-ink-100 outline-none placeholder:text-ink-600 focus:border-breco-500 focus:ring-2 focus:ring-breco-500/20"
-                />
+              <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setVerPassword((v) => !v)}
-                  className="absolute top-1/2 right-3.5 -translate-y-1/2 text-ink-600 hover:text-ink-300"
-                  aria-label={verPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                  onClick={handleOlvidoPassword}
+                  disabled={recuperando}
+                  className="text-sm font-medium text-breco-500 hover:underline disabled:opacity-50"
                 >
-                  {verPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  {recuperando ? 'Enviando...' : 'Olvidaste tu contrasena?'}
                 </button>
               </div>
-            </label>
+              {mensajeRecuperar && <p className="text-xs text-ink-500">{mensajeRecuperar}</p>}
 
-            <div className="flex justify-end">
+              {error && <p className="text-sm text-breco-500">{error}</p>}
+
               <button
-                type="button"
-                onClick={handleOlvidoPassword}
-                disabled={recuperando}
-                className="text-xs font-medium text-breco-500 hover:underline disabled:opacity-50"
+                type="submit"
+                disabled={enviando}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-breco-500 py-4 text-base font-semibold text-white shadow-lg shadow-breco-glow transition hover:bg-breco-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {recuperando ? 'Enviando...' : 'Olvidaste tu contrasena?'}
+                <LogIn size={18} />
+                {enviando ? 'Entrando...' : 'Iniciar sesion'}
               </button>
-            </div>
-            {mensajeRecuperar && <p className="text-xs text-ink-500">{mensajeRecuperar}</p>}
 
-            {error && <p className="text-sm text-breco-500">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={enviando}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-breco-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-breco-glow transition hover:bg-breco-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <LogIn size={17} />
-              {enviando ? 'Entrando...' : 'Iniciar sesion'}
-            </button>
-          </form>
-
-          <p className="mt-5 text-center text-xs text-ink-600">
-            {empresaLogin ? `Acceso interno de ${empresaLogin.nombre}.` : 'Acceso interno.'} Contacta a un administrador si no tienes
-            cuenta.
-          </p>
-        </div>
+              <p className="text-center text-xs text-ink-600">
+                {empresaLogin ? `Acceso interno de ${empresaLogin.nombre}.` : 'Acceso interno.'} Contacta a un administrador si no
+                tienes cuenta.
+              </p>
+            </form>
+          </div>
         </div>
       </div>
     </div>
