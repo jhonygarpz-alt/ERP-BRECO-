@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useQrDataUrl } from '../../lib/useQrDataUrl';
 
 /*
  * Piezas reutilizables para los formatos de impresion "estilo CFDI"
@@ -55,6 +56,64 @@ export function CajaEtiqueta({ etiqueta, valor, tono = 'oscuro' }: { etiqueta: s
         {etiqueta}
       </div>
       <div style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, wordBreak: 'break-word' }}>{valor || ' '}</div>
+    </div>
+  );
+}
+
+/**
+ * Caja de "ficha" del encabezado: un solo recuadro con renglones apilados de
+ * etiqueta (barra gris) + valor (banda blanca), sin redondear cada renglon
+ * por separado -- el badge del folio fiscal / series de certificado /
+ * fechas que se usa en la esquina superior derecha de las representaciones
+ * impresas de CFDI (Factura, Nota de Credito, Pago).
+ */
+export function BloqueEtiquetasApiladas({
+  titulo,
+  filas,
+}: {
+  /** Barra oscura superior (ej. "FACTURA CON COMPLEMENTO 3.0"); opcional. */
+  titulo?: string;
+  filas: { etiqueta: string; valor: ReactNode }[];
+}) {
+  return (
+    <div style={{ border: '1px solid #333', borderRadius: 6, overflow: 'hidden' }}>
+      {titulo && (
+        <div
+          style={{
+            background: '#2b2b2b',
+            color: '#fff',
+            fontSize: 9.5,
+            fontWeight: 700,
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: 0.3,
+            padding: '4px 8px',
+          }}
+        >
+          {titulo}
+        </div>
+      )}
+      {filas.map((f, i) => (
+        <div key={i}>
+          <div
+            style={{
+              background: '#e5e5e5',
+              fontSize: 9,
+              fontWeight: 700,
+              textAlign: 'center',
+              textTransform: 'uppercase',
+              letterSpacing: 0.2,
+              padding: '2px 8px',
+              borderTop: '1px solid #333',
+            }}
+          >
+            {f.etiqueta}
+          </div>
+          <div style={{ padding: '3px 8px', fontSize: 10.5, fontWeight: 600, textAlign: 'center', wordBreak: 'break-word' }}>
+            {f.valor || ' '}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -132,28 +191,63 @@ export function CajaTotales({
   );
 }
 
+/**
+ * Arma la URL oficial del SAT para el QR "de ingreso" (todo CFDI) que
+ * permite consultar el comprobante en verificacfdi.facturaelectronica.sat.gob.mx
+ * -- antes este bloque solo metia el UUID pelado al QR, que no es un enlace
+ * valido; ahora arma la URL real con los parametros que exige el SAT.
+ */
+function urlQrIngreso(folioFiscal: string, rfcEmisor: string, rfcReceptor: string, total: number, selloDigitalCfdi: string): string {
+  const params = new URLSearchParams({
+    id: folioFiscal,
+    re: rfcEmisor,
+    rr: rfcReceptor,
+    tt: total.toFixed(6),
+    fe: (selloDigitalCfdi || '').trim().slice(-8),
+  });
+  return `https://verificacfdi.facturaelectronica.sat.gob.mx/default.aspx?${params.toString()}`;
+}
+
+/**
+ * Arma la URL oficial del SAT para el segundo QR que exige el Complemento
+ * Carta Porte (QR CCP), distinto del QR de ingreso del CFDI: usa el
+ * servicio de verificacion especifico de Carta Porte con el IdCCP y las
+ * fechas de salida de origen / certificacion del comprobante.
+ */
+function urlQrCcp(idCcp: string, fechaOrigen: string, fechaTimbrado: string): string {
+  const params = new URLSearchParams({ IdCCP: idCcp, FechaOrig: fechaOrigen, FechaTimb: fechaTimbrado });
+  return `https://verificacfdi.facturaelectronica.sat.gob.mx/verificaccp/default.aspx?${params.toString()}`;
+}
+
 /** Sello/QR de timbrado: si no hay folio fiscal (CFDI aun no timbrado) deja la caja vacia con la leyenda correspondiente, en vez de inventar datos. */
 export function BloqueTimbrado({
   folioFiscal,
-  fechaHoraExpedicion,
   fechaHoraCertificacion,
-  noSerieCertificadoEmisor,
-  noSerieCertificadoSat,
   selloDigitalCfdi,
   selloDigitalSat,
   cadenaOriginal,
-  qrDataUrl,
+  rfcEmisor,
+  rfcReceptor,
+  total,
+  cartaPorte,
 }: {
   folioFiscal: string;
-  fechaHoraExpedicion: string;
   fechaHoraCertificacion: string;
-  noSerieCertificadoEmisor: string;
-  noSerieCertificadoSat: string;
   selloDigitalCfdi: string;
   selloDigitalSat: string;
   cadenaOriginal: string;
-  qrDataUrl?: string | null;
+  /** Para armar el QR de ingreso (default: todo CFDI lo exige). */
+  rfcEmisor: string;
+  rfcReceptor: string;
+  total: number;
+  /** Si el CFDI trae Complemento Carta Porte, agrega el segundo QR (QR CCP) a la izquierda. */
+  cartaPorte?: { idCcp: string; fechaOrigen: string };
 }) {
+  const qrIngresoUrl = useQrDataUrl(folioFiscal ? urlQrIngreso(folioFiscal, rfcEmisor, rfcReceptor, total, selloDigitalCfdi) : '');
+  const qrCcpUrl = useQrDataUrl(
+    folioFiscal && cartaPorte ? urlQrCcp(cartaPorte.idCcp, cartaPorte.fechaOrigen, fechaHoraCertificacion) : '',
+  );
+
   if (!folioFiscal) {
     return (
       <Recuadro style={{ padding: '10px 14px', textAlign: 'center', color: '#666', fontSize: 10.5 }}>
@@ -162,36 +256,50 @@ export function BloqueTimbrado({
       </Recuadro>
     );
   }
+
+  const casillaQr = (titulo: string, url: string | null, lado: 'left' | 'right') => (
+    <div style={{ width: 150, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ padding: 8 }}>
+        {url ? (
+          <img src={url} alt={titulo} style={{ width: 120, height: 120 }} />
+        ) : (
+          <div style={{ width: 120, height: 120, border: '1px dashed #999' }} />
+        )}
+      </div>
+      <div
+        style={{
+          width: '100%',
+          textAlign: 'center',
+          fontSize: 9.5,
+          fontWeight: 700,
+          padding: '4px 0',
+          borderTop: '1px solid #333',
+          [lado === 'left' ? 'borderRight' : 'borderLeft']: '1px solid #333',
+        }}
+      >
+        {titulo}
+      </div>
+    </div>
+  );
+
   return (
-    <div style={{ display: 'flex', gap: 12 }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <Recuadro style={{ padding: '6px 10px', fontSize: 9.5 }}>
+    <div style={{ border: '1px solid #333', borderRadius: 16, overflow: 'hidden', display: 'flex' }}>
+      {cartaPorte && casillaQr('QR CCP', qrCcpUrl, 'left')}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: cartaPorte ? '1px solid #333' : undefined, borderRight: '1px solid #333' }}>
+        <div style={{ padding: '6px 10px', fontSize: 9.5, borderBottom: '1px solid #ddd' }}>
           <strong>Cadena Original del complemento de certificacion digital SAT</strong>
           <p style={{ margin: '2px 0 0', wordBreak: 'break-all', color: '#444' }}>{cadenaOriginal || '—'}</p>
-        </Recuadro>
-        <Recuadro style={{ padding: '6px 10px', fontSize: 9.5 }}>
+        </div>
+        <div style={{ padding: '6px 10px', fontSize: 9.5, borderBottom: '1px solid #ddd' }}>
           <strong>Sello Digital del CFDI</strong>
           <p style={{ margin: '2px 0 0', wordBreak: 'break-all', color: '#444' }}>{selloDigitalCfdi || '—'}</p>
-        </Recuadro>
-        <Recuadro style={{ padding: '6px 10px', fontSize: 9.5 }}>
+        </div>
+        <div style={{ padding: '6px 10px', fontSize: 9.5, flex: 1 }}>
           <strong>Sello del SAT</strong>
           <p style={{ margin: '2px 0 0', wordBreak: 'break-all', color: '#444' }}>{selloDigitalSat || '—'}</p>
-        </Recuadro>
+        </div>
       </div>
-      <div style={{ width: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        {qrDataUrl ? (
-          <img src={qrDataUrl} alt="QR del folio fiscal" style={{ width: 130, height: 130 }} />
-        ) : (
-          <div style={{ width: 130, height: 130, border: '1px dashed #999' }} />
-        )}
-        <p style={{ margin: 0, fontSize: 8, textAlign: 'center', color: '#666' }}>Folio Fiscal: {folioFiscal}</p>
-      </div>
-      <div style={{ width: 150, fontSize: 9, color: '#444' }}>
-        <FilaEtiquetaValor etiqueta="Serie cert. emisor" valor={noSerieCertificadoEmisor} />
-        <FilaEtiquetaValor etiqueta="Serie cert. SAT" valor={noSerieCertificadoSat} />
-        <FilaEtiquetaValor etiqueta="Fecha expedicion" valor={fechaHoraExpedicion} />
-        <FilaEtiquetaValor etiqueta="Fecha certificacion" valor={fechaHoraCertificacion} />
-      </div>
+      {casillaQr('QR INGRESO', qrIngresoUrl, 'right')}
     </div>
   );
 }

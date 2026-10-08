@@ -5,7 +5,6 @@ import { CONFIG_AUTOTRANSPORTE_SAT, TIPO_PERMISO_SCT } from '../lib/catalogosSat
 import { calcularTotalesConceptosViaje } from '../lib/facturacion';
 import { importeALetras } from '../lib/numeroALetras';
 import { pesoBrutoVehicular } from '../lib/cartaPorte';
-import { useQrDataUrl } from '../lib/useQrDataUrl';
 import {
   BarraAcciones,
   pagina,
@@ -121,8 +120,8 @@ function VistaCartaPorte({
   const importeLetra = importeALetras(totales.total, viaje.moneda === 'DOLARES' ? 'USD' : 'MXN');
   const config = CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === (viaje.configVehicularClaveSat || unidad?.tipo));
   const permiso = TIPO_PERMISO_SCT.find((p) => p.clave === unidad?.claveTipoPermisoSct);
-  const qrDataUrl = useQrDataUrl(viaje.timbrado.folioFiscal);
   const internacional = viaje.importacion || viaje.exportacion;
+  const fechaOrigenCcp = `${viaje.fechaCarga || viaje.fecha}T${(viaje.horaCarga || '00:00').slice(0, 5)}:00`;
 
   return (
     <div style={pagina}>
@@ -382,14 +381,14 @@ function VistaCartaPorte({
 
       <BloqueTimbrado
         folioFiscal={viaje.timbrado.folioFiscal}
-        fechaHoraExpedicion={viaje.timbrado.fechaHoraExpedicion}
         fechaHoraCertificacion={viaje.timbrado.fechaHoraCertificacion}
-        noSerieCertificadoEmisor={viaje.timbrado.noSerieCertificadoEmisor}
-        noSerieCertificadoSat={viaje.timbrado.noSerieCertificadoSat}
         selloDigitalCfdi={viaje.timbrado.selloDigitalCfdi}
         selloDigitalSat={viaje.timbrado.selloDigitalSat}
         cadenaOriginal={viaje.timbrado.cadenaOriginal}
-        qrDataUrl={qrDataUrl}
+        rfcEmisor={empresa.rfc}
+        rfcReceptor={cliente?.rfc ?? ''}
+        total={totales.total}
+        cartaPorte={{ idCcp: viaje.timbrado.idCcp, fechaOrigen: fechaOrigenCcp }}
       />
       <LeyendaCfdi folioFiscal={viaje.timbrado.folioFiscal} simulado={viaje.timbrado.simulado} cancelado={viaje.timbrado.cancelado} />
     </div>

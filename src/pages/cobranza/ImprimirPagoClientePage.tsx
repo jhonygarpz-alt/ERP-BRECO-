@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../lib/DataContext';
 import { abonosAplicadosAFactura } from '../../lib/cobranza';
-import { useQrDataUrl } from '../../lib/useQrDataUrl';
 import {
   BarraAcciones,
   pagina,
@@ -26,7 +25,6 @@ export function ImprimirPagoClientePage() {
 
   const pago = pagosCliente.items.find((p) => p.id === id);
   const cliente = clientes.items.find((c) => c.id === pago?.clienteId);
-  const qrDataUrl = useQrDataUrl(pago?.timbrado.folioFiscal ?? '');
 
   useEffect(() => {
     if (!pago) return;
@@ -164,14 +162,13 @@ export function ImprimirPagoClientePage() {
 
       <BloqueTimbrado
         folioFiscal={pago.timbrado.folioFiscal}
-        fechaHoraExpedicion={pago.timbrado.fechaHoraExpedicion}
         fechaHoraCertificacion={pago.timbrado.fechaHoraCertificacion}
-        noSerieCertificadoEmisor={pago.timbrado.noSerieCertificadoEmisor}
-        noSerieCertificadoSat={pago.timbrado.noSerieCertificadoSat}
         selloDigitalCfdi={pago.timbrado.selloDigitalCfdi}
         selloDigitalSat={pago.timbrado.selloDigitalSat}
         cadenaOriginal={pago.timbrado.cadenaOriginal}
-        qrDataUrl={qrDataUrl}
+        rfcEmisor={empresa.value.rfc}
+        rfcReceptor={cliente?.rfc ?? ''}
+        total={0}
       />
       <LeyendaCfdi folioFiscal={pago.timbrado.folioFiscal} simulado={pago.timbrado.simulado} cancelado={pago.timbrado.cancelado} />
 

@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../lib/DataContext';
 import { importeALetras } from '../../lib/numeroALetras';
-import { useQrDataUrl } from '../../lib/useQrDataUrl';
 import {
   BarraAcciones,
   pagina,
@@ -28,7 +27,6 @@ export function ImprimirNotaCreditoPage() {
   const cliente = clientes.items.find((c) => c.id === nota?.clienteId);
   const facturasRelacionadas = (nota?.facturaIds ?? []).map((fid) => facturas.items.find((f) => f.id === fid)).filter((f): f is NonNullable<typeof f> => Boolean(f));
   const totalIva = nota?.lineas.reduce((acc, l) => acc + l.importeIva, 0) ?? 0;
-  const qrDataUrl = useQrDataUrl(nota?.timbrado.folioFiscal ?? '');
 
   useEffect(() => {
     if (!nota) return;
@@ -148,14 +146,13 @@ export function ImprimirNotaCreditoPage() {
 
       <BloqueTimbrado
         folioFiscal={nota.timbrado.folioFiscal}
-        fechaHoraExpedicion={nota.timbrado.fechaHoraExpedicion}
         fechaHoraCertificacion={nota.timbrado.fechaHoraCertificacion}
-        noSerieCertificadoEmisor={nota.timbrado.noSerieCertificadoEmisor}
-        noSerieCertificadoSat={nota.timbrado.noSerieCertificadoSat}
         selloDigitalCfdi={nota.timbrado.selloDigitalCfdi}
         selloDigitalSat={nota.timbrado.selloDigitalSat}
         cadenaOriginal={nota.timbrado.cadenaOriginal}
-        qrDataUrl={qrDataUrl}
+        rfcEmisor={empresa.value.rfc}
+        rfcReceptor={cliente?.rfc ?? ''}
+        total={nota.total}
       />
       <LeyendaCfdi folioFiscal={nota.timbrado.folioFiscal} simulado={nota.timbrado.simulado} cancelado={nota.timbrado.cancelado} />
     </div>
