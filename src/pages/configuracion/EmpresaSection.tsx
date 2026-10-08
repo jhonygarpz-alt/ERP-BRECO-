@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { Building2, Upload, FileCheck2, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Building2, Upload, FileCheck2, Loader2, Trash2, Eye, EyeOff, FlaskConical } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { Field, Input, PrimaryButton } from '../../components/ui/form';
@@ -36,6 +36,20 @@ export function EmpresaSection() {
     setCertificado(null);
     setLlave(null);
     setPasswordCsd('');
+  }
+
+  async function handleToggleAmbiente() {
+    const nuevo = empresa.value.facturamaAmbiente === 'sandbox' ? 'produccion' : 'sandbox';
+    const mensaje =
+      nuevo === 'produccion'
+        ? 'Vas a DESACTIVAR el Timbrado de Pruebas: a partir de ahora las facturas se timbraran REALES ante el SAT.\n\nTu CSD se tiene que volver a registrar en este ambiente (el registro de pruebas no aplica aqui). Continuar?'
+        : 'Vas a ACTIVAR el Timbrado de Pruebas: las facturas dejaran de timbrarse reales ante el SAT mientras este activado.\n\nTu CSD se tiene que volver a registrar en este ambiente. Continuar?';
+    if (!confirm(mensaje)) return;
+    await empresa.update({
+      facturamaAmbiente: nuevo,
+      facturamaCsdRegistrado: false,
+      facturamaCsdVigenciaHasta: undefined,
+    });
   }
 
   async function handleEliminarCsd() {
@@ -134,6 +148,42 @@ export function EmpresaSection() {
           poder timbrar facturas reales ante el SAT. El ERP no guarda el certificado ni la llave: se envian directo
           al PAC (Facturama) y solo se guarda si quedo registrado.
         </p>
+
+        <div
+          className={`mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
+            empresa.value.facturamaAmbiente === 'sandbox'
+              ? 'border-amber-700/50 bg-amber-950/30'
+              : 'border-emerald-800/40 bg-emerald-950/30'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <FlaskConical size={18} className={empresa.value.facturamaAmbiente === 'sandbox' ? 'text-amber-400' : 'text-emerald-400'} />
+            <div>
+              <p className={`text-sm font-semibold ${empresa.value.facturamaAmbiente === 'sandbox' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                Timbrado de Pruebas: {empresa.value.facturamaAmbiente === 'sandbox' ? 'ACTIVADO' : 'DESACTIVADO'}
+              </p>
+              <p className="text-xs text-ink-500">
+                {empresa.value.facturamaAmbiente === 'sandbox'
+                  ? 'Las facturas se timbran en modo prueba: NO son validas ante el SAT. Seguro para practicar sin afectar clientes.'
+                  : 'Modo real: las facturas se timbran validas ante el SAT. Cuidado al facturar.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleAmbiente}
+            className={`relative h-7 w-14 flex-shrink-0 rounded-full transition ${
+              empresa.value.facturamaAmbiente === 'sandbox' ? 'bg-amber-500' : 'bg-line-700'
+            }`}
+            title="Cambiar entre Timbrado de Pruebas y Timbrado Real"
+          >
+            <span
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${
+                empresa.value.facturamaAmbiente === 'sandbox' ? 'left-8' : 'left-1'
+              }`}
+            />
+          </button>
+        </div>
 
         {empresa.value.facturamaCsdRegistrado ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-800/40 bg-emerald-950/30 px-4 py-3">

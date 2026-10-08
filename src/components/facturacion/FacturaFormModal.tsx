@@ -85,7 +85,7 @@ export function FacturaFormModal({
   onClose: () => void;
   onGuardar: (datos: Omit<Factura, 'id'>) => void;
 }) {
-  const { clientes, viajes, facturas, conceptosFacturacion, foliosAutorizados } = useData();
+  const { clientes, viajes, facturas, conceptosFacturacion, foliosAutorizados, empresa } = useData();
   const [inicial] = useState(() => {
     if (editing) return { form: { ...editing }, error: '' };
     const { factura: base, error: errorFolio } = construirFactura(tipo, facturas.items, foliosAutorizados.items);
@@ -583,6 +583,15 @@ export function FacturaFormModal({
             <p className="text-sm text-ink-300">
               La factura {form.folio} ya se guardo. ¿Deseas timbrarla ante el SAT ahora?
             </p>
+            {empresa.value.facturamaAmbiente === 'sandbox' ? (
+              <div className="rounded-lg border border-amber-700/50 bg-amber-950/30 px-3 py-2 text-sm font-medium text-amber-400">
+                Timbrado de Pruebas ACTIVADO: este timbrado NO sera valido ante el SAT.
+              </div>
+            ) : (
+              <div className="rounded-lg border border-emerald-800/40 bg-emerald-950/30 px-3 py-2 text-sm font-medium text-emerald-400">
+                Timbrado real: este CFDI sera valido ante el SAT.
+              </div>
+            )}
             {errorTimbrado && (
               <div className="rounded-lg border border-red-900/50 bg-red-950/30 p-3 text-sm text-red-400">
                 El PAC rechazo el timbrado: {errorTimbrado}

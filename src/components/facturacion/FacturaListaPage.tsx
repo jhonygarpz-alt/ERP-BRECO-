@@ -179,9 +179,20 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
 
   return (
     <div>
-      <div className="mb-6 rounded-2xl bg-sb-bg px-5 py-4">
-        <h1 className="text-xl font-bold text-sb-text">{titulo}</h1>
-        <p className="mt-1 text-sm text-sb-text-muted">{subtitulo}</p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sb-bg px-5 py-4">
+        <div>
+          <h1 className="text-xl font-bold text-sb-text">{titulo}</h1>
+          <p className="mt-1 text-sm text-sb-text-muted">{subtitulo}</p>
+        </div>
+        {empresa.value.facturamaAmbiente === 'sandbox' ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-700/50 bg-amber-950/30 px-3 py-1 text-xs font-semibold text-amber-400">
+            Timbrado de Pruebas ACTIVADO -- no valido ante el SAT
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-800/40 bg-emerald-950/30 px-3 py-1 text-xs font-semibold text-emerald-400">
+            Timbrado real -- valido ante el SAT
+          </span>
+        )}
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-line-800 bg-bg-900 p-2">
