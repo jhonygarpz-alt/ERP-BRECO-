@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Ban, ChevronDown, Download, Eye, FileX2, Pencil, Plus, Printer, Search } from 'lucide-react';
+import { Ban, ChevronDown, Download, Eye, FileCheck2, FileX2, Pencil, Plus, Printer, Search } from 'lucide-react';
 import { useData } from '../../lib/DataContext';
 import { useAuth } from '../../lib/AuthContext';
 import { hoyISO } from '../../lib/fechas';
@@ -11,6 +11,7 @@ import { Input, ToolbarButton } from '../ui/form';
 import { StatusBadge } from '../ui/Badge';
 import { FacturaFormModal } from './FacturaFormModal';
 import { CancelarTimbreModal } from './CancelarTimbreModal';
+import { TimbrarFacturaModal } from './TimbrarFacturaModal';
 
 function money(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -32,6 +33,7 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
   const [descargarAbierto, setDescargarAbierto] = useState(false);
   const [cancelarTimbreOpen, setCancelarTimbreOpen] = useState(false);
+  const [timbrarOpen, setTimbrarOpen] = useState(false);
 
   function nombreCliente(id: string) {
     return clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
@@ -156,6 +158,17 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
           </span>
         ),
     },
+    {
+      header: 'UUID',
+      render: (f) =>
+        f.timbrado.folioFiscal ? (
+          <span className="font-mono text-[11px] text-ink-400" title={f.timbrado.folioFiscal}>
+            {f.timbrado.folioFiscal}
+          </span>
+        ) : (
+          <span className="text-xs text-ink-700">—</span>
+        ),
+    },
   ];
 
   return (
@@ -227,6 +240,14 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
         </div>
         <ToolbarButton
           type="button"
+          disabled={!seleccionada || !puedeCrear || !!seleccionada?.timbrado.folioFiscal || seleccionada?.estatus === 'Cancelado'}
+          onClick={() => setTimbrarOpen(true)}
+          title="Timbrar esta factura ante el PAC"
+        >
+          <FileCheck2 size={16} /> Timbrar
+        </ToolbarButton>
+        <ToolbarButton
+          type="button"
           disabled={!seleccionada || !puedeEditar || seleccionada?.estatus === 'Cancelado'}
           onClick={cancelar}
         >
@@ -282,6 +303,15 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
 
       {cancelarTimbreOpen && seleccionada && (
         <CancelarTimbreModal folio={seleccionada.folio} onClose={() => setCancelarTimbreOpen(false)} onCancelar={cancelarTimbre} />
+      )}
+
+      {timbrarOpen && seleccionada && (
+        <TimbrarFacturaModal
+          factura={seleccionada}
+          ambienteSandbox={empresa.value.facturamaAmbiente === 'sandbox'}
+          onClose={() => setTimbrarOpen(false)}
+          onTimbrado={(timbrado) => facturas.update(seleccionada.id, { timbrado })}
+        />
       )}
     </div>
   );

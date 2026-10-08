@@ -301,6 +301,23 @@ export function FacturaFormModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="rounded-lg bg-breco-500/10 px-3 py-2 text-sm text-breco-500">{error}</p>}
 
+        {editing &&
+          (form.timbrado.cancelado ? (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm">
+              <span className="font-semibold text-red-400">Cancelado ante SAT</span>
+              <span className="font-mono text-xs text-ink-400">UUID: {form.timbrado.folioFiscal}</span>
+            </div>
+          ) : form.timbrado.folioFiscal ? (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm">
+              <span className="font-semibold text-emerald-400">Timbrada{form.timbrado.simulado ? ' (simulada)' : ''}</span>
+              <span className="font-mono text-xs text-ink-300">UUID: {form.timbrado.folioFiscal}</span>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-400">
+              Sin timbrar -- usa el boton "Timbrar" en la lista de facturas para timbrarla ante el SAT.
+            </div>
+          ))}
+
         <fieldset disabled={soloLectura} className="space-y-4">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Field label="Folio">
