@@ -62,8 +62,10 @@ export function CrudTable<T>({
               <tr
                 key={keyFn(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`border-b border-line-800/70 last:border-0 hover:bg-bg-700/40 ${onRowClick ? 'cursor-pointer' : ''} ${
-                  selectedKey && selectedKey === keyFn(row) ? 'bg-breco-500/10' : ''
+                className={`border-b border-line-800/70 last:border-0 ${onRowClick ? 'cursor-pointer' : ''} ${
+                  selectedKey && selectedKey === keyFn(row)
+                    ? 'relative z-10 bg-breco-500/15 shadow-[0_0_0_2px_var(--color-breco-500),0_0_14px_2px_var(--color-breco-glow)] hover:bg-breco-500/20'
+                    : 'hover:bg-bg-700/40'
                 }`}
               >
                 {columns.map((col) => (
