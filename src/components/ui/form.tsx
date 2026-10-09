@@ -123,14 +123,19 @@ export function GhostButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>
 
 type ToolbarButtonVariant = 'default' | 'accent';
 
+// Todos los botones de barra de acciones usan el mismo azul solido que el
+// boton primario (Agregar/Asignar viaje) -- "accent" se conserva como
+// variante por si una accion necesita distinguirse a futuro, pero hoy
+// renderiza el mismo azul.
 const toolbarButtonVariants: Record<ToolbarButtonVariant, string> = {
-  // Boton de barra de acciones estandar (Modificar, Consultar, Imprimir,
-  // Timbrar, Cancelar, etc.): fondo solido gris azulado, nunca transparente.
-  default: 'bg-bg-600 text-ink-100 hover:bg-bg-500 disabled:hover:bg-bg-600',
-  // Para la accion destacada dentro de una barra (ej. Descargar): azul
-  // solido, un tono mas oscuro que el boton primario (Agregar).
-  accent: 'bg-breco-600 text-white hover:bg-breco-500 disabled:hover:bg-breco-600',
+  default: 'bg-breco-500 text-white hover:brightness-110 active:brightness-95 disabled:hover:brightness-100',
+  accent: 'bg-breco-500 text-white hover:brightness-110 active:brightness-95 disabled:hover:brightness-100',
 };
+
+// Contorno neon al seleccionar (focus, no solo foco por teclado): el mismo
+// resplandor azul brillante multicapa que ya se usa en los inputs.
+const neonFocusRing =
+  'focus:outline-none focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_16px_4px_color-mix(in_srgb,var(--color-breco-500)_60%,transparent),0_0_30px_9px_color-mix(in_srgb,var(--color-breco-500)_28%,transparent)]';
 
 export function ToolbarButton({
   variant = 'default',
@@ -140,7 +145,7 @@ export function ToolbarButton({
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-button font-medium shadow-sm shadow-black/20 transition disabled:cursor-not-allowed disabled:opacity-50 ${toolbarButtonVariants[variant]} ${className ?? ''}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-button font-medium shadow-sm shadow-black/20 transition disabled:cursor-not-allowed disabled:opacity-50 ${toolbarButtonVariants[variant]} ${neonFocusRing} ${className ?? ''}`}
     />
   );
 }
