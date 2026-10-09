@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../lib/DataContext';
+import { BarraAcciones, pagina, Recuadro, BloqueEtiquetasApiladas } from '../../components/print/PrintKit';
 
 export function ImprimirReporteFallaPage() {
   const { id } = useParams<{ id: string }>();
@@ -11,111 +12,73 @@ export function ImprimirReporteFallaPage() {
   const operador = operadores.items.find((o) => o.id === reporte?.operadorId);
   const clasificacion = clasificacionesServicio.items.find((c) => c.id === reporte?.clasificacionServicioId);
 
+  const todoCargado = !reportesFalla.loading && !unidades.loading && !operadores.loading && !clasificacionesServicio.loading;
+
   useEffect(() => {
-    if (!reporte) return;
+    if (!reporte || !todoCargado) return;
     const t = setTimeout(() => window.print(), 300);
     return () => clearTimeout(t);
-  }, [reporte]);
+  }, [reporte, todoCargado]);
 
   if (!reporte) {
-    return (
-      <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif' }}>
-        No se encontro el reporte de falla.
-      </div>
-    );
+    return <div style={pagina}>No se encontro el reporte de falla.</div>;
   }
 
-  return (
-    <div style={{ background: '#fff', color: '#111', minHeight: '100vh', padding: 32, fontFamily: 'sans-serif', fontSize: 13 }}>
-      <div className="mb-4 flex justify-end gap-2 print:hidden">
-        <button onClick={() => window.print()} style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>
-          Imprimir
-        </button>
-        <button onClick={() => window.close()} style={{ border: '1px solid #999', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>
-          Cerrar
-        </button>
-      </div>
+  const paginaCompacta = { ...pagina, padding: 16, fontSize: 9.5 };
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          borderBottom: '2px solid #111',
-          paddingBottom: 12,
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 48, width: 'auto', objectFit: 'contain' }} />}
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{empresa.value.nombre || 'Sistema de Trafico'}</h1>
-            <p style={{ margin: 0, color: '#555' }}>Reporte de Falla</p>
+  return (
+    <div style={paginaCompacta}>
+      <BarraAcciones />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 230px', gap: 10, alignItems: 'stretch', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />}
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <h1 style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>{empresa.value.razonSocial || empresa.value.nombre || 'Empresa'}</h1>
+            <p style={{ margin: '2px 0 0', fontSize: 9 }}>RFC: {empresa.value.rfc || '—'}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 8.5, color: '#444' }}>{empresa.value.direccion || ''}</p>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0 }}>
-            <strong>Folio:</strong> {reporte.folio}
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong>Fecha:</strong> {reporte.fecha}
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong>Estatus:</strong>{' '}
-            <span
-              style={{
-                color: reporte.estatus === 'Cancelado' ? '#b91c1c' : reporte.estatus === 'Atendido' ? '#047857' : '#b45309',
-                fontWeight: 700,
-              }}
-            >
-              {reporte.estatus}
-            </span>
-          </p>
-          {reporte.codigoFalla && (
-            <p style={{ margin: 0 }}>
-              <strong>Codigo:</strong> {reporte.codigoFalla}
-            </p>
-          )}
-        </div>
+        <BloqueEtiquetasApiladas
+          columnas={2}
+          titulo="Reporte de Falla"
+          filas={[
+            { etiqueta: 'Folio', valor: reporte.folio },
+            { etiqueta: 'Fecha', valor: reporte.fecha },
+            { etiqueta: 'Estatus', valor: reporte.estatus },
+            ...(reporte.codigoFalla ? [{ etiqueta: 'Codigo', valor: reporte.codigoFalla }] : []),
+          ]}
+        />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <div>
-          <h2 style={sectionTitle}>Unidad</h2>
-          <p style={{ margin: 0 }}>{unidad ? `${unidad.economico} - ${unidad.placas}` : '—'}</p>
-          <p style={{ margin: 0, color: '#555' }}>Sucursal: {reporte.sucursal || '—'}</p>
-        </div>
-        <div>
-          <h2 style={sectionTitle}>Operador</h2>
-          <p style={{ margin: 0 }}>{operador?.nombre ?? '—'}</p>
-          <p style={{ margin: 0, color: '#555' }}>Clasificacion: {clasificacion?.clasificacion ?? '—'}</p>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
+        <Recuadro style={{ padding: '5px 8px' }}>
+          <p style={{ margin: 0, fontWeight: 700 }}>Unidad</p>
+          <p style={{ margin: '2px 0 0' }}>{unidad ? `${unidad.economico} - ${unidad.placas}` : '—'}</p>
+          <p style={{ margin: '1px 0 0', color: '#555' }}>Sucursal: {reporte.sucursal || '—'}</p>
+        </Recuadro>
+        <Recuadro style={{ padding: '5px 8px' }}>
+          <p style={{ margin: 0, fontWeight: 700 }}>Operador</p>
+          <p style={{ margin: '2px 0 0' }}>{operador?.nombre ?? '—'}</p>
+          <p style={{ margin: '1px 0 0', color: '#555' }}>Clasificacion: {clasificacion?.clasificacion ?? '—'}</p>
+        </Recuadro>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={sectionTitle}>Descripcion de la Falla</h2>
-        <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{reporte.descripcion}</p>
-      </div>
+      <Recuadro style={{ padding: '5px 8px', marginBottom: 6 }}>
+        <p style={{ margin: 0, fontWeight: 700 }}>Descripcion de la Falla</p>
+        <p style={{ margin: '2px 0 0', whiteSpace: 'pre-wrap' }}>{reporte.descripcion}</p>
+      </Recuadro>
 
       {reporte.documentos.length > 0 && (
-        <div>
-          <h2 style={sectionTitle}>Documentos Digitalizados</h2>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
+        <Recuadro style={{ padding: '5px 8px' }}>
+          <p style={{ margin: 0, fontWeight: 700 }}>Documentos Digitalizados</p>
+          <ul style={{ margin: '2px 0 0', paddingLeft: 16 }}>
             {reporte.documentos.map((d) => (
               <li key={d.id}>{d.descripcion}</li>
             ))}
           </ul>
-        </div>
+        </Recuadro>
       )}
     </div>
   );
 }
-
-const sectionTitle: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: 0.5,
-  color: '#555',
-  margin: '0 0 4px',
-};
