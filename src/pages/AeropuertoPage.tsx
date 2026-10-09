@@ -306,18 +306,15 @@ function Tablero({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-left font-mono text-sm">
-          <thead className="text-[11px] uppercase tracking-widest text-ink-500">
+          <thead className="bg-breco-500/10 text-[11px] uppercase tracking-widest text-ink-400">
             <tr className="border-b border-line-800">
-              <th className="px-4 py-2.5">#</th>
-              <th className="px-4 py-2.5">Estatus</th>
-              <th className="px-4 py-2.5">Vuelo / Viaje</th>
-              <th className="px-4 py-2.5">Fecha / Hora</th>
-              <th className="px-4 py-2.5">Cliente</th>
-              <th className="px-4 py-2.5">Origen</th>
-              <th className="px-4 py-2.5">Destino</th>
-              <th className="px-4 py-2.5">Unidad</th>
-              <th className="px-4 py-2.5">Operador</th>
-              <th className="px-4 py-2.5">Avance</th>
+              {['#', 'Estatus', 'Viaje', 'Fecha / Hora', 'Cliente', 'Origen', 'Destino', 'Unidad', 'Operador', 'Avance'].map((col) => (
+                <th key={col} className="px-4 py-2.5">
+                  <span className="inline-block rounded border border-dotted border-breco-400 px-2 py-0.5 shadow-[0_0_8px_1px_color-mix(in_srgb,var(--color-breco-500)_60%,transparent)]">
+                    {col}
+                  </span>
+                </th>
+              ))}
               {puedeEditar && <th className="px-4 py-2.5" />}
             </tr>
           </thead>
