@@ -7,6 +7,7 @@ import {
   pagina,
   Recuadro,
   CajaEtiqueta,
+  BloqueEtiquetasApiladas,
   tablaStyle,
   thCfdi,
   tdCfdi,
@@ -26,44 +27,51 @@ export function ImprimirPagoClientePage() {
   const pago = pagosCliente.items.find((p) => p.id === id);
   const cliente = clientes.items.find((c) => c.id === pago?.clienteId);
 
+  const todoCargado = !pagosCliente.loading && !clientes.loading && !facturas.loading;
+
   useEffect(() => {
-    if (!pago) return;
+    if (!pago || !todoCargado) return;
     const t = setTimeout(() => window.print(), 300);
     return () => clearTimeout(t);
-  }, [pago]);
+  }, [pago, todoCargado]);
 
   if (!pago) {
     return <div style={pagina}>No se encontro el pago.</div>;
   }
 
   const totalMontoFacturas = pago.aplicaciones.reduce((acc, a) => acc + a.importe, 0);
+  const paginaCompacta = { ...pagina, padding: 16, fontSize: 9.5 };
 
   return (
-    <div style={pagina}>
+    <div style={paginaCompacta}>
       <BarraAcciones />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: 16, alignItems: 'start', marginBottom: 10 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 56, width: 'auto', objectFit: 'contain' }} />}
-          <div>
-            <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{empresa.value.razonSocial || empresa.value.nombre || 'Empresa'}</h1>
-            <p style={{ margin: '2px 0 0', fontSize: 10.5 }}>RFC: {empresa.value.rfc || '—'}</p>
-            {empresa.value.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 10.5 }}>{empresa.value.regimenFiscal}</p>}
-            <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#444' }}>{empresa.value.direccion || ''}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 230px', gap: 10, alignItems: 'stretch', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {empresa.value.logoDataUrl && <img src={empresa.value.logoDataUrl} alt="" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />}
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <h1 style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>{empresa.value.razonSocial || empresa.value.nombre || 'Empresa'}</h1>
+            <p style={{ margin: '2px 0 0', fontSize: 9 }}>RFC: {empresa.value.rfc || '—'}</p>
+            {empresa.value.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 9 }}>{empresa.value.regimenFiscal}</p>}
+            <p style={{ margin: '2px 0 0', fontSize: 8.5, color: '#444' }}>{empresa.value.direccion || ''}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <CajaEtiqueta etiqueta="Folio / Tipo de Documento" valor={`${pago.folio} - P-Pago`} />
-          <CajaEtiqueta etiqueta="Folio Fiscal" valor={pago.timbrado.folioFiscal} tono="claro" />
-          <CajaEtiqueta etiqueta="No. Serie Certificado del Emisor" valor={pago.timbrado.noSerieCertificadoEmisor} tono="claro" />
-          <CajaEtiqueta etiqueta="No. Serie Certificado del SAT" valor={pago.timbrado.noSerieCertificadoSat} tono="claro" />
-          <CajaEtiqueta etiqueta="Fecha Hora Timbrado" valor={pago.timbrado.fechaHoraExpedicion || pago.fechaCobro} tono="claro" />
-          <CajaEtiqueta etiqueta="Fecha Hora Certificacion" valor={pago.timbrado.fechaHoraCertificacion} tono="claro" />
-        </div>
+        <BloqueEtiquetasApiladas
+          columnas={2}
+          titulo="Complemento de Pago"
+          filas={[
+            { etiqueta: 'Folio', valor: pago.folio },
+            { etiqueta: 'Folio Fiscal', valor: pago.timbrado.folioFiscal },
+            { etiqueta: 'Serie Cert. Emisor', valor: pago.timbrado.noSerieCertificadoEmisor },
+            { etiqueta: 'Serie Cert. SAT', valor: pago.timbrado.noSerieCertificadoSat },
+            { etiqueta: 'Fecha Timbrado', valor: pago.timbrado.fechaHoraExpedicion || pago.fechaCobro },
+            { etiqueta: 'Fecha Certificacion', valor: pago.timbrado.fechaHoraCertificacion },
+          ]}
+        />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
-        <Recuadro style={{ padding: '8px 12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 6 }}>
+        <Recuadro style={{ padding: '5px 8px' }}>
           <p style={{ margin: 0, fontWeight: 700 }}>Cliente: {cliente?.nombre ?? '—'}</p>
           <p style={{ margin: '1px 0 0' }}>RFC: {cliente?.rfc ?? '—'}</p>
         </Recuadro>
@@ -71,7 +79,7 @@ export function ImprimirPagoClientePage() {
         <CajaEtiqueta etiqueta="Regimen Fiscal" valor={empresa.value.regimenFiscal || '—'} tono="claro" />
       </div>
 
-      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
         <table style={tablaStyle}>
           <thead>
             <tr>
@@ -96,7 +104,7 @@ export function ImprimirPagoClientePage() {
         </table>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: 0, marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: 0, marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
         <CeldaDato etiqueta="Forma de Pago" valor={pago.formaPago} />
         <CeldaDato etiqueta="Fecha Pago" valor={pago.fechaCobro} />
         <CeldaDato etiqueta="Monto" valor={money(pago.importeDepositado)} />
@@ -104,7 +112,7 @@ export function ImprimirPagoClientePage() {
         <CeldaDato etiqueta="Moneda" valor={pago.moneda} borde={false} />
       </div>
 
-      <div style={{ marginBottom: 10, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ marginBottom: 6, border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
         <table style={tablaStyle}>
           <thead>
             <tr>
@@ -144,12 +152,12 @@ export function ImprimirPagoClientePage() {
       </div>
 
       {pago.concepto && (
-        <Recuadro style={{ padding: '6px 10px', marginBottom: 10, fontSize: 10 }}>
+        <Recuadro style={{ padding: '4px 8px', marginBottom: 6, fontSize: 9 }}>
           <strong>Concepto:</strong> {pago.concepto}
         </Recuadro>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
         <CajaTotales
           moneda={pago.moneda}
           filas={[
