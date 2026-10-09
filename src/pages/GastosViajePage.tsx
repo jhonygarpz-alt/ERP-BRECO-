@@ -45,6 +45,11 @@ export function GastosViajePage() {
   const puedeEliminar = hasPermission('Viajes', 'eliminar');
 
   const [search, setSearch] = useState('');
+  // Por defecto solo se muestran los gastos del dia actual; el usuario puede
+  // ampliar el rango con los filtros de fecha Desde/Hasta si necesita
+  // revisar otros dias.
+  const [desde, setDesde] = useState(() => hoyISO());
+  const [hasta, setHasta] = useState(() => hoyISO());
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<GastoViaje | null>(null);
   const [soloLectura, setSoloLectura] = useState(false);
@@ -76,6 +81,7 @@ export function GastosViajePage() {
   const filtered = useMemo(() => {
     const termino = search.toLowerCase();
     return gastosViaje.items
+      .filter((g) => g.fecha >= desde && g.fecha <= hasta)
       .filter(
         (g) =>
           !termino ||
@@ -87,7 +93,7 @@ export function GastosViajePage() {
       .slice()
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gastosViaje.items, search, viajes.items, proveedores.items]);
+  }, [gastosViaje.items, search, desde, hasta, viajes.items, proveedores.items]);
 
   const totalFiltrado = filtered.reduce((acc, g) => acc + g.monto, 0);
 
@@ -257,6 +263,17 @@ export function GastosViajePage() {
         </ToolbarButton>
       </div>
 
+      <div className="mb-4 flex flex-wrap items-end gap-2">
+        <label className="flex flex-col gap-1 text-xs text-ink-500">
+          Desde
+          <Input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="w-40" />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-ink-500">
+          Hasta
+          <Input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="w-40" />
+        </label>
+      </div>
+
       <CrudTable
         columns={columns}
         rows={filtered}
@@ -265,7 +282,7 @@ export function GastosViajePage() {
         onDelete={handleDelete}
         canEdit={puedeEditar}
         canDelete={puedeEliminar}
-        emptyMessage="Sin gastos capturados todavia."
+        emptyMessage="Sin gastos en el rango de fechas seleccionado."
         selectedKey={seleccionadoId}
         onRowClick={(g) => setSeleccionadoId((actual) => (actual === g.id ? null : g.id))}
       />

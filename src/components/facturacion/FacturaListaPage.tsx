@@ -24,8 +24,11 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
   const puedeEditar = hasPermission('Facturacion', 'editar');
   const puedeEliminar = hasPermission('Facturacion', 'eliminar');
 
-  const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
-  const [hasta, setHasta] = useState(hoyISO());
+  // Por defecto solo se muestran los movimientos del dia actual; el usuario
+  // puede ampliar el rango con los filtros de fecha Desde/Hasta si necesita
+  // revisar otros dias.
+  const [desde, setDesde] = useState(() => hoyISO());
+  const [hasta, setHasta] = useState(() => hoyISO());
   const [busqueda, setBusqueda] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Factura | null>(null);
