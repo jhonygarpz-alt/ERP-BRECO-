@@ -201,31 +201,34 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Panel derecho (40%): fondo con textura propia -- degradado blanco -> azul muy claro, lineas tecnicas
-          y puntos discretos, nunca gris plano. overflow-y-auto (no overflow-hidden) para que en pantallas
-          bajas la tarjeta nunca quede cortada; los adornos de fondo van en su propio wrapper aparte. */}
-      <div className="relative flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-white via-[#f3f8fd] to-[#e7f1fb] dark:from-bg-950 dark:via-bg-950 dark:to-bg-950">
+      {/* Panel derecho (40%): fondo oscuro continuo con el panel izquierdo (nunca un bloque blanco
+          que corte el diseno en dos) -- degradado navy sutil, lineas tecnicas y puntos discretos.
+          overflow-y-auto (no overflow-hidden) para que en pantallas bajas la tarjeta nunca quede
+          cortada; los adornos de fondo van en su propio wrapper aparte. */}
+      <div className="relative flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-[#060910] via-[#0a0f1c] to-[#0d1526]">
+        {/* Veta de luz sutil en el borde que divide ambos paneles, para suavizar el corte. */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-24 bg-gradient-to-r from-black/30 to-transparent lg:block" />
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {/* Lineas tecnicas diagonales, muy discretas. */}
           <div
-            className="absolute inset-0 opacity-[0.07]"
+            className="absolute inset-0 opacity-[0.05]"
             style={{
               backgroundImage: 'repeating-linear-gradient(115deg, var(--color-breco-500) 0px, var(--color-breco-500) 1px, transparent 1px, transparent 120px)',
             }}
           />
           <div
-            className="absolute inset-0 opacity-60"
+            className="absolute inset-0 opacity-30"
             style={{
-              backgroundImage: 'radial-gradient(circle at 1px 1px, var(--color-breco-glow) 1px, transparent 0)',
+              backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.35) 1px, transparent 0)',
               backgroundSize: '26px 26px',
             }}
           />
           <div
             className="absolute -top-24 -right-24 h-96 w-96 rounded-full opacity-30 blur-3xl"
-            style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.4), transparent 70%)' }}
+            style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.35), transparent 70%)' }}
           />
           <div
-            className="absolute -bottom-32 -left-16 h-96 w-96 rounded-full opacity-25 blur-3xl"
+            className="absolute -bottom-32 -left-16 h-96 w-96 rounded-full opacity-30 blur-3xl"
             style={{ background: 'radial-gradient(circle, var(--color-breco-glow), transparent 70%)' }}
           />
         </div>
@@ -233,7 +236,7 @@ export function LoginPage() {
         {/* Resumen visual compacto, solo en movil/tablet (abajo de lg): logo + lema sobre la foto del trailer, antes del formulario. */}
         <div className="relative h-44 w-full shrink-0 overflow-hidden lg:hidden">
           <img src="/login/truck-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#05070f]/75 via-[#0a1530]/80 to-[var(--color-bg-950)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#05070f]/75 via-[#0a1530]/80 to-[#060910]" />
           <div className="relative z-10 flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
             <img src="/login/securefleet-logo.png" alt="SecureFleet" className="h-10 w-auto drop-shadow-lg" />
             <p className="text-sm font-semibold text-white">Control total para tu empresa de transporte</p>
@@ -244,31 +247,35 @@ export function LoginPage() {
           <div className="flex w-full max-w-xl flex-1 flex-col justify-center lg:min-h-[min(50vh,34rem)]">
             <form
               onSubmit={handleSubmit}
-              className="flex w-full flex-1 flex-col justify-center space-y-6 rounded-[2rem] border border-line-800 bg-bg-800 p-8 shadow-2xl shadow-black/40 sm:p-10"
+              className="relative flex w-full flex-1 flex-col justify-center space-y-6 overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a1120]/75 p-8 shadow-[0_25px_70px_-20px_rgba(2,6,20,0.55),0_0_0_1px_rgba(255,255,255,0.04)_inset,0_1px_0_0_rgba(255,255,255,0.12)_inset] backdrop-blur-2xl sm:p-10"
             >
+              {/* Resplandores internos tipo "cristal" -- debajo del contenido (z negativo), por encima del fondo de la tarjeta. */}
+              <div className="pointer-events-none absolute inset-x-0 -top-20 -z-10 h-48 bg-gradient-to-b from-[color-mix(in_srgb,var(--color-breco-500)_35%,transparent)] to-transparent blur-3xl" />
+              <div className="pointer-events-none absolute -right-16 -bottom-24 -z-10 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl" />
+
               <div className="flex flex-col items-center text-center">
                 <div className="flex flex-col items-center gap-2">
                   {logoChico}
                   {empresaLogin && (
                     <div>
-                      <div className="text-lg tracking-wide text-ink-100">
+                      <div className="text-lg tracking-wide text-white [&>span:last-child]:text-white/55">
                         <BrandName nombre={empresaLogin.nombre} />
                       </div>
-                      <div className="text-xs font-medium tracking-widest text-breco-500 uppercase">Trafico ERP</div>
+                      <div className="text-xs font-medium tracking-widest text-breco-400 uppercase">Trafico ERP</div>
                     </div>
                   )}
                 </div>
-                <h1 className="mt-4 text-3xl font-bold text-ink-100">Bienvenido</h1>
-                <p className="mt-1.5 text-sm text-ink-500">
+                <h1 className="mt-4 text-3xl font-bold text-white">Bienvenido</h1>
+                <p className="mt-1.5 text-sm text-white/55">
                   Ingresa tus credenciales para acceder a tu cuenta{empresaLogin ? '' : ' de SecureFleet'}.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-semibold tracking-wider text-ink-400 uppercase">Usuario o correo electronico</span>
+                  <span className="text-[11px] font-semibold tracking-wider text-cyan-200/70 uppercase">Usuario o correo electronico</span>
                   <div className="relative">
-                    <Mail size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-ink-600" />
+                    <Mail size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-white/35" />
                     <input
                       type="email"
                       required
@@ -276,27 +283,27 @@ export function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="usuario@empresa.com"
-                      className="w-full rounded-xl border border-line-700 bg-bg-900 py-4 pr-4 pl-11 text-base text-ink-100 outline-none placeholder:text-ink-600 focus:border-breco-500 focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_22px_4px_color-mix(in_srgb,var(--color-breco-500)_55%,transparent),0_0_40px_10px_color-mix(in_srgb,var(--color-breco-500)_25%,transparent)] focus:outline-none transition-shadow"
+                      className="w-full rounded-xl border border-white/15 bg-white/[0.06] py-4 pr-4 pl-11 text-base text-white outline-none placeholder:text-white/30 focus:border-breco-500 focus:bg-white/[0.09] focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_22px_4px_color-mix(in_srgb,var(--color-breco-500)_55%,transparent),0_0_40px_10px_color-mix(in_srgb,var(--color-breco-500)_25%,transparent)] focus:outline-none transition-all"
                     />
                   </div>
                 </label>
 
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-semibold tracking-wider text-ink-400 uppercase">Contrasena</span>
+                  <span className="text-[11px] font-semibold tracking-wider text-cyan-200/70 uppercase">Contrasena</span>
                   <div className="relative">
-                    <Lock size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-ink-600" />
+                    <Lock size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-white/35" />
                     <input
                       type={verPassword ? 'text' : 'password'}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Tu contrasena"
-                      className="w-full rounded-xl border border-line-700 bg-bg-900 py-4 pr-11 pl-11 text-base text-ink-100 outline-none placeholder:text-ink-600 focus:border-breco-500 focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_22px_4px_color-mix(in_srgb,var(--color-breco-500)_55%,transparent),0_0_40px_10px_color-mix(in_srgb,var(--color-breco-500)_25%,transparent)] focus:outline-none transition-shadow"
+                      className="w-full rounded-xl border border-white/15 bg-white/[0.06] py-4 pr-11 pl-11 text-base text-white outline-none placeholder:text-white/30 focus:border-breco-500 focus:bg-white/[0.09] focus:shadow-[0_0_0_2px_var(--color-breco-500),0_0_22px_4px_color-mix(in_srgb,var(--color-breco-500)_55%,transparent),0_0_40px_10px_color-mix(in_srgb,var(--color-breco-500)_25%,transparent)] focus:outline-none transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setVerPassword((v) => !v)}
-                      className="absolute top-1/2 right-4 -translate-y-1/2 text-ink-600 hover:text-ink-300"
+                      className="absolute top-1/2 right-4 -translate-y-1/2 text-white/35 hover:text-white/75"
                       aria-label={verPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
                     >
                       {verPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -310,14 +317,14 @@ export function LoginPage() {
                   type="button"
                   onClick={handleOlvidoPassword}
                   disabled={recuperando}
-                  className="text-sm font-medium text-breco-500 hover:underline disabled:opacity-50"
+                  className="text-sm font-medium text-breco-400 hover:text-breco-300 hover:underline disabled:opacity-50"
                 >
                   {recuperando ? 'Enviando...' : 'Olvidaste tu contrasena?'}
                 </button>
               </div>
-              {mensajeRecuperar && <p className="text-xs text-ink-500">{mensajeRecuperar}</p>}
+              {mensajeRecuperar && <p className="text-xs text-white/50">{mensajeRecuperar}</p>}
 
-              {error && <p className="text-sm text-breco-500">{error}</p>}
+              {error && <p className="text-sm text-red-400">{error}</p>}
 
               <button
                 type="submit"
@@ -328,7 +335,7 @@ export function LoginPage() {
                 {enviando ? 'Entrando...' : 'Iniciar sesion'}
               </button>
 
-              <p className="text-center text-xs text-ink-600">
+              <p className="text-center text-xs text-white/35">
                 {empresaLogin ? `Acceso interno de ${empresaLogin.nombre}.` : 'Acceso interno.'} Contacta a un administrador si no
                 tienes cuenta.
               </p>
