@@ -1,28 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Truck,
-  Radio,
-  CheckCircle2,
-  Clock3,
-  CalendarClock,
-  MapPin,
-  X,
-  Trash2,
-  Plus,
-  LogOut,
-  Flag,
-} from 'lucide-react';
+import { Truck, MapPin, X, Trash2, Plus, LogOut, Flag } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
 import { TONE_DOT, type Tone } from '../components/ui/Badge';
 import type { EstatusViajeCustom, Ruta, Viaje } from '../types';
-import { StatCard } from '../components/ui/StatCard';
-import { GhostButton, Input, ToolbarButton, inputClass } from '../components/ui/form';
+import { GhostButton, Input } from '../components/ui/form';
 import {
-  HORAS_MAX_TRANSITO_RESPALDO,
   avanceTransito,
   destinoViaje,
   etiquetaTablero,
@@ -32,13 +16,7 @@ import {
   normalizarEstatus,
   origenViaje,
 } from '../lib/monitoreoViajes';
-import { fechaLocal, hoyISO } from '../lib/fechas';
-
-function shiftDate(date: string, dias: number) {
-  const d = new Date(`${date}T00:00:00`);
-  d.setDate(d.getDate() + dias);
-  return fechaLocal(d);
-}
+import { hoyISO } from '../lib/fechas';
 
 function fechaCorta(iso: string) {
   const [y, m, d] = iso.split('-');
@@ -263,7 +241,6 @@ function AvanceModal({
 function Tablero({
   titulo,
   filas,
-  fechaSeleccionada,
   ahora,
   puedeEditar,
   colorEstatus,
@@ -280,7 +257,6 @@ function Tablero({
 }: {
   titulo: string;
   filas: Viaje[];
-  fechaSeleccionada: string;
   ahora: Date;
   puedeEditar: boolean;
   colorEstatus: (nombre: string) => Tone | null;
@@ -358,12 +334,7 @@ function Tablero({
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="font-semibold text-ink-100">{v.folio}</div>
-                    <div className="text-[11px] text-ink-600">
-                      {v.cajaEconomico || v.cajaNombre || 'N/D'}
-                      {v.fecha !== fechaSeleccionada && (
-                        <span className="ml-1.5 rounded bg-amber-500/15 px-1 py-0.5 text-amber-400">Del {v.fecha}</span>
-                      )}
-                    </div>
+                    <div className="text-[11px] text-ink-600">{v.cajaEconomico || v.cajaNombre || 'N/D'}</div>
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="tabular-nums">{fechaCorta(v.fecha)}</div>
@@ -486,7 +457,6 @@ export function AeropuertoPage() {
   const { viajes, unidades, estatusViajes, rutas, clientes, operadores } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Monitoreo', 'editar');
-  const [fecha, setFecha] = useState(hoyISO());
   const [ahora, setAhora] = useState(new Date());
   const [viajeAvance, setViajeAvance] = useState<Viaje | null>(null);
   const [filtroEstatus, setFiltroEstatus] = useState<string | null>(null);
@@ -504,27 +474,33 @@ export function AeropuertoPage() {
     const operadorId = v.trayectos[0]?.operadorId || v.operadorId;
     return operadores.items.find((o) => o.id === operadorId)?.nombre || 'N/D';
   };
+  // Un viaje se considera "finalizado" (y desaparece del tablero) cuando su
+  // estatus es Entregado/Cancelado, o cuando el estatus personalizado que
+  // trae trae marcado "Termino Descarga" en el catalogo.
+  const esFinalizado = (v: Viaje) => {
+    const est = normalizarEstatus(v.estatus);
+    if (est === 'entregado' || est === 'cancelado') return true;
+    return estatusViajes.items.find((e) => e.nombre === v.estatus)?.esTerminoDescarga ?? false;
+  };
 
-  // Ademas de los viajes fechados este dia, en la vista de "Hoy" tambien se
-  // incluye cualquier viaje que siga En Transito sin importar en que fecha
-  // se registro -- si no, un viaje que salio ayer y todavia no llega
-  // desaparece del tablero en cuanto cambia la fecha, aunque siga en la
-  // carretera.
-  const viajesDelDia = useMemo(
-    () =>
-      viajes.items.filter(
-        (v) => v.fecha === fecha || (fecha === hoyISO() && normalizarEstatus(v.estatus) === 'en transito'),
-      ),
-    [viajes.items, fecha],
+  // La pantalla muestra todos los viajes en ruta de cualquier fecha -- en
+  // cuanto un viaje se marca como finalizado, sale automaticamente de aqui.
+  const viajesActivos = useMemo(
+    () => viajes.items.filter((v) => !esFinalizado(v)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [viajes.items, estatusViajes.items],
   );
 
   const viajesOrdenados = useMemo(
-    () => viajesDelDia.slice().sort((a, b) => (a.horaSalida || '99:99').localeCompare(b.horaSalida || '99:99')),
-    [viajesDelDia],
+    () =>
+      viajesActivos
+        .slice()
+        .sort((a, b) => `${a.fecha}T${a.horaSalida || '99:99'}`.localeCompare(`${b.fecha}T${b.horaSalida || '99:99'}`)),
+    [viajesActivos],
   );
 
-  // Viajes del dia agrupados por estatus (mismo orden del catalogo), para la
-  // barra de filtros por color y el tablero Kanban de abajo.
+  // Viajes agrupados por estatus (mismo orden del catalogo), para la barra
+  // de filtros por color y el tablero Kanban de abajo.
   const gruposEstatus = useMemo(() => {
     const porNombre = new Map<string, Viaje[]>();
     for (const v of viajesOrdenados) {
@@ -544,15 +520,6 @@ export function AeropuertoPage() {
     () => (filtroEstatus ? viajesOrdenados.filter((v) => v.estatus === filtroEstatus) : viajesOrdenados),
     [viajesOrdenados, filtroEstatus],
   );
-
-  const enCurso = viajesDelDia.filter((v) => normalizarEstatus(v.estatus) === 'en transito').length;
-  const completados = viajesDelDia.filter((v) => normalizarEstatus(v.estatus) === 'entregado').length;
-  const demorados = viajesDelDia.filter((v) => {
-    const est = normalizarEstatus(v.estatus);
-    if (est === 'entregado' || est === 'cancelado') return false;
-    const limite = limiteTransito(v, horasAutorizadas(v, rutas.items));
-    return limite !== null && ahora.getTime() > limite.getTime();
-  }).length;
 
   function darSalida(v: Viaje) {
     viajes.update(v.id, {
@@ -579,52 +546,6 @@ export function AeropuertoPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="rounded-2xl bg-sb-bg px-5 py-4">
-          <h1 className="text-xl font-bold text-sb-text">Pantalla Aeropuerto</h1>
-          <p className="mt-1 text-sm text-sb-text-muted">Tablero de exportaciones e importaciones del dia, con avance por unidad.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
-            <Radio size={12} className="animate-pulse" />
-            En vivo
-          </span>
-          <button
-            onClick={() => setFecha((f) => shiftDate(f, -1))}
-            className="rounded-lg bg-breco-500 p-2 text-white shadow-sm shadow-black/20 transition hover:brightness-110"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <input
-            type="date"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            className={`${inputClass} w-44 border-blue-400/50 focus:border-blue-400`}
-          />
-          <button
-            onClick={() => setFecha((f) => shiftDate(f, 1))}
-            className="rounded-lg bg-breco-500 p-2 text-white shadow-sm shadow-black/20 transition hover:brightness-110"
-          >
-            <ChevronRight size={16} />
-          </button>
-          <ToolbarButton type="button" onClick={() => setFecha(hoyISO())}>
-            Hoy
-          </ToolbarButton>
-        </div>
-      </div>
-
-      <p className="mb-4 text-xs text-ink-600">
-        Cada servicio tiene autorizadas las horas de ETA capturadas en su Ruta (o {HORAS_MAX_TRANSITO_RESPALDO} horas si la
-        ruta no trae ETA) desde su hora real de salida. Si se excede sin haberse entregado, se marca DEMORADO.
-      </p>
-
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Viajes de hoy" value={String(viajesDelDia.length)} icon={CalendarClock} accent="blue" />
-        <StatCard label="En curso" value={String(enCurso)} icon={Truck} accent="blue" />
-        <StatCard label="Completados" value={String(completados)} icon={CheckCircle2} accent="green" />
-        <StatCard label="Demorados" value={String(demorados)} icon={Clock3} accent="amber" />
-      </div>
-
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           type="button"
@@ -667,7 +588,6 @@ export function AeropuertoPage() {
         <Tablero
           titulo="VIAJES EN RUTA"
           filas={filasTabla}
-          fechaSeleccionada={fecha}
           ahora={ahora}
           puedeEditar={puedeEditar}
           colorEstatus={colorEstatus}
