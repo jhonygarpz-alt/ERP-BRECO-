@@ -181,7 +181,6 @@ function App() {
                   <Route path="/gastos-viaje/detallado" element={<GastosPorViajeDetalladoPage />} />
                   <Route path="/descuentos-operador" element={<DescuentosOperadorPage />} />
                   <Route path="/viajes-del-dia" element={<ViajesDelDiaPage />} />
-                  <Route path="/aeropuerto" element={<AeropuertoPage />} />
                   <Route path="/trafico/reportes" element={<ReportesTraficoHubPage />} />
                   <Route path="/trafico/reportes/listado-viajes" element={<ListadoViajesReportPage />} />
                   <Route path="/trafico/reportes/pendientes-facturar" element={<ViajesPendientesFacturarReportPage />} />
@@ -262,6 +261,7 @@ function App() {
 
                 <Route element={<RequirePermission modulo="Monitoreo" />}>
                   <Route path="/monitoreo" element={<MonitoreoCentroControlPage />} />
+                  <Route path="/aeropuerto" element={<AeropuertoPage />} />
                   <Route path="/monitoreo/viajes" element={<MonitoreoViajesPage />} />
                   <Route path="/monitoreo/mapa" element={<MonitoreoMapaPage />} />
                   <Route path="/monitoreo/bitacora" element={<MonitoreoBitacoraPage />} />

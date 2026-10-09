@@ -41,7 +41,6 @@ export const PANTALLAS: PantallaInfo[] = [
   { id: '/descuentos-operador', modulo: 'Viajes', label: 'Descuentos a Operador' },
   { id: '/gastos-viaje/detallado', modulo: 'Viajes', label: 'Detallado de Gastos por Viaje' },
   { id: '/viajes-del-dia', modulo: 'Viajes', label: 'Viajes del Dia' },
-  { id: '/aeropuerto', modulo: 'Viajes', label: 'Pantalla Aeropuerto' },
   { id: '/trafico/reportes', modulo: 'Viajes', label: 'Reportes de Trafico' },
 
   // ---- Programa ----
@@ -50,6 +49,7 @@ export const PANTALLAS: PantallaInfo[] = [
   // ---- Monitoreo ----
   { id: '/monitoreo', modulo: 'Monitoreo', label: 'Centro de Control' },
   { id: '/monitoreo/viajes', modulo: 'Monitoreo', label: 'Monitoreo de Viajes' },
+  { id: '/aeropuerto', modulo: 'Monitoreo', label: 'Pantalla Aeropuerto' },
   { id: '/monitoreo/mapa', modulo: 'Monitoreo', label: 'Mapa GPS' },
   { id: '/monitoreo/bitacora', modulo: 'Monitoreo', label: 'Bitacora de Seguimiento' },
   { id: '/monitoreo/incidencias', modulo: 'Monitoreo', label: 'Incidencias' },

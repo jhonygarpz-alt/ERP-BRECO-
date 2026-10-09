@@ -128,7 +128,7 @@ function AvanceModal({
 }) {
   const { viajeUbicaciones, viajes } = useData();
   const { hasPermission } = useAuth();
-  const puedeEditar = hasPermission('Viajes', 'editar');
+  const puedeEditar = hasPermission('Monitoreo', 'editar');
   const [texto, setTexto] = useState('');
 
   const checkpoints = useMemo(
@@ -422,7 +422,7 @@ function Tablero({
 export function AeropuertoPage() {
   const { viajes, unidades, estatusViajes, rutas } = useData();
   const { hasPermission } = useAuth();
-  const puedeEditar = hasPermission('Viajes', 'editar');
+  const puedeEditar = hasPermission('Monitoreo', 'editar');
   const [fecha, setFecha] = useState(hoyISO());
   const [ahora, setAhora] = useState(new Date());
   const [viajeAvance, setViajeAvance] = useState<Viaje | null>(null);

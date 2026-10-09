@@ -186,11 +186,10 @@ const traficoRoutes = [
   '/gastos-viaje/detallado',
   '/descuentos-operador',
   '/viajes-del-dia',
-  '/aeropuerto',
   '/programa',
   '/trafico/reportes',
 ];
-const monitoreoRoutes = ['/monitoreo'];
+const monitoreoRoutes = ['/monitoreo', '/aeropuerto'];
 const facturacionRoutes = ['/facturacion'];
 const cobranzaRoutes = ['/cobranza'];
 const bancoRoutes = ['/banco'];
@@ -249,7 +248,6 @@ export function Sidebar({
     puedeVer('Viajes', '/descuentos-operador') && { to: '/descuentos-operador', label: 'Descuentos a Operador', icon: MinusCircle },
     puedeVer('Viajes', '/gastos-viaje/detallado') && { to: '/gastos-viaje/detallado', label: 'Detallado de Gastos por Viaje', icon: BarChart3 },
     puedeVer('Viajes', '/viajes-del-dia') && { to: '/viajes-del-dia', label: 'Viajes del Dia', icon: ListChecks },
-    puedeVer('Viajes', '/aeropuerto') && { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
     puedeVer('Programa', '/programa') && { to: '/programa', label: 'Programa Diario', icon: CalendarClock },
     puedeVer('Viajes', '/trafico/reportes') && { to: '/trafico/reportes', label: 'Reportes', icon: PieChart },
   ].filter(Boolean) as { to: string; label: string; icon: LucideIcon; end?: boolean }[];
@@ -258,6 +256,7 @@ export function Sidebar({
     ? [
         { to: '/monitoreo', label: 'Centro de Control', icon: Radar },
         { to: '/monitoreo/viajes', label: 'Monitoreo de Viajes', icon: Navigation },
+        { to: '/aeropuerto', label: 'Pantalla Aeropuerto', icon: PlaneTakeoff },
         { to: '/monitoreo/mapa', label: 'Mapa GPS', icon: Map },
         { to: '/monitoreo/bitacora', label: 'Bitacora de Seguimiento', icon: ClipboardList },
         { to: '/monitoreo/incidencias', label: 'Incidencias', icon: AlertTriangle },
