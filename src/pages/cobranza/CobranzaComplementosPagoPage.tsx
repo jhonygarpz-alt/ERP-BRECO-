@@ -21,7 +21,7 @@ export function CobranzaComplementosPagoPage() {
   const puedeCrear = hasPermission('Cobranza', 'crear');
   const puedeEditar = hasPermission('Cobranza', 'editar');
 
-  const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
+  const [desde, setDesde] = useState(() => hoyISO());
   const [hasta, setHasta] = useState(hoyISO());
   const [busqueda, setBusqueda] = useState('');
   const [modalOpen, setModalOpen] = useState(false);

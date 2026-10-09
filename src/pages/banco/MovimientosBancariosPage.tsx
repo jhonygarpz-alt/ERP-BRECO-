@@ -24,7 +24,7 @@ export function MovimientosBancariosPage() {
   const cuentasActivas = cuentasBancarias.items.filter((c) => c.activa);
   const [cuentaId, setCuentaId] = useState<string>(cuentasActivas[0]?.id ?? '');
   const [tab, setTab] = useState<'Todos' | TipoMovimientoBancario>('Todos');
-  const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
+  const [desde, setDesde] = useState(() => hoyISO());
   const [hasta, setHasta] = useState(hoyISO());
   const [busqueda, setBusqueda] = useState('');
   const [modalOpen, setModalOpen] = useState(false);

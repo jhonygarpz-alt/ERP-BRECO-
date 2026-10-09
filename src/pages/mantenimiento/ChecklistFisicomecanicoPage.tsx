@@ -17,7 +17,7 @@ export function ChecklistFisicomecanicoPage() {
   const puedeEditar = hasPermission('Mantenimiento', 'editar');
   const puedeEliminar = hasPermission('Mantenimiento', 'eliminar');
 
-  const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
+  const [desde, setDesde] = useState(() => hoyISO());
   const [hasta, setHasta] = useState(hoyISO());
   const [busqueda, setBusqueda] = useState('');
   const [modalOpen, setModalOpen] = useState(false);

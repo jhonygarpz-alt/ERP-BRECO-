@@ -46,6 +46,11 @@ export function ValesCombustiblePage() {
   const puedeEliminar = hasPermission('Viajes', 'eliminar');
 
   const [search, setSearch] = useState('');
+  // Por defecto solo se muestran los vales del dia actual; el usuario puede
+  // ampliar el rango con los filtros de fecha Desde/Hasta si necesita
+  // revisar otros dias.
+  const [desde, setDesde] = useState(() => hoyISO());
+  const [hasta, setHasta] = useState(() => hoyISO());
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ValeCombustible | null>(null);
   const [soloLectura, setSoloLectura] = useState(false);
@@ -82,6 +87,7 @@ export function ValesCombustiblePage() {
   const filtered = useMemo(() => {
     const termino = search.toLowerCase();
     return valesCombustible.items
+      .filter((v) => v.fecha >= desde && v.fecha <= hasta)
       .filter(
         (v) =>
           !termino ||
@@ -93,7 +99,7 @@ export function ValesCombustiblePage() {
       .slice()
       .sort((a, b) => b.folio.localeCompare(a.folio));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [valesCombustible.items, search, viajes.items, unidades.items, operadores.items]);
+  }, [valesCombustible.items, search, desde, hasta, viajes.items, unidades.items, operadores.items]);
 
   const totalFiltrado = filtered.reduce((acc, v) => acc + v.monto, 0);
 
@@ -258,6 +264,17 @@ export function ValesCombustiblePage() {
         </ToolbarButton>
       </div>
 
+      <div className="mb-4 flex flex-wrap items-end gap-2">
+        <label className="flex flex-col gap-1 text-xs text-ink-500">
+          Desde
+          <Input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="w-40" />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-ink-500">
+          Hasta
+          <Input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="w-40" />
+        </label>
+      </div>
+
       <CrudTable
         columns={columns}
         rows={filtered}
@@ -266,7 +283,7 @@ export function ValesCombustiblePage() {
         onDelete={handleDelete}
         canEdit={puedeEditar}
         canDelete={puedeEliminar}
-        emptyMessage="Sin vales de combustible capturados todavia."
+        emptyMessage="Sin vales de combustible en el rango de fechas seleccionado."
         selectedKey={seleccionadoId}
         onRowClick={(v) => setSeleccionadoId((actual) => (actual === v.id ? null : v.id))}
       />

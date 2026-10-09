@@ -25,7 +25,7 @@ export function ConciliacionesPage() {
   const cuentasActivas = cuentasBancarias.items.filter((c) => c.activa);
 
   const [cuentaId, setCuentaId] = useState(cuentasActivas[0]?.id ?? '');
-  const [desde, setDesde] = useState(() => hoyISO().slice(0, 8) + '01');
+  const [desde, setDesde] = useState(() => hoyISO());
   const [hasta, setHasta] = useState(hoyISO());
   const [archivoNombre, setArchivoNombre] = useState('');
   const [lineas, setLineas] = useState<LineaConciliacion[]>([]);
