@@ -17,7 +17,7 @@ import {
 import { useData } from '../lib/DataContext';
 import { useAuth } from '../lib/AuthContext';
 import { uid } from '../lib/storage';
-import type { Tone } from '../components/ui/Badge';
+import { TONE_DOT, type Tone } from '../components/ui/Badge';
 import type { EstatusViajeCustom, Ruta, Viaje } from '../types';
 import { StatCard } from '../components/ui/StatCard';
 import { GhostButton, Input, ToolbarButton, inputClass } from '../components/ui/form';
@@ -38,6 +38,11 @@ function shiftDate(date: string, dias: number) {
   const d = new Date(`${date}T00:00:00`);
   d.setDate(d.getDate() + dias);
   return fechaLocal(d);
+}
+
+function fechaCorta(iso: string) {
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${d}/${m}/${y}` : iso;
 }
 
 const TONE_TEXT: Record<Tone, string> = {
@@ -263,6 +268,8 @@ function Tablero({
   puedeEditar,
   colorEstatus,
   unidadNombre,
+  nombreCliente,
+  nombreOperador,
   estatusOpciones,
   rutas,
   onCambiarEstatus,
@@ -278,6 +285,8 @@ function Tablero({
   puedeEditar: boolean;
   colorEstatus: (nombre: string) => Tone | null;
   unidadNombre: (id: string) => string;
+  nombreCliente: (id: string) => string;
+  nombreOperador: (v: Viaje) => string;
   estatusOpciones: EstatusViajeCustom[];
   rutas: Ruta[];
   onCambiarEstatus: (v: Viaje, estatus: string) => void;
@@ -299,12 +308,15 @@ function Tablero({
         <table className="w-full min-w-[760px] text-left font-mono text-sm">
           <thead className="text-[11px] uppercase tracking-widest text-ink-500">
             <tr className="border-b border-line-800">
-              <th className="px-4 py-2.5">Hora salida</th>
-              <th className="px-4 py-2.5">Viaje</th>
+              <th className="px-4 py-2.5">#</th>
+              <th className="px-4 py-2.5">Estatus</th>
+              <th className="px-4 py-2.5">Vuelo / Viaje</th>
+              <th className="px-4 py-2.5">Fecha / Hora</th>
+              <th className="px-4 py-2.5">Cliente</th>
               <th className="px-4 py-2.5">Origen</th>
               <th className="px-4 py-2.5">Destino</th>
               <th className="px-4 py-2.5">Unidad</th>
-              <th className="px-4 py-2.5">Estatus</th>
+              <th className="px-4 py-2.5">Operador</th>
               <th className="px-4 py-2.5">Avance</th>
               {puedeEditar && <th className="px-4 py-2.5" />}
             </tr>
@@ -312,12 +324,12 @@ function Tablero({
           <tbody>
             {filas.length === 0 && (
               <tr>
-                <td colSpan={puedeEditar ? 8 : 7} className="px-4 py-8 text-center text-ink-600">
+                <td colSpan={puedeEditar ? 11 : 10} className="px-4 py-8 text-center text-ink-600">
                   Sin viajes para esta fecha.
                 </td>
               </tr>
             )}
-            {filas.map((v) => {
+            {filas.map((v, i) => {
               const horasViaje = horasAutorizadas(v, rutas);
               const etiqueta = etiquetaTablero(v, ahora, colorEstatus(v.estatus), horasViaje);
               const est = normalizarEstatus(v.estatus);
@@ -325,36 +337,13 @@ function Tablero({
               const fraccion = avanceTransito(v, ahora, horasViaje);
               return (
                 <tr key={v.id} className="border-b border-line-800/70 text-ink-300">
-                  <td className="px-4 py-2.5">
-                    {puedeEditar ? (
-                      <input
-                        type="time"
-                        value={v.horaSalida}
-                        onChange={(e) => onCambiarHora(v, e.target.value)}
-                        className="rounded border border-line-700 bg-bg-800 px-1.5 py-1 font-mono text-xs text-ink-100 outline-none focus:border-breco-500"
-                      />
-                    ) : (
-                      <span className="tabular-nums">{v.horaSalida || '--:--'}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div className="font-semibold text-ink-100">{v.cajaEconomico || v.cajaNombre || 'N/D'}</div>
-                    <div className="text-[11px] text-ink-600">
-                      {v.folio}
-                      {v.fecha !== fechaSeleccionada && (
-                        <span className="ml-1.5 rounded bg-amber-500/15 px-1 py-0.5 text-amber-400">Del {v.fecha}</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2.5 uppercase">{origenViaje(v, rutas) || 'N/D'}</td>
-                  <td className="px-4 py-2.5 uppercase">{destinoViaje(v, rutas) || 'N/D'}</td>
-                  <td className="px-4 py-2.5 font-semibold text-ink-100">{unidadNombre(v.unidadId)}</td>
+                  <td className="px-4 py-2.5 text-ink-600">{i + 1}</td>
                   <td className="px-4 py-2.5">
                     {puedeEditar ? (
                       <select
                         value={v.estatus}
                         onChange={(e) => onCambiarEstatus(v, e.target.value)}
-                        className={`rounded border border-line-700 bg-bg-800 px-1.5 py-1 text-xs font-bold outline-none focus:border-breco-500 ${TONE_TEXT[etiqueta.tono]}`}
+                        className={`rounded-lg border-0 px-2 py-1 text-xs font-bold text-white outline-none ${TONE_DOT[etiqueta.tono]}`}
                       >
                         {!estatusOpciones.some((es) => es.nombre === v.estatus) && <option value={v.estatus}>{v.estatus}</option>}
                         {estatusOpciones.map((es) => (
@@ -364,10 +353,39 @@ function Tablero({
                         ))}
                       </select>
                     ) : (
-                      <span className={`font-bold ${TONE_TEXT[etiqueta.tono]}`}>{etiqueta.texto}</span>
+                      <span className={`inline-block rounded-lg px-2 py-1 text-xs font-bold text-white ${TONE_DOT[etiqueta.tono]}`}>
+                        {etiqueta.texto}
+                      </span>
                     )}
                     {etiqueta.detalle && <div className={`mt-1 text-[10px] font-normal normal-case ${TONE_TEXT[etiqueta.tono]}`}>{etiqueta.detalle}</div>}
                   </td>
+                  <td className="px-4 py-2.5">
+                    <div className="font-semibold text-ink-100">{v.folio}</div>
+                    <div className="text-[11px] text-ink-600">
+                      {v.cajaEconomico || v.cajaNombre || 'N/D'}
+                      {v.fecha !== fechaSeleccionada && (
+                        <span className="ml-1.5 rounded bg-amber-500/15 px-1 py-0.5 text-amber-400">Del {v.fecha}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <div className="tabular-nums">{fechaCorta(v.fecha)}</div>
+                    {puedeEditar ? (
+                      <input
+                        type="time"
+                        value={v.horaSalida}
+                        onChange={(e) => onCambiarHora(v, e.target.value)}
+                        className="mt-0.5 rounded border border-line-700 bg-bg-800 px-1.5 py-1 font-mono text-xs text-ink-100 outline-none focus:border-breco-500"
+                      />
+                    ) : (
+                      <span className="tabular-nums text-ink-500">{v.horaSalida || '--:--'}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 normal-case text-ink-200">{nombreCliente(v.clienteId)}</td>
+                  <td className="px-4 py-2.5 uppercase">{origenViaje(v, rutas) || 'N/D'}</td>
+                  <td className="px-4 py-2.5 uppercase">{destinoViaje(v, rutas) || 'N/D'}</td>
+                  <td className="px-4 py-2.5 font-semibold text-ink-100">{unidadNombre(v.unidadId)}</td>
+                  <td className="px-4 py-2.5 normal-case text-ink-200">{nombreOperador(v)}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
                       <div className="w-16">{fraccion !== null && <BarraAvance fraccion={fraccion} />}</div>
@@ -389,7 +407,7 @@ function Tablero({
                             type="button"
                             onClick={() => onDarSalida(v)}
                             title="Dar salida a ruta"
-                            className="flex items-center gap-1 rounded-lg bg-blue-500/15 px-2.5 py-1.5 text-xs font-semibold text-blue-400 transition hover:bg-blue-500/25"
+                            className="flex items-center gap-1 rounded-lg bg-blue-500 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-black/20 transition hover:bg-blue-400"
                           >
                             <LogOut size={13} />
                             Dar Salida
@@ -400,7 +418,7 @@ function Tablero({
                             type="button"
                             onClick={() => onDarLlegada(v)}
                             title="Dar llegada"
-                            className="flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-1.5 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-500/25"
+                            className="flex items-center gap-1 rounded-lg bg-emerald-500 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-black/20 transition hover:bg-emerald-400"
                           >
                             <Flag size={13} />
                             Dar Llegada
@@ -419,13 +437,62 @@ function Tablero({
   );
 }
 
+/** Vista rapida tipo tablero (una columna solida por estatus, con sus
+ * viajes como tarjetas) debajo de la tabla -- mismos datos del dia, solo
+ * para ver de un vistazo cuantos/cuales van en cada etapa. */
+function TableroKanban({
+  grupos,
+  nombreCliente,
+  onVerTarjeta,
+}: {
+  grupos: { nombre: string; tone: Tone; viajes: Viaje[] }[];
+  nombreCliente: (id: string) => string;
+  onVerTarjeta: (v: Viaje) => void;
+}) {
+  if (grupos.length === 0) return null;
+  return (
+    <div className="flex gap-4 overflow-x-auto pb-1">
+      {grupos.map((g) => (
+        <div key={g.nombre} className="w-72 flex-shrink-0 overflow-hidden rounded-2xl border border-line-800 bg-bg-900 shadow-sm">
+          <div className={`flex items-center justify-between px-4 py-2.5 ${TONE_DOT[g.tone]}`}>
+            <span className="text-sm font-bold text-white">{g.nombre}</span>
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-bold text-white">
+              {g.viajes.length}
+            </span>
+          </div>
+          <div className="max-h-[420px] space-y-2 overflow-y-auto p-3">
+            {g.viajes.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => onVerTarjeta(v)}
+                className="w-full rounded-xl border border-line-800 bg-bg-800 p-3 text-left shadow-sm shadow-black/20 transition hover:border-line-700 hover:bg-bg-700"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-bold text-ink-100">
+                    {v.folio} <span className="font-normal text-ink-500">{v.cajaEconomico || v.cajaNombre || ''}</span>
+                  </span>
+                  <Truck size={15} className="flex-shrink-0 text-ink-500" />
+                </div>
+                <div className="mt-1.5 truncate text-sm font-medium text-ink-200">{nombreCliente(v.clienteId)}</div>
+                <div className="mt-1 text-xs tabular-nums text-ink-500">{v.horaSalida || '--:--'}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AeropuertoPage() {
-  const { viajes, unidades, estatusViajes, rutas } = useData();
+  const { viajes, unidades, estatusViajes, rutas, clientes, operadores } = useData();
   const { hasPermission } = useAuth();
   const puedeEditar = hasPermission('Monitoreo', 'editar');
   const [fecha, setFecha] = useState(hoyISO());
   const [ahora, setAhora] = useState(new Date());
   const [viajeAvance, setViajeAvance] = useState<Viaje | null>(null);
+  const [filtroEstatus, setFiltroEstatus] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setAhora(new Date()), 30000);
@@ -435,6 +502,11 @@ export function AeropuertoPage() {
   const colorEstatus = (nombre: string): Tone | null =>
     (estatusViajes.items.find((e) => e.nombre === nombre)?.color as Tone | undefined) ?? null;
   const unidadNombre = (id: string) => unidades.items.find((u) => u.id === id)?.economico ?? 'N/D';
+  const nombreCliente = (id: string) => clientes.items.find((c) => c.id === id)?.nombre ?? 'N/D';
+  const nombreOperador = (v: Viaje) => {
+    const operadorId = v.trayectos[0]?.operadorId || v.operadorId;
+    return operadores.items.find((o) => o.id === operadorId)?.nombre || 'N/D';
+  };
 
   // Ademas de los viajes fechados este dia, en la vista de "Hoy" tambien se
   // incluye cualquier viaje que siga En Transito sin importar en que fecha
@@ -452,6 +524,28 @@ export function AeropuertoPage() {
   const viajesOrdenados = useMemo(
     () => viajesDelDia.slice().sort((a, b) => (a.horaSalida || '99:99').localeCompare(b.horaSalida || '99:99')),
     [viajesDelDia],
+  );
+
+  // Viajes del dia agrupados por estatus (mismo orden del catalogo), para la
+  // barra de filtros por color y el tablero Kanban de abajo.
+  const gruposEstatus = useMemo(() => {
+    const porNombre = new Map<string, Viaje[]>();
+    for (const v of viajesOrdenados) {
+      const lista = porNombre.get(v.estatus) ?? [];
+      lista.push(v);
+      porNombre.set(v.estatus, lista);
+    }
+    const nombresCatalogo = estatusViajes.items.map((e) => e.nombre);
+    const nombresExtra = Array.from(porNombre.keys()).filter((n) => !nombresCatalogo.includes(n));
+    return [...nombresCatalogo, ...nombresExtra]
+      .filter((n) => porNombre.has(n))
+      .map((nombre) => ({ nombre, tone: colorEstatus(nombre) ?? ('gray' as Tone), viajes: porNombre.get(nombre)! }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viajesOrdenados, estatusViajes.items]);
+
+  const filasTabla = useMemo(
+    () => (filtroEstatus ? viajesOrdenados.filter((v) => v.estatus === filtroEstatus) : viajesOrdenados),
+    [viajesOrdenados, filtroEstatus],
   );
 
   const enCurso = viajesDelDia.filter((v) => normalizarEstatus(v.estatus) === 'en transito').length;
@@ -500,7 +594,7 @@ export function AeropuertoPage() {
           </span>
           <button
             onClick={() => setFecha((f) => shiftDate(f, -1))}
-            className="rounded-lg border border-blue-400/50 bg-blue-400/5 p-2 text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10"
+            className="rounded-lg bg-breco-500 p-2 text-white shadow-sm shadow-black/20 transition hover:brightness-110"
           >
             <ChevronLeft size={16} />
           </button>
@@ -512,7 +606,7 @@ export function AeropuertoPage() {
           />
           <button
             onClick={() => setFecha((f) => shiftDate(f, 1))}
-            className="rounded-lg border border-blue-400/50 bg-blue-400/5 p-2 text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10"
+            className="rounded-lg bg-breco-500 p-2 text-white shadow-sm shadow-black/20 transition hover:brightness-110"
           >
             <ChevronRight size={16} />
           </button>
@@ -534,15 +628,55 @@ export function AeropuertoPage() {
         <StatCard label="Demorados" value={String(demorados)} icon={Clock3} accent="amber" />
       </div>
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setFiltroEstatus(null)}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm shadow-black/20 transition ${
+            filtroEstatus === null ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
+          }`}
+        >
+          Todos
+          <span
+            className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
+              filtroEstatus === null ? 'bg-white/20 text-white' : 'bg-bg-500 text-ink-200'
+            }`}
+          >
+            {viajesOrdenados.length}
+          </span>
+        </button>
+        {gruposEstatus.map((g) => (
+          <button
+            key={g.nombre}
+            type="button"
+            onClick={() => setFiltroEstatus((actual) => (actual === g.nombre ? null : g.nombre))}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm shadow-black/20 transition ${
+              filtroEstatus === g.nombre ? `${TONE_DOT[g.tone]} text-white` : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
+            }`}
+          >
+            {g.nombre}
+            <span
+              className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white ${
+                filtroEstatus === g.nombre ? 'bg-white/20' : TONE_DOT[g.tone]
+              }`}
+            >
+              {g.viajes.length}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-col gap-4">
         <Tablero
           titulo="VIAJES EN RUTA"
-          filas={viajesOrdenados}
+          filas={filasTabla}
           fechaSeleccionada={fecha}
           ahora={ahora}
           puedeEditar={puedeEditar}
           colorEstatus={colorEstatus}
           unidadNombre={unidadNombre}
+          nombreCliente={nombreCliente}
+          nombreOperador={nombreOperador}
           estatusOpciones={estatusViajes.items}
           rutas={rutas.items}
           onCambiarEstatus={cambiarEstatusManual}
@@ -552,6 +686,13 @@ export function AeropuertoPage() {
           onVerAvance={setViajeAvance}
         />
       </div>
+
+      {gruposEstatus.length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">Tablero por estatus</h2>
+          <TableroKanban grupos={gruposEstatus} nombreCliente={nombreCliente} onVerTarjeta={setViajeAvance} />
+        </div>
+      )}
 
       {viajeAvance && <AvanceModal viaje={viajeAvance} ahora={ahora} rutas={rutas.items} onClose={() => setViajeAvance(null)} />}
     </div>
