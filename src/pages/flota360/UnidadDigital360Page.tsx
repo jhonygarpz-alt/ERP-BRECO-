@@ -154,16 +154,16 @@ export function UnidadDigital360Page() {
           <div className="flex gap-2">
             <button
               onClick={() => setModoVista('foto')}
-              className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition ${
-                modoVista === 'foto' ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400'
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-medium shadow-sm shadow-black/20 transition ${
+                modoVista === 'foto' ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
               }`}
             >
               Fotos reales
             </button>
             <button
               onClick={() => setModoVista('3d')}
-              className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition ${
-                modoVista === '3d' ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400'
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-medium shadow-sm shadow-black/20 transition ${
+                modoVista === '3d' ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
               }`}
             >
               Modelo 3D

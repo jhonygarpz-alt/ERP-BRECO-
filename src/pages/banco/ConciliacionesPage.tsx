@@ -206,8 +206,8 @@ export function ConciliacionesPage() {
                 key={t.key}
                 type="button"
                 onClick={() => setTab(t.key)}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                  tab === t.key ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-500 hover:border-line-600'
+                className={`rounded-full px-4 py-1.5 text-sm font-medium shadow-sm shadow-black/20 transition ${
+                  tab === t.key ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
                 }`}
               >
                 {t.label} ({t.key === 'Todos' ? lineas.length : lineas.filter((l) => l.estatus === t.key).length})

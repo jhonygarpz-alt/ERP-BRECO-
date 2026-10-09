@@ -187,8 +187,8 @@ export function MovimientosBancariosPage() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-              tab === t ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-500 hover:border-line-600'
+            className={`rounded-full px-4 py-1.5 text-sm font-medium shadow-sm shadow-black/20 transition ${
+              tab === t ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
             }`}
           >
             {t}

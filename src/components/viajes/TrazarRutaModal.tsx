@@ -606,14 +606,12 @@ export function TrazarRutaModal({
                 key={i}
                 type="button"
                 onClick={() => elegirIndiceRuta(i)}
-                className={`rounded-lg border px-3 py-1.5 text-left text-xs transition ${
-                  i === indiceRuta
-                    ? 'border-breco-500 bg-breco-500/10 text-ink-100'
-                    : 'border-line-700 bg-bg-900 text-ink-300 hover:bg-bg-800'
+                className={`rounded-lg px-3 py-1.5 text-left text-xs shadow-sm shadow-black/20 transition ${
+                  i === indiceRuta ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
                 }`}
               >
                 <span className="block font-semibold">Opcion {i + 1}: {Math.round(r.duracionHoras * 60)} min</span>
-                <span className="block text-ink-500">{r.distanciaKm} km</span>
+                <span className={`block ${i === indiceRuta ? 'text-white/70' : 'text-ink-500'}`}>{r.distanciaKm} km</span>
               </button>
             ))}
           </div>

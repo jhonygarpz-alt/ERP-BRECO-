@@ -386,8 +386,8 @@ export function Unidad3DViewer({
               setVistaActiva(v.id);
               vistaFnRef.current?.(v.id);
             }}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-              vistaActiva === v.id ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400 hover:text-ink-100'
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium shadow-sm shadow-black/20 transition ${
+              vistaActiva === v.id ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
             }`}
           >
             {v.label}

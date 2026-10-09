@@ -121,8 +121,8 @@ export function UnidadFotoViewer({
           <button
             type="button"
             onClick={() => setModoColocar(modoColocar === 'hotspot' ? null : 'hotspot')}
-            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition ${
-              modoColocar === 'hotspot' ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400 hover:text-ink-100'
+            className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium shadow-sm shadow-black/20 transition ${
+              modoColocar === 'hotspot' ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
             }`}
           >
             {modoColocar === 'hotspot' ? 'Haz clic en la foto...' : '+ Punto de informacion'}
@@ -130,8 +130,8 @@ export function UnidadFotoViewer({
           <button
             type="button"
             onClick={() => setModoColocar(modoColocar === 'dano' ? null : 'dano')}
-            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition ${
-              modoColocar === 'dano' ? 'border-red-500 bg-red-500/10 text-red-400' : 'border-line-700 text-ink-400 hover:text-ink-100'
+            className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium shadow-sm shadow-black/20 transition ${
+              modoColocar === 'dano' ? 'bg-red-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
             }`}
           >
             {modoColocar === 'dano' ? 'Haz clic en la foto...' : '+ Registrar dano'}

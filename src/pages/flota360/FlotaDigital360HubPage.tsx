@@ -79,8 +79,8 @@ export function FlotaDigital360HubPage() {
       <div className="mb-5 flex flex-wrap gap-2">
         <button
           onClick={() => setFamilia(null)}
-          className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
-            familia === null ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400 hover:text-ink-100'
+          className={`rounded-full px-3.5 py-1.5 text-xs font-medium shadow-sm shadow-black/20 transition ${
+            familia === null ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
           }`}
         >
           Todas ({unidades.items.length})
@@ -89,8 +89,8 @@ export function FlotaDigital360HubPage() {
           <button
             key={f}
             onClick={() => setFamilia(f)}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
-              familia === f ? 'border-breco-500 bg-breco-500/10 text-breco-500' : 'border-line-700 text-ink-400 hover:text-ink-100'
+            className={`rounded-full px-3.5 py-1.5 text-xs font-medium shadow-sm shadow-black/20 transition ${
+              familia === f ? 'bg-breco-500 text-white' : 'bg-bg-600 text-ink-300 hover:bg-bg-500'
             }`}
           >
             {LABEL_FAMILIA[f]} ({conteos[f]})
