@@ -77,6 +77,7 @@ export function ImprimirViajePage() {
     return (
       <VistaCartaPorte
         viaje={viaje}
+        conImporteReal={conImporteReal}
         cliente={clientes.items.find((c) => c.id === viaje.clienteId)}
         unidad={unidades.items.find((u) => u.id === (viaje.trayectos[0]?.unidadId || viaje.unidadId))}
         remolque1={cajas.items.find((c) => c.id === viaje.remolque1Id)}
@@ -108,6 +109,7 @@ export function ImprimirViajePage() {
  * que trae su propio bloque de timbrado). */
 function VistaCartaPorte({
   viaje,
+  conImporteReal,
   cliente,
   unidad,
   remolque1,
@@ -118,6 +120,7 @@ function VistaCartaPorte({
   empresa,
 }: {
   viaje: Viaje;
+  conImporteReal: boolean;
   cliente?: Cliente;
   unidad?: Unidad;
   remolque1?: Caja;
@@ -129,7 +132,7 @@ function VistaCartaPorte({
 }) {
   const totales = calcularTotalesConceptosViaje(viaje.conceptosFacturacionViaje);
   const monedaTexto = viaje.moneda === 'DOLARES' ? 'USD' : 'MXN';
-  const importeLetra = importeALetras(totales.total, monedaTexto);
+  const importeLetra = importeALetras(conImporteReal ? totales.total : 0, monedaTexto);
   const config = CONFIG_AUTOTRANSPORTE_SAT.find((c) => c.clave === (viaje.configVehicularClaveSat || unidad?.tipo));
   const internacional = viaje.importacion || viaje.exportacion;
   const fechaOrigenCcp = fechaHoraIso(viaje.fechaCarga || viaje.fecha, viaje.horaCarga);
@@ -148,6 +151,7 @@ function VistaCartaPorte({
             <p style={{ margin: '2px 0 0', fontSize: 9 }}>RFC: {empresa.rfc || '—'}</p>
             {empresa.regimenFiscal && <p style={{ margin: '1px 0 0', fontSize: 9 }}>{empresa.regimenFiscal}</p>}
             <p style={{ margin: '2px 0 0', fontSize: 8.5, color: '#444' }}>{empresa.direccion || ''}</p>
+            {!conImporteReal && <p style={{ margin: '2px 0 0', fontSize: 8.5, fontStyle: 'italic' }}>Copia sin importes</p>}
           </div>
         </div>
         <BloqueEtiquetasApiladas
@@ -223,8 +227,8 @@ function VistaCartaPorte({
                   <td style={tdCfdi}>{catalogo?.noIdentificacion || ''}</td>
                   <td style={tdCfdi}>{catalogo?.claveProdServ || '—'}</td>
                   <td style={tdCfdi}>{c.concepto}</td>
-                  <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(c.importe)}</td>
-                  <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(c.importe)}</td>
+                  <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(conImporteReal ? c.importe : 0)}</td>
+                  <td style={{ ...tdCfdi, textAlign: 'right' }}>{money(conImporteReal ? c.importe : 0)}</td>
                 </tr>
               );
             })}
@@ -416,10 +420,10 @@ function VistaCartaPorte({
         <CajaTotales
           moneda={monedaTexto}
           filas={[
-            { etiqueta: 'Subtotal', valor: money(totales.subtotal) },
-            { etiqueta: 'IVA', valor: money(totales.totalIva) },
-            { etiqueta: 'Retenciones', valor: money(totales.totalRetencionIva + totales.totalIsr) },
-            { etiqueta: 'Total a Pagar', valor: money(totales.total), destacado: true },
+            { etiqueta: 'Subtotal', valor: money(conImporteReal ? totales.subtotal : 0) },
+            { etiqueta: 'IVA', valor: money(conImporteReal ? totales.totalIva : 0) },
+            { etiqueta: 'Retenciones', valor: money(conImporteReal ? totales.totalRetencionIva + totales.totalIsr : 0) },
+            { etiqueta: 'Total a Pagar', valor: money(conImporteReal ? totales.total : 0), destacado: true },
           ]}
         />
       </div>
