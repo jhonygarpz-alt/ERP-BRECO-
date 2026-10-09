@@ -324,30 +324,55 @@ export function Sidebar({
           collapsed ? 'md:w-20' : 'md:w-72'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className={`flex items-center gap-3 border-b border-sb-border px-4 py-3 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
-        {empresa.value.logoDataUrl ? (
-          <div className={`flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg ${collapsed ? 'md:h-12 md:w-12' : ''}`}>
-            <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
+        <div className="relative overflow-hidden border-b border-sb-border bg-gradient-to-br from-[#00101f] via-[#012951] to-[#01518f]">
+          {/* Textura tecnologica muy sutil: rejilla de puntos + resplandor cian de esquina. */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)', backgroundSize: '16px 16px' }}
+          />
+          <div className="pointer-events-none absolute -top-10 -right-6 h-32 w-32 rounded-full bg-cyan-400/25 blur-3xl" />
+          {/* Silueta de camion al fondo -- detalle de transporte/logistica, muy tenue para no distraer. */}
+          <Truck size={132} strokeWidth={1} className="pointer-events-none absolute -right-5 -bottom-7 text-white/[0.06]" />
+
+          <div className={`relative flex items-center gap-3 px-4 py-4 ${collapsed ? 'md:justify-center md:px-3' : ''}`}>
+            {empresa.value.logoDataUrl ? (
+              <div
+                className={`flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white/10 p-1.5 shadow-md backdrop-blur-sm ${collapsed ? 'md:h-10 md:w-10' : ''}`}
+              >
+                <img src={empresa.value.logoDataUrl} alt={empresa.value.nombre} className="h-full w-full object-contain" />
+              </div>
+            ) : (
+              <div
+                className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-breco-500 text-2xl font-black italic text-white shadow-md shadow-breco-glow ${collapsed ? 'md:h-10 md:w-10 md:text-base' : ''}`}
+              >
+                B
+              </div>
+            )}
+            <div className={`min-w-0 flex-1 leading-tight ${collapsed ? 'md:hidden' : ''}`}>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <div className="min-w-0 max-w-full truncate">
+                  <BrandName
+                    nombre={empresa.value.nombre}
+                    className="text-lg font-bold tracking-tight text-white [&>span:last-child]:font-normal [&>span:last-child]:text-white/65"
+                  />
+                </div>
+                {empresa.value.facturamaAmbiente === 'sandbox' && (
+                  <span className="inline-flex items-center rounded-full border border-amber-400/40 bg-amber-400/15 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-300 uppercase">
+                    Pruebas
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 text-[11px] font-medium tracking-widest text-cyan-300 uppercase">Trafico ERP</div>
+            </div>
+            <button
+              onClick={onCloseMobile}
+              title="Cerrar menu"
+              className="rounded-lg p-1.5 text-white/60 hover:bg-white/10 hover:text-white md:hidden"
+            >
+              <X size={18} />
+            </button>
           </div>
-        ) : (
-          <div className={`flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-breco-500 text-3xl font-black italic text-white shadow-md shadow-breco-glow ${collapsed ? 'md:h-12 md:w-12 md:text-lg' : ''}`}>
-            B
-          </div>
-        )}
-        <div className={`min-w-0 flex-1 leading-tight ${collapsed ? 'md:hidden' : ''}`}>
-          <div className="truncate text-base font-semibold tracking-tight text-sb-text">
-            <BrandName nombre={empresa.value.nombre} />
-          </div>
-          <div className="text-[11px] font-medium tracking-widest text-breco-500 uppercase">Trafico ERP</div>
         </div>
-        <button
-          onClick={onCloseMobile}
-          title="Cerrar menu"
-          className="rounded-lg p-1.5 text-sb-text-muted hover:bg-sb-bg-active hover:text-sb-text md:hidden"
-        >
-          <X size={18} />
-        </button>
-      </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden scrollbar-none px-3 py-4">
         <NavGroup>
