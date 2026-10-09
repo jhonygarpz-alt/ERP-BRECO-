@@ -121,11 +121,26 @@ export function GhostButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>
   );
 }
 
-export function ToolbarButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+type ToolbarButtonVariant = 'default' | 'accent';
+
+const toolbarButtonVariants: Record<ToolbarButtonVariant, string> = {
+  // Boton de barra de acciones estandar (Modificar, Consultar, Imprimir,
+  // Timbrar, Cancelar, etc.): fondo solido gris azulado, nunca transparente.
+  default: 'bg-bg-600 text-ink-100 hover:bg-bg-500 disabled:hover:bg-bg-600',
+  // Para la accion destacada dentro de una barra (ej. Descargar): azul
+  // solido, un tono mas oscuro que el boton primario (Agregar).
+  accent: 'bg-breco-600 text-white hover:bg-breco-500 disabled:hover:bg-breco-600',
+};
+
+export function ToolbarButton({
+  variant = 'default',
+  className,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ToolbarButtonVariant }) {
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-blue-400/50 bg-blue-400/5 px-4 py-2 text-button font-medium text-blue-400 transition hover:border-blue-400 hover:bg-blue-400/10 disabled:cursor-not-allowed disabled:border-line-700 disabled:bg-transparent disabled:text-ink-600 ${props.className ?? ''}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-button font-medium shadow-sm shadow-black/20 transition disabled:cursor-not-allowed disabled:opacity-50 ${toolbarButtonVariants[variant]} ${className ?? ''}`}
     />
   );
 }

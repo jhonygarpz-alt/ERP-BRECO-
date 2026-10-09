@@ -211,7 +211,7 @@ export function FacturaListaPage({ tipo, titulo, subtitulo }: { tipo: TipoFactur
           <Printer size={16} /> Imprimir
         </ToolbarButton>
         <div className="relative">
-          <ToolbarButton type="button" disabled={filtered.length === 0} onClick={() => setDescargarAbierto((v) => !v)}>
+          <ToolbarButton variant="accent" type="button" disabled={filtered.length === 0} onClick={() => setDescargarAbierto((v) => !v)}>
             <Download size={16} /> Descargar <ChevronDown size={14} />
           </ToolbarButton>
           {descargarAbierto && (
