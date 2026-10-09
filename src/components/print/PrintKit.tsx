@@ -312,7 +312,7 @@ export function BloqueTimbrado({
   );
 
   return (
-    <div style={{ border: '1px solid #333', borderRadius: 12, overflow: 'hidden', display: 'flex' }}>
+    <div style={{ border: '1px solid #333', borderRadius: 12, overflow: 'hidden', display: 'flex', breakInside: 'avoid' }}>
       {cartaPorte && casillaQr('QR CCP', qrCcpUrl, 'left')}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: cartaPorte ? '1px solid #333' : undefined, borderRight: '1px solid #333' }}>
         <div style={{ padding: '3px 8px', fontSize: 8, borderBottom: '1px solid #ddd' }}>
@@ -347,7 +347,7 @@ export function LeyendaCfdi({ folioFiscal, simulado, cancelado }: { folioFiscal:
     texto = 'Este documento es una representacion impresa de un CFDI.';
   }
   return (
-    <div style={{ marginTop: 6, textAlign: 'center', fontSize: 8.5, fontWeight: 700, background: fondo, padding: '3px 8px', borderRadius: 6 }}>
+    <div style={{ marginTop: 6, textAlign: 'center', fontSize: 8.5, fontWeight: 700, background: fondo, padding: '3px 8px', borderRadius: 6, breakInside: 'avoid' }}>
       {texto}
     </div>
   );
