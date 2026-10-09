@@ -162,6 +162,7 @@ export async function leerOperadoresExcel(file: File): Promise<{ totalFilasHoja:
       licencia: texto(col('licencia', fila)).toUpperCase(),
       vigenciaLicencia: fechaISO(col('vigenciaLicencia', fila)),
       aptoMedico: '',
+      fechaExpedicionAptoMedico: '',
       vigenciaAptoMedico: '',
       licenciaB: false,
       licenciaC: false,

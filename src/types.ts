@@ -396,6 +396,7 @@ export interface Operador {
   licencia: string;
   vigenciaLicencia: string;
   aptoMedico: string;
+  fechaExpedicionAptoMedico: string;
   vigenciaAptoMedico: string;
   licenciaB: boolean;
   licenciaC: boolean;

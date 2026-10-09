@@ -73,6 +73,7 @@ const emptyForm: Omit<Operador, 'id'> = {
   licencia: '',
   vigenciaLicencia: '',
   aptoMedico: '',
+  fechaExpedicionAptoMedico: '',
   vigenciaAptoMedico: '',
   licenciaB: false,
   licenciaC: false,
@@ -297,6 +298,7 @@ export function OperadoresPage() {
     { header: 'Nombre', render: (o) => <span className="font-medium text-ink-100">{o.nombre}</span> },
     { header: 'Licencia', render: (o) => o.licencia },
     { header: 'Vigencia licencia', render: (o) => o.vigenciaLicencia },
+    { header: 'Vigencia apto médico', render: (o) => o.vigenciaAptoMedico },
     { header: 'Estatus', render: (o) => <StatusBadge status={o.estatus} /> },
     {
       header: 'Activo',
@@ -557,6 +559,13 @@ export function OperadoresPage() {
                       </Field>
                       <Field label="Apto Médico">
                         <Input value={form.aptoMedico} onChange={(e) => setForm({ ...form, aptoMedico: e.target.value })} />
+                      </Field>
+                      <Field label="Fecha de Expedición">
+                        <Input
+                          type="date"
+                          value={form.fechaExpedicionAptoMedico}
+                          onChange={(e) => setForm({ ...form, fechaExpedicionAptoMedico: e.target.value })}
+                        />
                       </Field>
                       <Field label="Vencimiento">
                         <Input type="date" value={form.vigenciaAptoMedico} onChange={(e) => setForm({ ...form, vigenciaAptoMedico: e.target.value })} />
