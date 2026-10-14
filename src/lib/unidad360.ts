@@ -21,6 +21,9 @@ export const CATEGORIAS_360 = CATEGORIAS_FOTO.filter((c) =>
   ['frontal', 'trasera', 'lateral_izquierdo', 'lateral_derecho'].includes(c.id),
 );
 
+/** Categorias que admiten varias fotos a la vez (no reemplazan la anterior, se agregan). */
+export const CATEGORIAS_FOTO_MULTIPLES: CategoriaFotoUnidad[] = ['motor', 'chasis', 'llantas'];
+
 export const etiquetaCategoriaFoto = (c: CategoriaFotoUnidad) => CATEGORIAS_FOTO.find((x) => x.id === c)?.label ?? c;
 
 export const TIPOS_HOTSPOT: { id: TipoHotspotUnidad; label: string }[] = [
