@@ -63,6 +63,10 @@ export function CuentasBancariasPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!/^\d{16}$/.test(form.numero.trim())) {
+      setError('El número de cuenta debe tener exactamente 16 dígitos.');
+      return;
+    }
     const duplicado = buscarDuplicado();
     if (duplicado) {
       setError(duplicado);
@@ -120,7 +124,13 @@ export function CuentasBancariasPage() {
             <div className="sm:col-span-2 flex items-end gap-3">
               <div className="flex-1">
                 <Field label="Número de cuenta">
-                  <Input required value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} />
+                  <Input
+                    required
+                    inputMode="numeric"
+                    maxLength={16}
+                    value={form.numero}
+                    onChange={(e) => setForm({ ...form, numero: e.target.value.replace(/\D/g, '') })}
+                  />
                 </Field>
               </div>
               <label className="flex items-center gap-2 pb-2 text-sm text-ink-300">

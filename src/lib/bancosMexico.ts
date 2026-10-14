@@ -26,6 +26,7 @@ export const BANCOS_MEXICO: string[] = [
   'Inbursa',
   'Intercam Banco',
   'Invex',
+  'Kapital Bank',
   'Mifel',
   'Multiva',
   'Nacional Financiera (NAFIN)',
