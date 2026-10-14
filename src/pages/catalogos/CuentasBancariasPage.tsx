@@ -63,8 +63,8 @@ export function CuentasBancariasPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!/^\d{16}$/.test(form.numero.trim())) {
-      setError('El número de cuenta debe tener exactamente 16 dígitos.');
+    if (!/^\d{18}$/.test(form.numero.trim())) {
+      setError('El número de cuenta debe tener exactamente 18 dígitos.');
       return;
     }
     const duplicado = buscarDuplicado();
@@ -127,7 +127,7 @@ export function CuentasBancariasPage() {
                   <Input
                     required
                     inputMode="numeric"
-                    maxLength={16}
+                    maxLength={18}
                     value={form.numero}
                     onChange={(e) => setForm({ ...form, numero: e.target.value.replace(/\D/g, '') })}
                   />
