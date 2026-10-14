@@ -71,7 +71,7 @@ const emptyForm: Omit<Proveedor, 'id'> = {
 };
 
 export function ProveedoresPage() {
-  const { proveedores, empresa } = useData();
+  const { proveedores, gruposProveedor, empresa } = useData();
   const { hasPermission } = useAuth();
   const puedeCrear = hasPermission('Catalogos', 'crear');
   const puedeEditar = hasPermission('Catalogos', 'editar');
@@ -320,16 +320,15 @@ export function ProveedoresPage() {
                   </label>
                 </div>
                 <Field label="Grupo">
-                  <Input value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })} />
+                  <Select value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })}>
+                    <option value="">Sin grupo</option>
+                    {gruposProveedor.items.map((g) => (
+                      <option key={g.id} value={g.nombre}>{g.nombre}</option>
+                    ))}
+                  </Select>
                 </Field>
                 <Field label="Tipo De Operacion">
                   <Input value={form.tipoOperacion} onChange={(e) => setForm({ ...form, tipoOperacion: e.target.value })} />
-                </Field>
-                <Field label="Tipo De Tercero">
-                  <Input value={form.tipoTercero} onChange={(e) => setForm({ ...form, tipoTercero: e.target.value })} />
-                </Field>
-                <Field label="ShortName SAP">
-                  <Input value={form.shortNameSap} onChange={(e) => setForm({ ...form, shortNameSap: e.target.value })} />
                 </Field>
               </div>
             </section>
