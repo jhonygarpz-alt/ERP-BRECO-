@@ -87,6 +87,8 @@ import {
   grupoUnidadToRow,
   grupoClienteFromRow,
   grupoClienteToRow,
+  grupoProveedorFromRow,
+  grupoProveedorToRow,
   operadorFromRow,
   operadorToRow,
   parqueHistorialFromRow,
@@ -153,6 +155,7 @@ import type {
   AbonoDescuentoOperador,
   GrupoUnidad,
   GrupoCliente,
+  GrupoProveedor,
   IncidenciaViaje,
   ConciliacionBancaria,
   Mecanico,
@@ -205,6 +208,7 @@ interface DataContextValue {
   conceptosFacturacion: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, ConceptoFacturacion>>;
   gruposUnidad: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GrupoUnidad>>;
   gruposCliente: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GrupoCliente>>;
+  gruposProveedor: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, GrupoProveedor>>;
   rutas: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Ruta>>;
   tiposViaje: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, TipoViaje>>;
   viajes: ReturnType<typeof useSupabaseCollection<Record<string, unknown>, Viaje>>;
@@ -320,6 +324,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     'grupos_cliente',
     grupoClienteFromRow,
     grupoClienteToRow,
+  );
+  const gruposProveedor = useSupabaseCollection<Record<string, unknown>, GrupoProveedor>(
+    'grupos_proveedor',
+    grupoProveedorFromRow,
+    grupoProveedorToRow,
   );
   const rutas = useSupabaseCollection<Record<string, unknown>, Ruta>('rutas', rutaFromRow, rutaToRow);
   const formatosImpresion = useSupabaseCollection<Record<string, unknown>, FormatoImpresion>(
@@ -546,6 +555,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         conceptosFacturacion,
         gruposUnidad,
         gruposCliente,
+        gruposProveedor,
         rutas,
         formatosImpresion,
         foliosAutorizados,

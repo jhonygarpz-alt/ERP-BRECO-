@@ -28,6 +28,7 @@ import type {
   AbonoDescuentoOperador,
   GrupoUnidad,
   GrupoCliente,
+  GrupoProveedor,
   IncidenciaViaje,
   ConciliacionBancaria,
   Mecanico,
@@ -1161,6 +1162,18 @@ export function grupoClienteFromRow(row: Record<string, unknown>): GrupoCliente 
   };
 }
 export function grupoClienteToRow(g: GrupoCliente) {
+  return { id: g.id, codigo: g.codigo || null, nombre: g.nombre, color: g.color };
+}
+
+export function grupoProveedorFromRow(row: Record<string, unknown>): GrupoProveedor {
+  return {
+    id: row.id as string,
+    codigo: row.codigo as string,
+    nombre: row.nombre as string,
+    color: row.color as string,
+  };
+}
+export function grupoProveedorToRow(g: GrupoProveedor) {
   return { id: g.id, codigo: g.codigo || null, nombre: g.nombre, color: g.color };
 }
 

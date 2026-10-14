@@ -922,6 +922,13 @@ export interface GrupoCliente {
   color: string;
 }
 
+export interface GrupoProveedor {
+  id: string;
+  codigo: string;
+  nombre: string;
+  color: string;
+}
+
 export interface TipoViaje {
   id: string;
   codigo: string;
