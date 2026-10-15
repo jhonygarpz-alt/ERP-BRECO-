@@ -14,6 +14,7 @@ import {
   lineasDesdeViaje,
   nextFolioFactura,
   porcentajeDeTexto,
+  redondear2,
   viajesPendientesDeFacturar,
   viajesYaFacturados,
 } from '../../lib/facturacion';
@@ -201,9 +202,9 @@ export function FacturaFormModal({
       descuento: lineaForm.descuento,
       importe,
       traslada: lineaForm.traslada,
-      importeIva: importe * porcentajeDeTexto(lineaForm.traslada),
+      importeIva: redondear2(importe * porcentajeDeTexto(lineaForm.traslada)),
       retiene: lineaForm.retiene,
-      importeRetencion: importe * porcentajeDeTexto(lineaForm.retiene),
+      importeRetencion: redondear2(importe * porcentajeDeTexto(lineaForm.retiene)),
     };
     setForm((f) => ({ ...f, lineas: [...f.lineas, nueva] }));
     setLineaForm(emptyLineaForm);

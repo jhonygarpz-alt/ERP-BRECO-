@@ -15,6 +15,12 @@ export function porcentajeDeTexto(texto: string): number {
   return m ? Number(m[1]) / 100 : 0;
 }
 
+/** Redondea a centavos. Importe x porcentaje (IVA/retencion) se redondea aqui, no solo al mostrarlo,
+ * para que el total nunca quede un centavo distinto a la suma de los renglones ya redondeados que ve el usuario. */
+export function redondear2(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
 /** Convierte los conceptos ya capturados en un Viaje (pestana "Conceptos Facturacion") en renglones de Factura. */
 export function lineasDesdeViaje(viaje: Viaje): FacturaLinea[] {
   return viaje.conceptosFacturacionViaje.map((c) => ({
@@ -28,7 +34,7 @@ export function lineasDesdeViaje(viaje: Viaje): FacturaLinea[] {
     descuento: 0,
     importe: c.importe,
     traslada: c.traslada,
-    importeIva: c.importe * porcentajeDeTexto(c.traslada),
+    importeIva: redondear2(c.importe * porcentajeDeTexto(c.traslada)),
     retiene: c.retiene,
     importeRetencion: c.importeIsr,
   }));
@@ -94,8 +100,8 @@ export interface TotalesConceptosViaje {
 /** Totales (con IVA trasladado y retenciones de IVA/ISR) de los "Conceptos de Facturacion" capturados en un Viaje/Carta Porte o en una Ruta. */
 export function calcularTotalesConceptosViaje(lineas: ViajeConceptoFacturacionLinea[]): TotalesConceptosViaje {
   const subtotal = lineas.reduce((acc, c) => acc + (c.importe || 0), 0);
-  const totalIva = lineas.reduce((acc, c) => acc + (c.importe || 0) * porcentajeDeTexto(c.traslada), 0);
-  const totalRetencionIva = lineas.reduce((acc, c) => acc + (c.importe || 0) * porcentajeDeTexto(c.retiene), 0);
+  const totalIva = lineas.reduce((acc, c) => acc + redondear2((c.importe || 0) * porcentajeDeTexto(c.traslada)), 0);
+  const totalRetencionIva = lineas.reduce((acc, c) => acc + redondear2((c.importe || 0) * porcentajeDeTexto(c.retiene)), 0);
   const totalIsr = lineas.reduce((acc, c) => acc + (c.importeIsr || 0), 0);
   return { subtotal, totalIva, totalRetencionIva, totalIsr, total: subtotal + totalIva - totalRetencionIva - totalIsr };
 }

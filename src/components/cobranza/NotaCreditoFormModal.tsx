@@ -4,7 +4,7 @@ import { useData } from '../../lib/DataContext';
 import { uid } from '../../lib/storage';
 import { hoyISO } from '../../lib/fechas';
 import { USO_CFDI_SAT } from '../../lib/catalogosSat';
-import { porcentajeDeTexto } from '../../lib/facturacion';
+import { porcentajeDeTexto, redondear2 } from '../../lib/facturacion';
 import { calcularTotalesNotaCredito, facturasPendientesDePago, nextFolioCobranza } from '../../lib/cobranza';
 import { siguienteFolioDocumento } from '../../lib/folios';
 import { TIMBRADO_VACIO } from '../../lib/timbrado';
@@ -104,7 +104,7 @@ export function NotaCreditoFormModal({
       unidadMedida: lineaForm.unidadMedida,
       importe: lineaForm.importe,
       traslada: lineaForm.traslada,
-      importeIva: lineaForm.importe * porcentajeDeTexto(lineaForm.traslada),
+      importeIva: redondear2(lineaForm.importe * porcentajeDeTexto(lineaForm.traslada)),
     };
     setForm((f) => ({ ...f, lineas: [...f.lineas, nueva] }));
     setLineaForm(emptyLineaForm);
