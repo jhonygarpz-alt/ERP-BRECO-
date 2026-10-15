@@ -621,7 +621,10 @@ export function ViajesPage() {
     setConceptoLineaForm({
       conceptoFacturacionId: c.id,
       concepto: c.concepto,
-      unidadMedida: c.unidadMedida,
+      // Si el concepto no tiene capturada su "Unidad de Medida" (texto libre),
+      // se usa como respaldo el nombre de la Clave de Unidad SAT que si tenga
+      // asignada, para que el campo no quede vacio aunque falte ese dato.
+      unidadMedida: c.unidadMedida || c.claveUnidadNombre || c.claveUnidad,
       importe: 0,
       traslada: trasladaPredeterminado,
       retiene: retienePredeterminado,
