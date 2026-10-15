@@ -35,7 +35,7 @@ function puntoIconManual(): L.DivIcon {
 // manual parte de una muestra mas chica (PUNTOS_INICIALES_AUTO) para no
 // saturar el mapa de entrada; el usuario puede seguir agregando puntos con
 // clic hasta llegar al tope.
-const MAX_PUNTOS_MANUALES = 60;
+const MAX_PUNTOS_MANUALES = 150;
 const PUNTOS_INICIALES_AUTO = 18;
 
 // Autocompletado tipo "Google Maps": mientras el usuario escribe se buscan
@@ -192,6 +192,8 @@ export function TrazarRutaModal({
   // arrastra/agrega puntos y la linea se dibuja recta entre ellos.
   const [modoManual, setModoManual] = useState(false);
   const [puntosManuales, setPuntosManuales] = useState<[number, number][]>([]);
+  // Aviso visible cuando el clic en el mapa no agrego un punto por haber llegado al tope (MAX_PUNTOS_MANUALES).
+  const [limiteAlcanzado, setLimiteAlcanzado] = useState(false);
   const puntosManualesRef = useRef<[number, number][]>([]);
   const lineaManualRef = useRef<L.Polyline | null>(null);
   // El mapa NUNCA se reencuadra solo -- ni al arrastrar un pin (Origen,
@@ -369,7 +371,11 @@ export function TrazarRutaModal({
     if (!mapa || !modoManual) return;
     function alHacerClic(e: L.LeafletMouseEvent) {
       setPuntosManuales((prev) => {
-        if (prev.length < 2 || prev.length >= MAX_PUNTOS_MANUALES) return prev;
+        if (prev.length < 2) return prev;
+        if (prev.length >= MAX_PUNTOS_MANUALES) {
+          setLimiteAlcanzado(true);
+          return prev;
+        }
         const clic: [number, number] = [e.latlng.lat, e.latlng.lng];
         const indice = indiceInsercionManual(prev, clic);
         const nuevo = [...prev];
@@ -454,6 +460,12 @@ export function TrazarRutaModal({
       setCargando(false);
     }
   }
+
+  // El aviso de limite alcanzado se vuelve a ocultar en cuanto haya espacio
+  // de nuevo (se borro algun punto, se reinicio el trazado, etc.).
+  useEffect(() => {
+    if (puntosManuales.length < MAX_PUNTOS_MANUALES) setLimiteAlcanzado(false);
+  }, [puntosManuales.length]);
 
   function deshacerPuntoManual() {
     setPuntosManuales((prev) => (prev.length > 2 ? [...prev.slice(0, -2), prev[prev.length - 1]] : prev));
@@ -621,12 +633,19 @@ export function TrazarRutaModal({
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-breco-500/30 bg-breco-500/5 px-3 py-2 text-xs text-ink-300">
             <span>
               Trazado libre: arrastra los puntos azules o los pines para ajustar la ruta. Haz clic en el mapa para
-              agregar un punto nuevo.
+              agregar un punto nuevo. ({puntosManuales.length}/{MAX_PUNTOS_MANUALES} puntos)
             </span>
             <GhostButton type="button" onClick={deshacerPuntoManual} disabled={puntosManuales.length <= 2}>
               Deshacer ultimo punto
             </GhostButton>
           </div>
+        )}
+
+        {modoManual && limiteAlcanzado && (
+          <p className="text-xs text-breco-500">
+            Se alcanzo el limite de {MAX_PUNTOS_MANUALES} puntos del trazado libre. Usa "Deshacer ultimo punto" para
+            quitar alguno antes de poder agregar uno nuevo.
+          </p>
         )}
 
         <div className="relative">
