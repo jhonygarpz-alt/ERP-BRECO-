@@ -26,7 +26,7 @@ class MockAgentEngine(AgentEngine):
     def clasificar(self, texto_operador: str) -> CategoriaMotivoDetencion:
         return clasificar(texto_operador)
 
-    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool) -> str:
+    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool, texto_operador: str) -> str:
         if va_a_escalar:
             return _RESPUESTAS_ESCALADAS.get(categoria, "Recibido, ya escale esto a un monitorista.")
         return _RESPUESTAS.get(categoria, "Gracias por la informacion, queda registrada.")

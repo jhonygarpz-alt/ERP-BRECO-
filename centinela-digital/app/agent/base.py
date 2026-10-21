@@ -17,5 +17,5 @@ class AgentEngine(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool) -> str:
+    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool, texto_operador: str) -> str:
         raise NotImplementedError

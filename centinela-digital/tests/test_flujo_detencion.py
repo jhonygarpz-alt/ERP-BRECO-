@@ -15,7 +15,7 @@ class _EngineFalsoSiempreCategoria(AgentEngine):
     def clasificar(self, texto_operador: str) -> CategoriaMotivoDetencion:
         return self._categoria
 
-    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool) -> str:
+    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool, texto_operador: str) -> str:
         return f"respuesta-{categoria.value}-{va_a_escalar}"
 
 

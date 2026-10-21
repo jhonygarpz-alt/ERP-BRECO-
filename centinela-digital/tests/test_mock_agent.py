@@ -12,11 +12,13 @@ def test_clasificar_delega_al_clasificador():
 
 def test_respuesta_escalada_menciona_monitorista():
     engine = MockAgentEngine()
-    texto = engine.redactar_respuesta(CategoriaMotivoDetencion.ACCIDENTE, va_a_escalar=True)
+    texto = engine.redactar_respuesta(CategoriaMotivoDetencion.ACCIDENTE, va_a_escalar=True, texto_operador="choque leve")
     assert "monitorista" in texto.lower()
 
 
 def test_respuesta_no_escalada_no_menciona_monitorista():
     engine = MockAgentEngine()
-    texto = engine.redactar_respuesta(CategoriaMotivoDetencion.CARGA_COMBUSTIBLE, va_a_escalar=False)
+    texto = engine.redactar_respuesta(
+        CategoriaMotivoDetencion.CARGA_COMBUSTIBLE, va_a_escalar=False, texto_operador="cargando diesel"
+    )
     assert "monitorista" not in texto.lower()

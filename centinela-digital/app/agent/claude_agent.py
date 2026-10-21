@@ -2,9 +2,12 @@
 la respuesta para el operador usando el SDK oficial de Anthropic. Requiere
 ANTHROPIC_API_KEY configurado (ver .env.example); mientras no lo tengas,
 usa AGENT_ENGINE=mock (ver agent/mock_agent.py), que cumple exactamente el
-mismo contrato."""
+mismo contrato.
 
-import json
+redactar_respuesta recibe el texto ORIGINAL del operador (no solo la
+categoria) para que Claude responda a lo que realmente escribio -- una
+version anterior solo le mandaba un resumen tipo "categoria: X", lo que
+sonaba generico/igual para cualquier mensaje de la misma categoria."""
 
 import anthropic
 
@@ -15,20 +18,39 @@ from app.domain.enums import CategoriaMotivoDetencion
 _SISTEMA_CLASIFICAR = (
     "Eres el asistente de monitoreo de Centinela Digital, un sistema de "
     "transporte de carga en Mexico. Un operador de tractocamion te escribio "
-    "por WhatsApp explicando por que se detuvo. Clasifica su mensaje en "
-    "UNA de estas categorias exactas: carga_combustible, alimentos_descanso, "
-    "revision_autoridad, falla_mecanica, espera_cliente, trafico_bloqueo, "
-    "accidente, otro. Responde SOLO con un JSON de la forma "
-    '{"categoria": "..."} sin texto adicional.'
+    "por WhatsApp explicando por que se detuvo. Usa la herramienta "
+    "registrar_motivo_detencion para clasificar su mensaje en la categoria "
+    "que mejor lo describa."
 )
 
+_HERRAMIENTA_CLASIFICAR = {
+    "name": "registrar_motivo_detencion",
+    "description": "Registra la categoria del motivo de detencion que dio el operador.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "categoria": {
+                "type": "string",
+                "enum": [c.value for c in CategoriaMotivoDetencion],
+                "description": "La categoria que mejor describe el motivo de la detencion.",
+            }
+        },
+        "required": ["categoria"],
+    },
+}
+
 _SISTEMA_RESPUESTA = (
-    "Eres el asistente de monitoreo de Centinela Digital. Redacta una "
-    "respuesta breve, profesional y cordial en espanol mexicano para un "
-    "operador de tractocamion, en 1-2 oraciones, confirmando que su motivo "
-    "de detencion quedo registrado. Si se te indica que esto se escalo a un "
-    "monitorista humano, dilo explicitamente y pidele que se mantenga en un "
-    "lugar seguro. Nunca inventes datos del viaje que no te dieron."
+    "Eres Centinela, el asistente de monitoreo de una empresa de transporte "
+    "de carga en Mexico, hablando por WhatsApp con un operador de "
+    "tractocamion que acaba de explicarte por que se detuvo. Respondele de "
+    "forma breve (1-3 oraciones), natural y cordial, en espanol mexicano, "
+    "como lo haria un despachador real: haz referencia a lo que el "
+    "realmente te dijo (no repitas una plantilla generica). Si el contexto "
+    "interno indica que esto se escalo a un monitorista humano, dilo "
+    "explicitamente y pidele que se mantenga en un lugar seguro; si no se "
+    "escalo, simplemente confirma que quedo registrado y, si aplica, "
+    "deseale buen viaje. Nunca inventes datos del viaje que no te dieron, y "
+    "nunca le muestres al operador el nombre interno de la categoria."
 )
 
 
@@ -46,23 +68,30 @@ class ClaudeAgentEngine(AgentEngine):
     def clasificar(self, texto_operador: str) -> CategoriaMotivoDetencion:
         respuesta = self._client.messages.create(
             model=self._model,
-            max_tokens=100,
+            max_tokens=200,
             system=_SISTEMA_CLASIFICAR,
+            tools=[_HERRAMIENTA_CLASIFICAR],
+            tool_choice={"type": "tool", "name": "registrar_motivo_detencion"},
             messages=[{"role": "user", "content": texto_operador}],
         )
-        texto = respuesta.content[0].text
-        try:
-            datos = json.loads(texto)
-            return CategoriaMotivoDetencion(datos["categoria"])
-        except (json.JSONDecodeError, KeyError, ValueError):
-            return CategoriaMotivoDetencion.OTRO
+        for bloque in respuesta.content:
+            if bloque.type == "tool_use" and bloque.name == "registrar_motivo_detencion":
+                try:
+                    return CategoriaMotivoDetencion(bloque.input["categoria"])
+                except (KeyError, ValueError):
+                    return CategoriaMotivoDetencion.OTRO
+        return CategoriaMotivoDetencion.OTRO
 
-    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool) -> str:
-        contexto = f"Categoria detectada: {categoria.value}. Se escala a un monitorista humano: {va_a_escalar}."
+    def redactar_respuesta(self, categoria: CategoriaMotivoDetencion, va_a_escalar: bool, texto_operador: str) -> str:
+        system = (
+            f"{_SISTEMA_RESPUESTA}\n\nContexto interno (no se lo repitas literal al operador): "
+            f"categoria detectada = {categoria.value}; se escala a un monitorista humano = {va_a_escalar}."
+        )
         respuesta = self._client.messages.create(
             model=self._model,
-            max_tokens=200,
-            system=_SISTEMA_RESPUESTA,
-            messages=[{"role": "user", "content": contexto}],
+            max_tokens=300,
+            system=system,
+            messages=[{"role": "user", "content": texto_operador}],
         )
-        return respuesta.content[0].text.strip()
+        partes_texto = [b.text for b in respuesta.content if b.type == "text"]
+        return "".join(partes_texto).strip()

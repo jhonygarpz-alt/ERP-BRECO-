@@ -20,5 +20,5 @@ class ResultadoMotivoDetencion:
 def procesar_respuesta_operador(engine: AgentEngine, texto_operador: str) -> ResultadoMotivoDetencion:
     categoria = engine.clasificar(texto_operador)
     va_a_escalar = categoria in CATEGORIAS_ESCALAN_SIEMPRE
-    mensaje = engine.redactar_respuesta(categoria, va_a_escalar)
+    mensaje = engine.redactar_respuesta(categoria, va_a_escalar, texto_operador)
     return ResultadoMotivoDetencion(categoria=categoria, va_a_escalar=va_a_escalar, mensaje_para_operador=mensaje)
