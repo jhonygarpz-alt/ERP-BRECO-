@@ -68,6 +68,13 @@ VIAJES = {
     ),
 }
 
+# Posicion actual de la unidad de cada viaje (lat, lon) -- un punto real
+# sobre el corredor Salamanca -> Guadalajara, el mismo que usa
+# gps_adapters/mock_provider.py en la Fase 1.
+POSICIONES = {
+    "F-220": (20.4100, -101.9200),
+}
+
 _PATRON_FOLIO = re.compile(r"\bF-\d+\b", re.IGNORECASE)
 
 
@@ -99,9 +106,13 @@ def main() -> None:
             break
 
         viaje = _buscar_viaje(texto)
-        resultado = procesar_consulta_cliente(engine, CLIENTE_ID, viaje, texto)
+        posicion_actual = POSICIONES.get(viaje.folio) if viaje else None
+        resultado = procesar_consulta_cliente(engine, CLIENTE_ID, viaje, texto, posicion_actual=posicion_actual)
         canal.enviar(TELEFONO_CLIENTE, resultado.mensaje_para_cliente)
-        print(f"   [acceso permitido: {resultado.acceso_permitido}]\n")
+        if resultado.enviar_ubicacion and posicion_actual is not None:
+            lat, lon = posicion_actual
+            canal.enviar_ubicacion(TELEFONO_CLIENTE, lat, lon, f"Unidad del viaje {viaje.folio}")
+        print(f"   [acceso permitido: {resultado.acceso_permitido} | ubicacion enviada: {resultado.enviar_ubicacion}]\n")
 
 
 if __name__ == "__main__":

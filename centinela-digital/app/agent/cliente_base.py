@@ -16,5 +16,11 @@ from app.domain.schemas import ViajeDTO
 
 class ClientAgentEngine(ABC):
     @abstractmethod
-    def responder(self, viaje: ViajeDTO, mensaje_cliente: str) -> str:
+    def responder(self, viaje: ViajeDTO, mensaje_cliente: str, le_compartiras_ubicacion: bool = False) -> str:
+        """le_compartiras_ubicacion: True cuando, justo despues de este
+        texto, flujo_consulta_cliente.py ya decidio mandar ademas un
+        mensaje de ubicacion nativo de WhatsApp -- se le avisa al engine
+        para que no diga "no tengo tu ubicacion" justo antes de mandarla,
+        y para que no intente describir coordenadas el mismo (eso ya lo
+        cubre el mensaje de ubicacion)."""
         raise NotImplementedError

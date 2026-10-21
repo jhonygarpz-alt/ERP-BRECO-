@@ -18,7 +18,7 @@ class _EngineFalsoRevelaTodo(ClientAgentEngine):
     def __init__(self):
         self.fue_llamado = False
 
-    def responder(self, viaje: ViajeDTO, mensaje_cliente: str) -> str:
+    def responder(self, viaje: ViajeDTO, mensaje_cliente: str, le_compartiras_ubicacion: bool = False) -> str:
         self.fue_llamado = True
         return f"respuesta-para-{viaje.folio}"
 
@@ -66,3 +66,36 @@ def test_viaje_inexistente_nunca_llega_al_engine():
     resultado = procesar_consulta_cliente(engine, "cliente-1", None, "¿cómo va el viaje F-404?")
     assert resultado.acceso_permitido is False
     assert engine.fue_llamado is False
+
+
+def test_envia_ubicacion_si_la_piden_y_hay_posicion(viaje_de_cliente_1):
+    engine = _EngineFalsoRevelaTodo()
+    resultado = procesar_consulta_cliente(
+        engine, "cliente-1", viaje_de_cliente_1, "¿dónde va mi camión?", posicion_actual=(20.4, -101.9)
+    )
+    assert resultado.enviar_ubicacion is True
+
+
+def test_no_envia_ubicacion_si_no_la_piden(viaje_de_cliente_1):
+    engine = _EngineFalsoRevelaTodo()
+    resultado = procesar_consulta_cliente(
+        engine, "cliente-1", viaje_de_cliente_1, "¿a qué hora llega?", posicion_actual=(20.4, -101.9)
+    )
+    assert resultado.enviar_ubicacion is False
+
+
+def test_no_envia_ubicacion_si_no_hay_posicion_conocida(viaje_de_cliente_1):
+    engine = _EngineFalsoRevelaTodo()
+    resultado = procesar_consulta_cliente(
+        engine, "cliente-1", viaje_de_cliente_1, "¿dónde va mi camión?", posicion_actual=None
+    )
+    assert resultado.enviar_ubicacion is False
+
+
+def test_acceso_denegado_nunca_envia_ubicacion(viaje_de_cliente_1):
+    engine = _EngineFalsoRevelaTodo()
+    resultado = procesar_consulta_cliente(
+        engine, "cliente-2", viaje_de_cliente_1, "¿dónde va mi camión?", posicion_actual=(20.4, -101.9)
+    )
+    assert resultado.acceso_permitido is False
+    assert resultado.enviar_ubicacion is False

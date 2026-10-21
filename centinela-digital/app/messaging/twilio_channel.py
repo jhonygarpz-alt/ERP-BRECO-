@@ -17,3 +17,10 @@ class TwilioChannel(MessagingChannel):
             "'POST https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json' "
             "con 'From'/'To' en formato 'whatsapp:+52...'."
         )
+
+    def enviar_ubicacion(self, telefono: str, lat: float, lon: float, etiqueta: str) -> None:
+        raise NotImplementedError(
+            "TwilioChannel aun no esta implementado. El mismo endpoint de Messages "
+            "acepta 'PersistentAction': 'geo:{lat},{lon}|{etiqueta}' para mandar "
+            "una ubicacion nativa de WhatsApp a traves de Twilio."
+        )

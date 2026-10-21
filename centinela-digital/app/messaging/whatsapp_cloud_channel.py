@@ -18,3 +18,12 @@ class WhatsAppCloudChannel(MessagingChannel):
             "-- mensajes iniciados por el sistema deben usar una plantilla "
             "aprobada, no texto libre (ver templates.md)."
         )
+
+    def enviar_ubicacion(self, telefono: str, lat: float, lon: float, etiqueta: str) -> None:
+        raise NotImplementedError(
+            "WhatsAppCloudChannel aun no esta implementado. El mismo endpoint de "
+            "mensajes acepta 'type': 'location' con 'location': {'latitude', "
+            "'longitude', 'name'} -- WhatsApp dibuja el mapa en el chat del "
+            "destinatario, no hace falta generar ninguna imagen ni usar un "
+            "proveedor de mapas aparte."
+        )

@@ -8,3 +8,9 @@ from app.messaging.base import MessagingChannel
 class ConsoleMessagingChannel(MessagingChannel):
     def enviar(self, telefono: str, texto: str) -> None:
         print(f"[Centinela -> {telefono}] {texto}")
+
+    def enviar_ubicacion(self, telefono: str, lat: float, lon: float, etiqueta: str) -> None:
+        print(
+            f"[Centinela -> {telefono}] 📍 {etiqueta} "
+            f"({lat:.5f}, {lon:.5f}) -- https://maps.google.com/?q={lat},{lon}"
+        )

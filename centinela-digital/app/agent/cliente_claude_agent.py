@@ -53,8 +53,16 @@ class ClaudeClientAgentEngine(ClientAgentEngine):
         self._client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         self._model = settings.anthropic_model
 
-    def responder(self, viaje: ViajeDTO, mensaje_cliente: str) -> str:
+    def responder(self, viaje: ViajeDTO, mensaje_cliente: str, le_compartiras_ubicacion: bool = False) -> str:
         system = f"{_SISTEMA}\n\nDatos reales de este viaje (lo unico que puedes usar):\n{_hechos_del_viaje(viaje)}"
+        if le_compartiras_ubicacion:
+            system += (
+                "\n\nNota interna (no la repitas literal): justo despues de tu respuesta se le va a compartir "
+                "al cliente la ubicacion actual de la unidad como un mensaje de ubicacion nativo de WhatsApp "
+                "(ya esta resuelto, no lo haces tu). Puedes mencionarlo de forma breve y natural (por ejemplo "
+                "'ahi te mando su ubicacion'), pero nunca inventes ni describas tu una coordenada o lugar "
+                "especifico -- eso ya lo cubre ese mensaje aparte."
+            )
         respuesta = self._client.messages.create(
             model=self._model,
             max_tokens=300,

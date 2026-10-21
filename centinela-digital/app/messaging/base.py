@@ -11,3 +11,11 @@ class MessagingChannel(ABC):
     @abstractmethod
     def enviar(self, telefono: str, texto: str) -> None:
         raise NotImplementedError
+
+    @abstractmethod
+    def enviar_ubicacion(self, telefono: str, lat: float, lon: float, etiqueta: str) -> None:
+        """Manda la posicion de una unidad como un mensaje de ubicacion
+        nativo de WhatsApp (el mismo tipo que usa "compartir ubicacion" en
+        un chat normal) -- no genera ninguna imagen ni necesita un
+        proveedor de mapas con API key: WhatsApp renderiza el mapa solo."""
+        raise NotImplementedError
