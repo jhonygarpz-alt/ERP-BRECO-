@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     twilio_whatsapp_from: str = ""
     twilio_voice_from: str = ""
 
+    agent_engine: str = "mock"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-opus-5"
 

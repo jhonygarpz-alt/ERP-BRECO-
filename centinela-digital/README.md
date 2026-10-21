@@ -50,9 +50,20 @@ app/
                         (Fase 1; WhatsApp/grupo de seguridad en fases
                         siguientes)
   worker/poller.py       Loop de polling GPS + rules_engine (APScheduler)
+  messaging/             Interfaz MessagingChannel + ConsoleMessagingChannel
+                        (Fase 2); stubs documentados de WhatsApp Cloud/Twilio
+  agent/
+    clasificador.py       Clasificador por palabras clave (solo lo usa
+                         MockAgentEngine)
+    mock_agent.py          Agente de prueba, sin IA (default)
+    claude_agent.py        Agente real con la API de Anthropic
+    flujo_detencion.py     La decision de escalar es del codigo, nunca
+                         del engine -- ver mas abajo
 alembic/                 Migraciones (esquema inicial ya generado)
-scripts/simular_dia.py   Demo: 10 unidades, 24h aceleradas, en memoria
-tests/                   pytest del rules_engine y de MockGPSProvider
+scripts/simular_dia.py   Demo Fase 1: 10 unidades, 24h aceleradas, en memoria
+scripts/chat_operador.py Demo Fase 2: chat interactivo con el agente
+tests/                   pytest del rules_engine, MockGPSProvider y del
+                        agente conversacional
 ```
 
 ## Por que Shapely y no PostGIS
@@ -117,6 +128,57 @@ El API queda en `http://localhost:8000/salud`. El worker hace polling de
 GPS cada 30s (`app/worker/poller.py`) usando el proveedor de
 `GPS_PROVIDER` (`mock` por default).
 
+## Fase 2 (esta entrega): flujo de R2 con un agente intercambiable
+
+Lo que se agrega en esta entrega no es todavia la Fase 2 completa de la
+especificacion original -- es el primer corte funcional, de punta a punta,
+del patron que el resto de la Fase 2 va a reusar: el flujo de **R2
+(detencion no programada)**, donde el bot le pregunta al operador por que
+se detuvo, clasifica su respuesta, y decide si eso se escala a un
+monitorista humano.
+
+- `app/messaging/`: interfaz `MessagingChannel` intercambiable, igual que
+  `gps_adapters/`. Por ahora solo existe `ConsoleMessagingChannel`
+  (imprime el mensaje como si fuera WhatsApp); `WhatsAppCloudChannel` y
+  `TwilioChannel` son stubs documentados.
+- `app/agent/`: interfaz `AgentEngine` intercambiable via `AGENT_ENGINE`
+  en `.env` (`mock` por default, o `claude`). `MockAgentEngine` clasifica
+  por palabras clave (`clasificador.py`) y responde con texto fijo, sin
+  llamar a ningun modelo. `ClaudeAgentEngine` hace lo mismo pero con la
+  API de Anthropic (requiere `ANTHROPIC_API_KEY`).
+- **La decision de escalar nunca la toma el engine.** `agent/flujo_detencion.py`
+  calcula `va_a_escalar = categoria in CATEGORIAS_ESCALAN_SIEMPRE`
+  (accidente, falla_mecanica) en codigo normal, sin IA de por medio, y solo
+  le pide al engine que clasifique el texto y redacte la respuesta --
+  mismo principio que `rules_engine/`: la IA conversa, nunca decide solas
+  las cosas que importan.
+
+### Probar el flujo conversacional
+
+```bash
+python -m scripts.chat_operador
+```
+
+Simula que el bot ya detecto una parada no programada y te pregunta el
+motivo; escribe como si fueras el operador (ej. "se me ponchó una llanta")
+y ve la respuesta y si se escalo o no. Con `AGENT_ENGINE=mock` (el
+default) no se necesita ninguna API key.
+
+Tambien hay una demo visual en el navegador con el mismo comportamiento
+(la logica esta reescrita en JavaScript solo para esa pagina, el motor
+real sigue siendo el de Python):
+https://claude.ai/artifact/Fd8N2CmkaCcnkepyrniiV8
+
+### Pendiente de la Fase 2 completa
+
+- R1 (inicio de viaje demorado) y R5 (operador no responde) con
+  escalamiento por niveles (llamada de voz a los 10 min, escalar a los 20).
+- El agente con tool use real (`obtener_viaje`, `calcular_eta`,
+  `escalar_a_monitorista`, `enviar_mensaje_cliente` como herramientas de
+  Claude, no como llamadas directas).
+- Conectar el canal de WhatsApp real (Meta Cloud API) con plantillas
+  aprobadas (ver `templates.md`).
+
 ## Como conectar un GPS real
 
 Ver `app/gps_adapters/NUEVO_PROVEEDOR.md`. En resumen: se implementa la
@@ -140,13 +202,14 @@ detectada.
 
 ## Estado por fase
 
-- **Fase 1 (esta entrega)**: modelos, migraciones, GPSProvider simulado,
+- **Fase 1 (completa)**: modelos, migraciones, GPSProvider simulado,
   motor de reglas completo (servicio + seguridad), alertas por consola,
   demo de 24h, pruebas.
-- **Fase 2 (siguiente, pendiente de confirmacion)**: canal real de
-  WhatsApp (Meta Cloud API + Twilio detras de la misma interfaz), agente
-  conversacional con Claude y tool use, flujo completo con el operador
-  (R1/R2/R5 con escalamiento por niveles).
+- **Fase 2 (en progreso -- primer corte en esta entrega)**: flujo de R2
+  (detencion no programada) con agente intercambiable Mock/Claude y canal
+  de mensajeria simulado. Pendiente: R1/R5 con escalamiento por niveles,
+  tool use real del agente, canal de WhatsApp real (Meta Cloud API +
+  Twilio).
 - **Fase 3**: flujo con el cliente (consulta de estatus, R3/R4), panel web
   de monitoristas.
 - **Fase 4**: reglas de seguridad conectadas a WhatsApp/llamadas de voz
