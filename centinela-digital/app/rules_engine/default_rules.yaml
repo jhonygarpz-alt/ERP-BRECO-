@@ -1,0 +1,24 @@
+# Valores por defecto de los parametros de las reglas. Cada empresa puede
+# sobreescribir cualquier subconjunto de estos campos desde su propia
+# configuracion (ver config_schema.py -- ConfiguracionReglas).
+
+palabra_coaccion: manzana
+
+r1_inicio_viaje:
+  minutos_antes_cita_para_vigilar: 60
+  minutos_sin_respuesta_para_llamar: 10
+  minutos_sin_respuesta_para_escalar: 20
+
+r2_detencion_no_programada:
+  minutos_detenido_para_alertar: 30
+
+r3_riesgo_retraso:
+  minutos_cambio_eta_para_notificar: 20
+
+r5_operador_no_responde:
+  minutos_sin_respuesta_para_escalar: 30
+
+r6_exceso_velocidad:
+  velocidad_maxima_kmh: 100.0
+  hora_inicio_restriccion_nocturna: 22
+  hora_fin_restriccion_nocturna: 5
