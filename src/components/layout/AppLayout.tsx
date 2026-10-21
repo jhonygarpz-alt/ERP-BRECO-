@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { SoporteWidget } from '../soporte/SoporteWidget';
+import { FlotaIAWidget } from '../flotaIA/FlotaIAWidget';
 
 export function AppLayout() {
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
@@ -17,6 +18,7 @@ export function AppLayout() {
         </main>
       </div>
       <SoporteWidget />
+      <FlotaIAWidget />
     </div>
   );
 }
