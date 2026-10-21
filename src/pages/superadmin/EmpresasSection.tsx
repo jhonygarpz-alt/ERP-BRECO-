@@ -1,0 +1,836 @@
+import { useState } from 'react';
+import { Ban, Building2, KeyRound, Power, UserPlus, Users } from 'lucide-react';
+import { useData } from '../../lib/DataContext';
+import { crearUsuarioAuth } from '../../lib/crearUsuario';
+import { resetearPasswordUsuario } from '../../lib/resetearPassword';
+import { uid } from '../../lib/storage';
+import { DEFAULT_ALERTAS_VENCIMIENTOS } from '../../lib/alertasVencimientosConfig';
+import { FEATURE_FLAGS } from '../../lib/featureFlags';
+import type {
+  ClasificacionOperador,
+  ClasificacionViaje,
+  ConceptoFacturacion,
+  Empresa,
+  FormatoImpresion,
+  GrupoCliente,
+  GrupoUnidad,
+  EstatusUnidadCustom,
+  ImpuestoConcepto,
+  Modulo,
+  PermisoModulo,
+  Rol,
+  TipoViaje,
+  Usuario,
+} from '../../types';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { CrudTable, type Column } from '../../components/ui/CrudTable';
+import { Modal } from '../../components/ui/Modal';
+import { Field, GhostButton, IconButton, Input, PrimaryButton } from '../../components/ui/form';
+import { StatusBadge } from '../../components/ui/Badge';
+
+const modulos: Modulo[] = [
+  'Catalogos',
+  'Flota',
+  'Viajes',
+  'Facturacion',
+  'Cobranza',
+  'Banco',
+  'Mantenimiento',
+  'Almacen',
+  'Programa',
+  'Monitoreo',
+  'Reportes',
+  'Configuracion',
+];
+
+// "Configuracion" siempre esta disponible para que el administrador de la
+// empresa pueda gestionar su cuenta -- no se ofrece como modulo contratable.
+const modulosContratables = modulos.filter((m) => m !== 'Configuracion');
+const MODULO_LABELS: Partial<Record<Modulo, string>> = {
+  Flota: 'Flota Digital 360',
+  Monitoreo: 'Monitoreo',
+  Cobranza: 'Cobranza',
+  Banco: 'Banco',
+  Mantenimiento: 'Mantenimiento',
+  Almacen: 'Almacen',
+};
+const etiquetaModulo = (m: Modulo) => MODULO_LABELS[m] ?? m;
+
+function permisos(...habilitados: Modulo[]): Record<Modulo, PermisoModulo> {
+  return modulos.reduce(
+    (acc, m) => ({ ...acc, [m]: { ver: habilitados.includes(m), crear: habilitados.includes(m), editar: habilitados.includes(m), eliminar: habilitados.includes(m) } }),
+    {} as Record<Modulo, PermisoModulo>,
+  );
+}
+
+// Mismos 3 roles de fabrica que trae cualquier empresa nueva (calcados de
+// supabase/schema.sql), sembrados con el empresa_id de la empresa recien
+// creada.
+function rolesDeFabrica(empresaId: string): Rol[] {
+  return [
+    {
+      id: `${empresaId}-rol-admin`,
+      nombre: 'Administrador',
+      descripcion: 'Acceso total al sistema, incluyendo configuracion.',
+      permisos: permisos(...modulos),
+      empresaId,
+    },
+    {
+      id: `${empresaId}-rol-trafico`,
+      nombre: 'Jefe de Trafico',
+      descripcion: 'Gestiona catalogos, viajes y programa diario.',
+      permisos: permisos('Catalogos', 'Viajes', 'Programa', 'Monitoreo'),
+      empresaId,
+    },
+    {
+      id: `${empresaId}-rol-facturacion`,
+      nombre: 'Facturacion',
+      descripcion: 'Gestiona la facturacion diaria; consulta el resto.',
+      permisos: permisos('Facturacion'),
+      empresaId,
+    },
+  ];
+}
+
+// Mismos catalogos por defecto que ya siembran las migraciones 025, 026,
+// 027, 028, 029, 031, 035 y 070 para empresas que existian al correrlas --
+// una empresa creada desde aqui necesita este mismo sembrado, o pantallas
+// como "Estatus operativo" en Unidades aparecen vacias.
+function estatusUnidadDeFabrica(empresaId: string): EstatusUnidadCustom[] {
+  return [
+    { id: `${empresaId}-estu-disponible`, nombre: 'Disponible', color: 'green', tipoEstatus: 'Disponible' },
+    { id: `${empresaId}-estu-ocupada`, nombre: 'Ocupada', color: 'red', tipoEstatus: 'Ocupada' },
+    { id: `${empresaId}-estu-mantenimiento`, nombre: 'En Mantenimiento', color: 'yellow', tipoEstatus: 'Ocupada' },
+    { id: `${empresaId}-estu-asignada`, nombre: 'Asignada', color: 'blue', tipoEstatus: 'Ocupada' },
+    { id: `${empresaId}-estu-servicio`, nombre: 'En Servicio', color: 'cyan', tipoEstatus: 'Ocupada' },
+  ];
+}
+
+function clasificacionesViajeDeFabrica(empresaId: string): ClasificacionViaje[] {
+  return [
+    { id: `${empresaId}-clv-1`, codigo: '1', clasificacion: 'SENCILLO', activo: true },
+    { id: `${empresaId}-clv-2`, codigo: '2', clasificacion: 'FULL', activo: true },
+  ];
+}
+
+function gruposUnidadDeFabrica(empresaId: string): GrupoUnidad[] {
+  return [
+    { id: `${empresaId}-gru-1`, codigo: '1', nombre: 'GENERAL', color: 'gray' },
+    { id: `${empresaId}-gru-2`, codigo: '2', nombre: 'TRACTOS', color: 'blue' },
+    { id: `${empresaId}-gru-3`, codigo: '3', nombre: 'REMOLQUES', color: 'amber' },
+    { id: `${empresaId}-gru-4`, codigo: '4', nombre: 'DOLLY', color: 'purple' },
+  ];
+}
+
+function gruposClienteDeFabrica(empresaId: string): GrupoCliente[] {
+  return [{ id: `${empresaId}-grc-1`, codigo: '1', nombre: 'GENERAL', color: 'gray' }];
+}
+
+function tiposViajeDeFabrica(empresaId: string): TipoViaje[] {
+  return [
+    { id: `${empresaId}-tpv-1`, codigo: '1', tipoViaje: 'LOCAL', activo: true },
+    { id: `${empresaId}-tpv-2`, codigo: '2', tipoViaje: 'NACIONAL', activo: true },
+  ];
+}
+
+function clasificacionesOperadorDeFabrica(empresaId: string): ClasificacionOperador[] {
+  return [
+    { id: `${empresaId}-clo-1`, codigo: '1', clasificacion: 'PROPIO', activo: true },
+    { id: `${empresaId}-clo-2`, codigo: '2', clasificacion: 'PERMISIONARIO', activo: true },
+    { id: `${empresaId}-clo-3`, codigo: '3', clasificacion: 'TORTON', activo: true },
+    { id: `${empresaId}-clo-4`, codigo: '4', clasificacion: 'FULL', activo: true },
+    { id: `${empresaId}-clo-5`, codigo: '5', clasificacion: 'TRACTOCAMION', activo: true },
+    { id: `${empresaId}-clo-6`, codigo: '6', clasificacion: 'CAMIONETAS', activo: true },
+  ];
+}
+
+function formatosImpresionDeFabrica(empresaId: string): FormatoImpresion[] {
+  return [
+    {
+      id: `${empresaId}-fmt-1`,
+      area: 'Viajes',
+      clave: 'real',
+      nombre: 'Con Importe Real',
+      descripcion: 'Incluye los conceptos de facturacion con sus importes reales. Para uso interno/oficina.',
+      activo: true,
+    },
+    {
+      id: `${empresaId}-fmt-2`,
+      area: 'Viajes',
+      clave: 'cero',
+      nombre: 'Con Valor $0',
+      descripcion: 'Muestra los mismos conceptos pero con importe en $0.00. Para entregar al operador.',
+      activo: true,
+    },
+  ];
+}
+
+function conceptosFacturacionDeFabrica(empresaId: string): ConceptoFacturacion[] {
+  const traslada16: ImpuestoConcepto[] = [
+    { impuesto: 'IVA 0%', aplica: false, predeterminado: false },
+    { impuesto: 'IVA 8%', aplica: false, predeterminado: false },
+    { impuesto: 'IVA 11%', aplica: false, predeterminado: false },
+    { impuesto: 'IVA 16%', aplica: true, predeterminado: true },
+  ];
+  const retiene4: ImpuestoConcepto[] = [
+    { impuesto: 'RETENCION IVA 0%', aplica: false, predeterminado: false },
+    { impuesto: 'RETENCION IVA 4%', aplica: true, predeterminado: true },
+  ];
+  const retieneNinguna: ImpuestoConcepto[] = [
+    { impuesto: 'RETENCION IVA 0%', aplica: false, predeterminado: false },
+    { impuesto: 'RETENCION IVA 4%', aplica: false, predeterminado: false },
+  ];
+  const conceptosRetiene = ['FLETE', 'REPARTOS', 'RECOLECCION', 'RENTA DE EQUIPO', 'FLETE EN FALSO', 'DIF. DE KILOMETRAJE', 'REEXPEDICION'];
+  const conceptosNoRetiene = [
+    'MANIOBRAS CARGADO',
+    'AUTOPISTAS',
+    'DEMORAS',
+    'SOBRE PESO',
+    'SEGUROS',
+    'APLICACIÓN DE ANTICIPO',
+    'ANTICIPO DEL BIEN O SERVICIO',
+    'ALMACENAJES',
+    'MANIOBRAS VACIO',
+    'PENSION',
+  ];
+  const base = (concepto: string, i: number, retenciones: ImpuestoConcepto[]): ConceptoFacturacion => ({
+    id: `${empresaId}-cf-${i}`,
+    codigo: String(i),
+    concepto,
+    activo: true,
+    traslados: traslada16,
+    retenciones,
+    incluirCalculoIngresosLiquidacion: false,
+    incluirCalculoLiquidacionPorcentajeFlete: false,
+    incluirReporteControlMovimientosInterterminal: false,
+    incluirReporteControlMovimientosTransporteGasolina: false,
+    claveProdServ: '',
+    claveProdServDescripcion: '',
+    claveUnidad: '',
+    claveUnidadNombre: '',
+    unidadMedida: '',
+    noIdentificacion: '',
+    objetoImpuesto: '',
+  });
+  let i = 0;
+  const items: ConceptoFacturacion[] = [];
+  for (const c of conceptosRetiene) {
+    i += 1;
+    items.push(base(c, i, retiene4));
+  }
+  for (const c of conceptosNoRetiene) {
+    i += 1;
+    items.push(base(c, i, retieneNinguna));
+  }
+  return items;
+}
+
+interface FormEmpresa {
+  nombre: string;
+  rfc: string;
+  telefono: string;
+  email: string;
+  licenciasContratadas: string;
+  costoPorLicencia: string;
+  modulosContratados: Modulo[];
+  featuresHabilitadas: string[];
+}
+
+const emptyFormEmpresa: FormEmpresa = {
+  nombre: '',
+  rfc: '',
+  telefono: '',
+  email: '',
+  licenciasContratadas: '1',
+  costoPorLicencia: '0',
+  modulosContratados: [...modulosContratables],
+  featuresHabilitadas: [],
+};
+
+function ModulosCheckboxes({
+  seleccionados,
+  onToggle,
+}: {
+  seleccionados: Modulo[];
+  onToggle: (m: Modulo) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-xl border border-line-800 p-3 sm:grid-cols-3">
+      {modulosContratables.map((m) => (
+        <label key={m} className="flex items-center gap-2 text-sm text-ink-300">
+          <input
+            type="checkbox"
+            checked={seleccionados.includes(m)}
+            onChange={() => onToggle(m)}
+            className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+          />
+          {etiquetaModulo(m)}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Personalizaciones que solo aplican a esta empresa (no a todas las demas),
+ * a diferencia de "Modulos contratados". El catalogo se registra en
+ * src/lib/featureFlags.ts; mientras no tenga entradas, esta seccion solo
+ * explica para que sirve.
+ */
+function FeaturesCheckboxes({ seleccionadas, onToggle }: { seleccionadas: string[]; onToggle: (key: string) => void }) {
+  if (FEATURE_FLAGS.length === 0) {
+    return (
+      <p className="rounded-xl border border-dashed border-line-800 p-3 text-xs text-ink-500">
+        Todavia no hay features personalizadas registradas. Se agregan en src/lib/featureFlags.ts cuando se construye un
+        cambio exclusivo para una empresa.
+      </p>
+    );
+  }
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-xl border border-line-800 p-3 sm:grid-cols-3">
+      {FEATURE_FLAGS.map((f) => (
+        <label key={f.key} className="flex items-center gap-2 text-sm text-ink-300" title={f.descripcion}>
+          <input
+            type="checkbox"
+            checked={seleccionadas.includes(f.key)}
+            onChange={() => onToggle(f.key)}
+            className="h-4 w-4 rounded border-line-600 bg-bg-900 accent-breco-500"
+          />
+          {f.label}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+export function EmpresasSection() {
+  const {
+    empresas,
+    roles,
+    usuarios,
+    estatusUnidades,
+    clasificacionesViaje,
+    gruposUnidad,
+    gruposCliente,
+    tiposViaje,
+    clasificacionesOperador,
+    formatosImpresion,
+    conceptosFacturacion,
+  } = useData();
+
+  const [modalNuevaOpen, setModalNuevaOpen] = useState(false);
+  const [creando, setCreando] = useState(false);
+  const [error, setError] = useState('');
+  const emptyNueva = { ...emptyFormEmpresa, adminNombre: '', adminEmail: '', adminPassword: '' };
+  const [formNueva, setFormNueva] = useState(emptyNueva);
+
+  const [empresaEditando, setEmpresaEditando] = useState<Empresa | null>(null);
+  const [formEditar, setFormEditar] = useState<FormEmpresa>(emptyFormEmpresa);
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+
+  const [empresaUsuarios, setEmpresaUsuarios] = useState<Empresa | null>(null);
+  const [usuarioReset, setUsuarioReset] = useState<Usuario | null>(null);
+  const [passwordNueva, setPasswordNueva] = useState('');
+  const [reseteando, setReseteando] = useState(false);
+  const [mensajeReset, setMensajeReset] = useState('');
+
+  function openNew() {
+    setFormNueva(emptyNueva);
+    setError('');
+    setModalNuevaOpen(true);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setCreando(true);
+    try {
+      const empresaId = uid('emp');
+
+      const resultado = await crearUsuarioAuth(formNueva.adminEmail.trim(), formNueva.adminPassword);
+      if ('error' in resultado) {
+        setError(resultado.error);
+        return;
+      }
+      const nuevoUid = resultado.id;
+
+      const nuevaEmpresa: Empresa = {
+        id: empresaId,
+        nombre: formNueva.nombre,
+        razonSocial: '',
+        rfc: formNueva.rfc,
+        regimenFiscal: '',
+        direccion: '',
+        telefono: formNueva.telefono,
+        email: formNueva.email,
+        sitioWeb: '',
+        logoDataUrl: '',
+        estatus: 'activa',
+        csfStoragePath: '',
+        alertasVencimientos: DEFAULT_ALERTAS_VENCIMIENTOS,
+        licenciasContratadas: Number(formNueva.licenciasContratadas) || 1,
+        costoPorLicencia: Number(formNueva.costoPorLicencia) || 0,
+        modulosContratados: formNueva.modulosContratados,
+        featuresHabilitadas: formNueva.featuresHabilitadas,
+        facturamaAmbiente: 'sandbox',
+        facturamaCsdRegistrado: false,
+      };
+      await empresas.add(nuevaEmpresa);
+
+      for (const rol of rolesDeFabrica(empresaId)) {
+        await roles.add(rol);
+      }
+
+      for (const item of estatusUnidadDeFabrica(empresaId)) await estatusUnidades.add(item);
+      for (const item of clasificacionesViajeDeFabrica(empresaId)) await clasificacionesViaje.add(item);
+      for (const item of gruposUnidadDeFabrica(empresaId)) await gruposUnidad.add(item);
+      for (const item of gruposClienteDeFabrica(empresaId)) await gruposCliente.add(item);
+      for (const item of tiposViajeDeFabrica(empresaId)) await tiposViaje.add(item);
+      for (const item of clasificacionesOperadorDeFabrica(empresaId)) await clasificacionesOperador.add(item);
+      for (const item of formatosImpresionDeFabrica(empresaId)) await formatosImpresion.add(item);
+      for (const item of conceptosFacturacionDeFabrica(empresaId)) await conceptosFacturacion.add(item);
+
+      await usuarios.add({
+        id: nuevoUid,
+        nombre: formNueva.adminNombre,
+        email: formNueva.adminEmail.trim(),
+        telefono: '',
+        rolId: `${empresaId}-rol-admin`,
+        estatus: 'activo',
+        empresaId,
+      });
+
+      setModalNuevaOpen(false);
+      alert(`Empresa creada. Su administrador ya puede iniciar sesion con ${formNueva.adminEmail.trim()} y la contrasena capturada.`);
+    } finally {
+      setCreando(false);
+    }
+  }
+
+  function openEditar(e: Empresa) {
+    setEmpresaEditando(e);
+    setFormEditar({
+      nombre: e.nombre,
+      rfc: e.rfc,
+      telefono: e.telefono,
+      email: e.email,
+      licenciasContratadas: String(e.licenciasContratadas),
+      costoPorLicencia: String(e.costoPorLicencia),
+      modulosContratados: e.modulosContratados.length > 0 ? e.modulosContratados : [...modulosContratables],
+      featuresHabilitadas: e.featuresHabilitadas,
+    });
+  }
+
+  async function handleGuardarEdicion(e: React.FormEvent) {
+    e.preventDefault();
+    if (!empresaEditando) return;
+    setGuardandoEdicion(true);
+    try {
+      await empresas.update(empresaEditando.id, {
+        nombre: formEditar.nombre,
+        rfc: formEditar.rfc,
+        telefono: formEditar.telefono,
+        email: formEditar.email,
+        licenciasContratadas: Number(formEditar.licenciasContratadas) || 1,
+        costoPorLicencia: Number(formEditar.costoPorLicencia) || 0,
+        modulosContratados: formEditar.modulosContratados,
+        featuresHabilitadas: formEditar.featuresHabilitadas,
+      });
+      setEmpresaEditando(null);
+    } finally {
+      setGuardandoEdicion(false);
+    }
+  }
+
+  async function toggleSuspendida(e: Empresa) {
+    const suspender = e.estatus !== 'suspendida';
+    const mensaje = suspender
+      ? `Suspender el servicio de "${e.nombre}"? Sus usuarios no podran usar el sistema hasta que se reactive.`
+      : `Reactivar el servicio de "${e.nombre}"?`;
+    if (!confirm(mensaje)) return;
+    await empresas.update(e.id, { estatus: suspender ? 'suspendida' : 'activa' });
+  }
+
+  function toggleModuloNueva(m: Modulo) {
+    setFormNueva((f) => ({
+      ...f,
+      modulosContratados: f.modulosContratados.includes(m) ? f.modulosContratados.filter((x) => x !== m) : [...f.modulosContratados, m],
+    }));
+  }
+
+  function toggleModuloEditar(m: Modulo) {
+    setFormEditar((f) => ({
+      ...f,
+      modulosContratados: f.modulosContratados.includes(m) ? f.modulosContratados.filter((x) => x !== m) : [...f.modulosContratados, m],
+    }));
+  }
+
+  function toggleFeatureNueva(key: string) {
+    setFormNueva((f) => ({
+      ...f,
+      featuresHabilitadas: f.featuresHabilitadas.includes(key) ? f.featuresHabilitadas.filter((x) => x !== key) : [...f.featuresHabilitadas, key],
+    }));
+  }
+
+  function toggleFeatureEditar(key: string) {
+    setFormEditar((f) => ({
+      ...f,
+      featuresHabilitadas: f.featuresHabilitadas.includes(key) ? f.featuresHabilitadas.filter((x) => x !== key) : [...f.featuresHabilitadas, key],
+    }));
+  }
+
+  function openResetPassword(u: Usuario) {
+    setUsuarioReset(u);
+    setPasswordNueva('');
+    setMensajeReset('');
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!usuarioReset) return;
+    setReseteando(true);
+    setMensajeReset('');
+    try {
+      const resultado = await resetearPasswordUsuario(usuarioReset.id, passwordNueva);
+      if ('error' in resultado) {
+        setMensajeReset(resultado.error);
+        return;
+      }
+      setMensajeReset(`Listo. Comparte la nueva contrasena con ${usuarioReset.nombre} (${usuarioReset.email}).`);
+    } finally {
+      setReseteando(false);
+    }
+  }
+
+  const columns: Column<Empresa>[] = [
+    { header: 'Empresa', render: (e) => <span className="font-medium text-ink-100">{e.nombre}</span> },
+    { header: 'RFC', render: (e) => e.rfc || 'N/D' },
+    {
+      header: 'Usuarios',
+      render: (e) => {
+        const total = usuarios.items.filter((u) => u.empresaId === e.id).length;
+        return (
+          <span>
+            {total} / {e.licenciasContratadas} licencias
+          </span>
+        );
+      },
+    },
+    {
+      header: 'Modulos',
+      render: (e) => (
+        <div className="flex max-w-xs flex-wrap gap-1">
+          {e.modulosContratados.length === 0 ? (
+            <span className="rounded-full border border-line-700 bg-bg-900 px-2 py-0.5 text-[11px] text-ink-400">Todos</span>
+          ) : (
+            e.modulosContratados.map((m) => (
+              <span key={m} className="rounded-full border border-line-700 bg-bg-900 px-2 py-0.5 text-[11px] text-ink-400">
+                {etiquetaModulo(m)}
+              </span>
+            ))
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Costo mensual',
+      render: (e) => `$${(e.costoPorLicencia * e.licenciasContratadas).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`,
+    },
+    {
+      header: 'Estatus',
+      render: (e) => (
+        <StatusBadge status={e.estatus} tone={e.estatus === 'activa' ? 'green' : e.estatus === 'suspendida' ? 'red' : 'gray'} />
+      ),
+    },
+    {
+      header: '',
+      render: (e) => (
+        <div className="flex justify-end gap-1">
+          <IconButton onClick={() => setEmpresaUsuarios(e)} title="Ver usuarios">
+            <Users size={15} />
+          </IconButton>
+          <IconButton
+            onClick={() => toggleSuspendida(e)}
+            title={e.estatus === 'suspendida' ? 'Reactivar servicio' : 'Suspender servicio'}
+            className={e.estatus === 'suspendida' ? 'hover:text-emerald-400' : 'hover:text-breco-500'}
+          >
+            {e.estatus === 'suspendida' ? <Power size={15} /> : <Ban size={15} />}
+          </IconButton>
+        </div>
+      ),
+      className: 'text-right',
+    },
+  ];
+
+  const usuariosDeEmpresa = empresaUsuarios ? usuarios.items.filter((u) => u.empresaId === empresaUsuarios.id) : [];
+
+  return (
+    <div>
+      <PageHeader
+        title="Empresas"
+        subtitle="Torre de control: licencias, modulos contratados, costos y estatus de cada cliente de la plataforma."
+        addLabel="Nueva empresa"
+        onAdd={openNew}
+      />
+
+      <CrudTable
+        columns={columns}
+        rows={empresas.items}
+        keyFn={(e) => e.id}
+        onEdit={openEditar}
+        onDelete={() => {}}
+        canEdit
+        canDelete={false}
+        emptyMessage="Todavia no hay empresas registradas en la plataforma."
+      />
+
+      {modalNuevaOpen && (
+        <Modal
+          title="Nueva empresa"
+          subtitle="Se crea la empresa y su primer usuario administrador en un solo paso"
+          onClose={() => setModalNuevaOpen(false)}
+          wide
+        >
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
+              <Building2 size={16} />
+              Datos de la empresa
+            </div>
+            <div className="sm:col-span-2">
+              <Field label="Nombre comercial">
+                <Input required value={formNueva.nombre} onChange={(e) => setFormNueva({ ...formNueva, nombre: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="RFC">
+              <Input value={formNueva.rfc} onChange={(e) => setFormNueva({ ...formNueva, rfc: e.target.value })} />
+            </Field>
+            <Field label="Telefono">
+              <Input value={formNueva.telefono} onChange={(e) => setFormNueva({ ...formNueva, telefono: e.target.value })} />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Email de la empresa">
+                <Input type="email" value={formNueva.email} onChange={(e) => setFormNueva({ ...formNueva, email: e.target.value })} />
+              </Field>
+            </div>
+
+            <div className="mt-2 flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
+              Licenciamiento
+            </div>
+            <Field label="Licencias contratadas">
+              <Input
+                type="number"
+                min={1}
+                required
+                value={formNueva.licenciasContratadas}
+                onChange={(e) => setFormNueva({ ...formNueva, licenciasContratadas: e.target.value })}
+              />
+            </Field>
+            <Field label="Costo por licencia (MXN/mes)">
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={formNueva.costoPorLicencia}
+                onChange={(e) => setFormNueva({ ...formNueva, costoPorLicencia: e.target.value })}
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Modulos contratados">
+                <ModulosCheckboxes seleccionados={formNueva.modulosContratados} onToggle={toggleModuloNueva} />
+              </Field>
+            </div>
+            <div className="sm:col-span-2">
+              <Field label="Features personalizadas">
+                <FeaturesCheckboxes seleccionadas={formNueva.featuresHabilitadas} onToggle={toggleFeatureNueva} />
+              </Field>
+            </div>
+
+            <div className="mt-2 flex items-center gap-2 text-card-header font-medium text-ink-100 sm:col-span-2">
+              <UserPlus size={16} />
+              Primer usuario administrador
+            </div>
+            <div className="sm:col-span-2">
+              <Field label="Nombre completo">
+                <Input
+                  required
+                  value={formNueva.adminNombre}
+                  onChange={(e) => setFormNueva({ ...formNueva, adminNombre: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field label="Email">
+              <Input
+                type="email"
+                required
+                value={formNueva.adminEmail}
+                onChange={(e) => setFormNueva({ ...formNueva, adminEmail: e.target.value })}
+              />
+            </Field>
+            <Field label="Contrasena temporal">
+              <Input
+                type="text"
+                required
+                minLength={6}
+                placeholder="Minimo 6 caracteres"
+                value={formNueva.adminPassword}
+                onChange={(e) => setFormNueva({ ...formNueva, adminPassword: e.target.value })}
+              />
+            </Field>
+
+            {error && <p className="text-sm text-breco-500 sm:col-span-2">{error}</p>}
+
+            <div className="mt-2 flex justify-end gap-2 sm:col-span-2">
+              <GhostButton type="button" onClick={() => setModalNuevaOpen(false)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="submit" disabled={creando}>
+                {creando ? 'Creando...' : 'Crear empresa'}
+              </PrimaryButton>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {empresaEditando && (
+        <Modal
+          title={`Editar empresa: ${empresaEditando.nombre}`}
+          subtitle="Datos de contacto, licenciamiento y modulos contratados"
+          onClose={() => setEmpresaEditando(null)}
+          wide
+        >
+          <form onSubmit={handleGuardarEdicion} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Field label="Nombre comercial">
+                <Input required value={formEditar.nombre} onChange={(e) => setFormEditar({ ...formEditar, nombre: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="RFC">
+              <Input value={formEditar.rfc} onChange={(e) => setFormEditar({ ...formEditar, rfc: e.target.value })} />
+            </Field>
+            <Field label="Telefono">
+              <Input value={formEditar.telefono} onChange={(e) => setFormEditar({ ...formEditar, telefono: e.target.value })} />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Email de la empresa">
+                <Input type="email" value={formEditar.email} onChange={(e) => setFormEditar({ ...formEditar, email: e.target.value })} />
+              </Field>
+            </div>
+
+            <Field label="Licencias contratadas">
+              <Input
+                type="number"
+                min={1}
+                required
+                value={formEditar.licenciasContratadas}
+                onChange={(e) => setFormEditar({ ...formEditar, licenciasContratadas: e.target.value })}
+              />
+            </Field>
+            <Field label="Costo por licencia (MXN/mes)">
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={formEditar.costoPorLicencia}
+                onChange={(e) => setFormEditar({ ...formEditar, costoPorLicencia: e.target.value })}
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Modulos contratados">
+                <ModulosCheckboxes seleccionados={formEditar.modulosContratados} onToggle={toggleModuloEditar} />
+              </Field>
+            </div>
+            <div className="sm:col-span-2">
+              <Field label="Features personalizadas">
+                <FeaturesCheckboxes seleccionadas={formEditar.featuresHabilitadas} onToggle={toggleFeatureEditar} />
+              </Field>
+            </div>
+
+            <div className="mt-2 flex justify-end gap-2 sm:col-span-2">
+              <GhostButton type="button" onClick={() => setEmpresaEditando(null)}>
+                Cancelar
+              </GhostButton>
+              <PrimaryButton type="submit" disabled={guardandoEdicion}>
+                {guardandoEdicion ? 'Guardando...' : 'Guardar cambios'}
+              </PrimaryButton>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {empresaUsuarios && (
+        <Modal
+          title={`Usuarios de ${empresaUsuarios.nombre}`}
+          subtitle={`${usuariosDeEmpresa.length} de ${empresaUsuarios.licenciasContratadas} licencias contratadas`}
+          onClose={() => setEmpresaUsuarios(null)}
+          wide
+        >
+          <div className="overflow-hidden rounded-xl border border-line-800">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-line-800 bg-bg-700/50 text-xs uppercase tracking-wide text-ink-500">
+                  <th className="px-3 py-2 font-medium">Nombre</th>
+                  <th className="px-3 py-2 font-medium">Email</th>
+                  <th className="px-3 py-2 font-medium">Estatus</th>
+                  <th className="px-3 py-2 font-medium text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuariosDeEmpresa.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-6 text-center text-ink-600">
+                      Esta empresa todavia no tiene usuarios.
+                    </td>
+                  </tr>
+                )}
+                {usuariosDeEmpresa.map((u) => (
+                  <tr key={u.id} className="border-b border-line-800/70 last:border-0">
+                    <td className="px-3 py-2 text-ink-300">{u.nombre}</td>
+                    <td className="px-3 py-2 text-ink-300">{u.email}</td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={u.estatus} tone={u.estatus === 'activo' ? 'green' : 'gray'} />
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <IconButton onClick={() => openResetPassword(u)} title="Restablecer contrasena">
+                        <KeyRound size={15} />
+                      </IconButton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Modal>
+      )}
+
+      {usuarioReset && (
+        <Modal
+          title={`Restablecer contrasena: ${usuarioReset.nombre}`}
+          subtitle={usuarioReset.email}
+          onClose={() => setUsuarioReset(null)}
+        >
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <Field label="Contrasena nueva">
+              <Input
+                type="text"
+                required
+                minLength={6}
+                placeholder="Minimo 6 caracteres"
+                value={passwordNueva}
+                onChange={(e) => setPasswordNueva(e.target.value)}
+              />
+            </Field>
+            {mensajeReset && <p className="text-sm text-ink-300">{mensajeReset}</p>}
+            <div className="flex justify-end gap-2">
+              <GhostButton type="button" onClick={() => setUsuarioReset(null)}>
+                Cerrar
+              </GhostButton>
+              <PrimaryButton type="submit" disabled={reseteando}>
+                {reseteando ? 'Guardando...' : 'Restablecer'}
+              </PrimaryButton>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
+  );
+}

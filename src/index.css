@@ -1,0 +1,289 @@
+@import 'tailwindcss';
+
+@theme {
+  /*
+   * Identidad tipografica corporativa (sistema de diseño):
+   * - IBM Plex Sans para titulos, encabezados y navegacion (--font-heading).
+   * - Inter para formularios, tablas, botones e indicadores (--font-sans,
+   *   sigue siendo el default de <body> asi que todo el contenido general
+   *   ya usa Inter sin tocar cada componente).
+   * Los nombres de sistema quedan como fallback si las fuentes web tardan
+   * en cargar o el usuario esta offline.
+   */
+  --font-heading:
+    'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /*
+   * Jerarquia tipografica global: al redefinir aqui los tamaños de fuente
+   * que Tailwind ya genera como utilidades (text-xl, text-2xl, etc.) y los
+   * pesos (font-bold), TODA la app hereda la nueva jerarquia sin tener que
+   * editar cada pantalla -- exactamente igual al patron ya usado arriba
+   * para los colores de tema claro/oscuro.
+   *
+   *   Titulos principales   (text-xl + font-bold): 22px / 600
+   *   Indicadores           (text-2xl + font-semibold): 26px / 600
+   *   Subtitulos            (text-sm, sin negrita): 14px / 400
+   *   Informacion secundaria(text-xs, sin negrita): 12px / 400
+   *
+   * "font-bold" pasa de 700 a 600: evita el uso de negritas excesivas en
+   * toda la interfaz (los titulos ya distinguen su jerarquia por tamaño).
+   */
+  --font-weight-bold: 600;
+
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.55;
+  --text-xl: 1.375rem; /* 22px */
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.625rem; /* 26px */
+  --text-2xl--line-height: 1.2;
+
+  /*
+   * Tokens semanticos nuevos (Tailwind genera automaticamente las
+   * utilidades text-card-header / text-nav / text-table / text-button a
+   * partir de estas variables). Se aplican en los componentes compartidos
+   * (form.tsx, CrudTable.tsx, Sidebar.tsx) para que cubran toda la app.
+   */
+  --text-card-header: 0.8125rem; /* 13px */
+  --text-card-header--line-height: 1.4;
+  --text-nav: 0.9375rem; /* 15px */
+  --text-nav--line-height: 1.45;
+  --text-table: 0.8125rem; /* 13px */
+  --text-table--line-height: 1.5;
+  --text-button: 0.8125rem; /* 13px */
+  --text-button--line-height: 1;
+
+  --color-bg-950: #08090d;
+  --color-bg-900: #0c0e14;
+  --color-bg-800: #11141c;
+  --color-bg-700: #171b26;
+  --color-bg-600: #1e2330;
+  --color-bg-500: #2a3040;
+
+  --color-line-800: #1b1f2a;
+  --color-line-700: #262c3a;
+  --color-line-600: #333b4d;
+
+  --color-ink-100: #f5f6f8;
+  --color-ink-300: #c7cbd6;
+  --color-ink-500: #8992a6;
+  --color-ink-600: #6b7385;
+
+  /* Azul es el acento por defecto (confirmado por el usuario sobre la
+     referencia con sidebar oscuro + acento azul); rojo pasa a ser una
+     variante seleccionable mas, ver el bloque data-accent='red' abajo. */
+  --color-breco-500: #0071e3;
+  --color-breco-600: #0058b0;
+  --color-breco-700: #00458c;
+  --color-breco-glow: rgba(0, 113, 227, 0.35);
+
+  /* Paleta fija del sidebar: siempre azul-marino oscuro, sin importar el
+     tema claro/oscuro elegido para el resto de la app (mismo patron que
+     paneles tipo Apple/Cisco, donde la navegacion mantiene su identidad
+     aunque el contenido cambie de tema). */
+  --color-sb-bg: #001b3d;
+  --color-sb-bg-active: #0a2c54;
+  --color-sb-border: #0d2b4d;
+  --color-sb-text: #eef3fb;
+  --color-sb-text-muted: #93a8c9;
+}
+
+/*
+ * Tema claro/oscuro: Tailwind v4 genera cada utilidad (bg-bg-900,
+ * text-ink-500, etc.) como una referencia real a la custom property
+ * --color-*, no como un valor fijo -- por eso alcanza con redefinir esas
+ * variables aqui para que TODA la app (paginas, tablas, formularios) hechas
+ * con esas mismas clases cambien de tema solas, sin tocar cada componente.
+ * ThemeContext.tsx pone data-theme="light"/"dark" en <html>.
+ */
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Gris claro visible (no blanco) de fondo, con las tarjetas en blanco
+     encima para que se note el contraste -- pedido explicito del usuario
+     de que la pantalla ya no se vea blanca. */
+  --color-bg-950: #e7e9ec;
+  --color-bg-900: #ffffff;
+  --color-bg-800: #ffffff;
+  --color-bg-700: #eef0f2;
+  --color-bg-600: #e0e2e6;
+  --color-bg-500: #cbced4;
+
+  --color-line-800: #e5e5ea;
+  --color-line-700: #d2d2d7;
+  --color-line-600: #b8b8bf;
+
+  --color-ink-100: #12141c;
+  --color-ink-300: #454b58;
+  --color-ink-500: #6b7280;
+  --color-ink-600: #8991a1;
+
+  --color-breco-glow: rgba(0, 113, 227, 0.16);
+
+  /* Variantes "-400" de los colores de acento de Tailwind: se usan como
+     color de TEXTO sobre fondos claros/tintados (badges, iconos de
+     StatCard) y el tono original queda muy claro para leerse sobre blanco;
+     el "-500" (usado casi siempre como fondo translucido al 15%) se deja
+     igual porque un tinte palido se ve bien en ambos temas. */
+  --color-emerald-400: #059669;
+  --color-red-400: #dc2626;
+  --color-amber-400: #b45309;
+  --color-blue-400: #2563eb;
+  --color-violet-400: #7c3aed;
+  --color-orange-400: #ea580c;
+  --color-pink-400: #db2777;
+  --color-cyan-400: #0891b2;
+  --color-yellow-400: #a16207;
+  --color-teal-400: #0d9488;
+  --color-indigo-400: #4f46e5;
+  --color-lime-400: #4d7c0f;
+  --color-sky-400: #0284c7;
+}
+
+/*
+ * Acento de marca seleccionable (Configuracion -> Temas): "breco" sigue
+ * siendo el nombre de la variable (para no tocar cada className del
+ * proyecto que ya usa bg-breco-500/text-breco-500/etc.), pero su color
+ * real cambia segun data-accent en <html>. Rojo (el actual) es el
+ * default y no necesita regla propia. El brillo (glow) usa mas opacidad
+ * en oscuro que en claro, igual que ya hacia el rojo original.
+ */
+:root[data-accent='red'] {
+  --color-breco-500: #e11d2e;
+  --color-breco-600: #c8142a;
+  --color-breco-700: #9f0f22;
+  --color-breco-glow: rgba(225, 29, 46, 0.35);
+}
+:root[data-accent='green'] {
+  --color-breco-500: #059669;
+  --color-breco-600: #047857;
+  --color-breco-700: #065f46;
+  --color-breco-glow: rgba(5, 150, 105, 0.35);
+}
+:root[data-accent='purple'] {
+  --color-breco-500: #7c3aed;
+  --color-breco-600: #6d28d9;
+  --color-breco-700: #5b21b6;
+  --color-breco-glow: rgba(124, 58, 237, 0.35);
+}
+
+:root[data-theme='light'][data-accent='red'] {
+  --color-breco-glow: rgba(225, 29, 46, 0.16);
+}
+:root[data-theme='light'][data-accent='green'] {
+  --color-breco-glow: rgba(5, 150, 105, 0.16);
+}
+:root[data-theme='light'][data-accent='purple'] {
+  --color-breco-glow: rgba(124, 58, 237, 0.16);
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-950);
+  color: var(--color-ink-100);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* Titulos, encabezados de tarjeta (h2/h3) y navegacion van en IBM Plex Sans;
+   el peso (600-700 originalmente, hoy 600) lo sigue poniendo cada componente. */
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-700);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-line-600);
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+/* Camion de la linea de tiempo de avance (Pantalla Aeropuerto): un ligero
+   "manejar" en su lugar (rebote + cabeceo) para que se vea con movimiento
+   real y no como una imagen estatica, sin fingir velocidad de avance --
+   la posicion a lo largo de la ruta la sigue marcando el porcentaje real. */
+@keyframes camion-manejando {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+}
+
+/* Avatar del widget de soporte: flotar suave permanente para que no se vea
+   estatico, mas un saludo (giro de mano) periodico dentro del mismo ciclo. */
+@keyframes soporte-flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes soporte-saludo {
+  0%,
+  16%,
+  100% {
+    transform: rotate(0deg);
+  }
+  4% {
+    transform: rotate(-10deg);
+  }
+  8% {
+    transform: rotate(9deg);
+  }
+  12% {
+    transform: rotate(-5deg);
+  }
+}
+
+/*
+ * Tamano de pagina fijo para todos los formatos de impresion "estilo CFDI"
+ * (Factura, Nota de Credito, Pago, Viaje, Carta Porte): sin esto, cuanto
+ * contenido entra en una hoja depende de los margenes que cada navegador
+ * use por default (varian entre Chrome/Firefox/Edge e incluso segun la
+ * configuracion de impresion del usuario), asi que el salto de pagina
+ * puede caer en un lugar distinto al que se ve en pantalla. Carta (Letter)
+ * porque es el tamano que usa este PDF de referencia en Mexico.
+ */
+@page {
+  size: letter;
+  margin: 7mm;
+}
